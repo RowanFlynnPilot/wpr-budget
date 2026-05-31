@@ -114,6 +114,12 @@ function Ledger({ b }) {
   const levyTrend = b.levy_history;
   const levyFirst = levyTrend[0];
   const levyLast = levyTrend[levyTrend.length - 1];
+  const levyPrev = levyTrend[levyTrend.length - 2];
+  // Masthead deltas computed from the (self-consistent) levy history, not
+  // hardcoded — see the methodology note re: the county summary page's $200K
+  // higher figure.
+  const levyPctChange = (levyLast.levy / levyPrev.levy - 1) * 100;
+  const ratePctChange = (levyLast.rate / levyPrev.rate - 1) * 100;
 
   // Adopted department levy over time. Dormant until >=2 adopted years exist in
   // history (i.e. once prior-year PDFs are ingested); then the six biggest
@@ -188,8 +194,8 @@ function Ledger({ b }) {
 
         <div className="stat-strip">
           <Stat label="Total budget" value={compact(b.meta.total_expenditures)} sub="all funds, 2026" />
-          <Stat label="County tax levy" value={compact(b.meta.tax_levy)} sub={<Delta value={5.99} invertColor />} />
-          <Stat label="Mill rate" value={"$" + b.meta.tax_rate.toFixed(2)} sub={<Delta value={-4.71} invertColor />} />
+          <Stat label="County tax levy" value={compact(b.meta.tax_levy)} sub={<Delta value={levyPctChange} />} />
+          <Stat label="Mill rate" value={"$" + b.meta.tax_rate.toFixed(2)} sub={<Delta value={ratePctChange} />} />
         </div>
       </header>
 
@@ -265,7 +271,7 @@ function Ledger({ b }) {
                   <span className="d-spend">{usd(spend)}</span>
                   <span className="d-pers hide-sm">{compact(d.personnel_expenditures)}</span>
                   <span className="d-levy">{compact(d.tax_levy)}</span>
-                  <span className="d-change hide-sm"><Delta value={d.levy_difference} invertColor money /></span>
+                  <span className="d-change hide-sm"><Delta value={d.levy_difference} money /></span>
                   <span className="chev-col"><ChevronDown size={16} className="chev" /></span>
                 </button>
                 {isOpen && (
@@ -429,6 +435,13 @@ function Ledger({ b }) {
         <p className="muted">
           Built and maintained by Wausau Pilot &amp; Review. Department and fund detail extracted directly from the
           county&rsquo;s published budget document; column totals reconciled against the county&rsquo;s own figures.
+        </p>
+        <p className="muted">
+          <b>A note on the levy total:</b> the county&rsquo;s budget-summary page reports a 2026 levy of $61.4
+          million, a 5.99% increase. Its own detailed fund and department tables — which this tool uses, and which
+          the 10-year levy history matches — total $61.2 million, a 5.6% increase. The $200,000 gap traces to the
+          Debt Service Fund ($4.71M on the summary page vs. $4.51M in the detail). We show the self-consistent
+          detail figure throughout.
         </p>
       </footer>
     </div>
