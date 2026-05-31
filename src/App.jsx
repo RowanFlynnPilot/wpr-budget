@@ -29,14 +29,15 @@ const deptSpend = (d) => d.operating_expenditures + d.personnel_expenditures;
 const LINE_COLORS = ["#16584a", "#9a7b2e", "#a8492f", "#2f6f4f", "#3d5a80", "#7a3b6b"];
 
 /* ---------- small components ---------- */
-function Delta({ value, invertColor = false }) {
+function Delta({ value, invertColor = false, money = false }) {
   if (value === null || value === undefined) return <span className="muted">—</span>;
   const up = value > 0;
   const good = invertColor ? !up : up;
   const Icon = up ? ArrowUpRight : ArrowDownRight;
+  const sign = value > 0 ? "+" : value < 0 ? "−" : "";
   return (
     <span className="delta" style={{ color: good ? "var(--neg)" : "var(--pos)" }}>
-      <Icon size={13} strokeWidth={2.5} /> {pct(value)}
+      <Icon size={13} strokeWidth={2.5} /> {money ? sign + compact(Math.abs(value)) : pct(value)}
     </span>
   );
 }
@@ -71,6 +72,7 @@ function Ledger({ b }) {
   const [sortKey, setSortKey] = useState("spend");
   const [sortDir, setSortDir] = useState("desc");
   const [open, setOpen] = useState(null);
+  const [active, setActive] = useState("where");
 
   const gfRows = b.general_fund[flow];
   const gfTotal = useMemo(() => gfRows.reduce((s, r) => s + r.proposed_next, 0), [gfRows]);
@@ -142,6 +144,17 @@ function Ledger({ b }) {
     ["debt", "Debt"],
   ];
 
+  // Scroll-spy: highlight the tab for whichever section sits near mid-viewport.
+  useEffect(() => {
+    const els = sections.map(([id]) => document.getElementById(id)).filter(Boolean);
+    const obs = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) setActive(e.target.id); }),
+      { rootMargin: "-45% 0px -50% 0px" }
+    );
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
+
   return (
     <div className="ftm">
       <style>{CSS}</style>
@@ -182,7 +195,7 @@ function Ledger({ b }) {
 
       <nav className="subnav">
         {sections.map(([id, label]) => (
-          <a key={id} href={"#" + id}>{label}</a>
+          <a key={id} href={"#" + id} className={active === id ? "active" : ""}>{label}</a>
         ))}
       </nav>
 
@@ -235,7 +248,7 @@ function Ledger({ b }) {
             <button className={sortKey === "spend" ? "sorted" : ""} onClick={() => setSort("spend")}>Total spending</button>
             <button className={"hide-sm " + (sortKey === "personnel" ? "sorted" : "")} onClick={() => setSort("personnel")}>Personnel</button>
             <button className={sortKey === "levy" ? "sorted" : ""} onClick={() => setSort("levy")}>Tax levy</button>
-            <button className={"hide-sm " + (sortKey === "change" ? "sorted" : "")} onClick={() => setSort("change")}>vs &rsquo;24</button>
+            <button className={"hide-sm " + (sortKey === "change" ? "sorted" : "")} onClick={() => setSort("change")}>vs &rsquo;25</button>
             <span className="chev-col" />
           </div>
 
@@ -252,7 +265,7 @@ function Ledger({ b }) {
                   <span className="d-spend">{usd(spend)}</span>
                   <span className="d-pers hide-sm">{compact(d.personnel_expenditures)}</span>
                   <span className="d-levy">{compact(d.tax_levy)}</span>
-                  <span className="d-change hide-sm"><Delta value={d.levy_difference} invertColor /></span>
+                  <span className="d-change hide-sm"><Delta value={d.levy_difference} invertColor money /></span>
                   <span className="chev-col"><ChevronDown size={16} className="chev" /></span>
                 </button>
                 {isOpen && (
@@ -268,10 +281,10 @@ function Ledger({ b }) {
                       ]} total={["Total funding", d.operating_revenues + d.tax_levy]} />
                     </div>
                     <p className="detail-note">
-                      The levy supporting {d.department.replace(/&rsquo;/g, "'")} {d.levy_difference === null ? "is unchanged from 2024." :
+                      The levy supporting {d.department.replace(/&rsquo;/g, "'")} {d.levy_difference === null ? "is unchanged from 2025." :
                         d.levy_difference >= 0
-                          ? `rose ${usd(d.levy_difference)} from 2024.`
-                          : `fell ${usd(Math.abs(d.levy_difference))} from 2024.`}
+                          ? `rose ${usd(d.levy_difference)} from 2025.`
+                          : `fell ${usd(Math.abs(d.levy_difference))} from 2025.`}
                       {d.tax_levy < 0 && " It returns more revenue to the county than it costs to run."}
                     </p>
                   </div>
@@ -507,6 +520,8 @@ function Spark({ values, tone, className = "" }) {
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=Playfair+Display:wght@900&display=swap');
 
+html{scroll-behavior:smooth;}
+
 .ftm {
   --paper:#f5f1e8; --paper-2:#efe9da; --ink:#1c1a16; --ink-soft:#6b6555; --rule:#ddd5c2;
   --accent:#16584a; --pos:#2f6f4f; --neg:#a8492f; --gold:#9a7b2e;
@@ -546,20 +561,25 @@ const CSS = `
 .masthead .dek{font-size:18px; max-width:60ch; color:#3a362d; margin:16px 0 0; line-height:1.55;}
 .stat-strip{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--rule);
   border:1px solid var(--rule); margin-top:30px;}
-.stat{background:var(--paper); padding:18px 20px;}
+.stat{background:var(--paper); padding:18px 20px; transition:background .15s ease;}
+.stat:hover{background:var(--paper-2);}
 .stat-label{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); font-weight:600;}
 .stat-value{font-family:var(--serif); font-size:38px; font-weight:600; line-height:1; margin:8px 0 6px; letter-spacing:-0.02em;}
 .stat-sub{font-size:13px; color:var(--ink-soft);}
 
-/* subnav */
-.subnav{position:sticky; top:0; z-index:5; display:flex; gap:4px; flex-wrap:wrap;
-  background:var(--paper); border-bottom:1px solid var(--rule); padding:10px 0; margin-bottom:8px;}
-.subnav a{font-size:13px; font-weight:600; color:var(--ink-soft); text-decoration:none;
-  padding:5px 12px; border-radius:2px;}
+/* subnav — pronounced tab bar with an active scroll-spy underline */
+.subnav{position:sticky; top:0; z-index:5; display:flex; gap:2px; flex-wrap:wrap;
+  background:var(--paper); border-bottom:2px solid var(--ink); padding:0; margin-bottom:8px;
+  box-shadow:0 7px 14px -12px rgba(28,26,22,.4);}
+.subnav a{position:relative; font-size:13px; font-weight:600; letter-spacing:.01em;
+  color:var(--ink-soft); text-decoration:none; padding:13px 16px 12px;
+  border-bottom:2px solid transparent; margin-bottom:-2px;
+  transition:color .15s ease, background .15s ease, border-color .15s ease;}
 .subnav a:hover{color:var(--ink); background:var(--paper-2);}
+.subnav a.active{color:var(--accent); border-bottom-color:var(--accent);}
 
 /* sections */
-.block{padding:46px 0; border-bottom:1px solid var(--rule);}
+.block{padding:46px 0; border-bottom:1px solid var(--rule); scroll-margin-top:54px;}
 .sec-head{max-width:62ch; margin-bottom:26px;}
 .kicker{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700;}
 .sec-head h2{font-size:clamp(28px,4.5vw,40px); margin:6px 0 0;}
@@ -571,7 +591,8 @@ const CSS = `
 /* toggle */
 .toggle{display:inline-flex; border:1px solid var(--ink); margin-bottom:24px;}
 .toggle button{font-family:var(--sans); font-size:13px; font-weight:600; padding:7px 20px;
-  background:var(--paper); color:var(--ink); border:none; cursor:pointer;}
+  background:var(--paper); color:var(--ink); border:none; cursor:pointer;
+  transition:background .18s ease, color .18s ease;}
 .toggle button.on{background:var(--ink); color:var(--paper);}
 .toggle button:first-child{border-right:1px solid var(--ink);}
 
