@@ -626,6 +626,7 @@
   ],
   "history": {
     "years": [
+      2025,
       2026
     ],
     "totals": {
@@ -633,103 +634,124 @@
         "total_expenditures": 196351665,
         "tax_levy": 61225481,
         "tax_rate": 3.49
+      },
+      "2025": {
+        "total_expenditures": 181691076,
+        "tax_levy": 59694287,
+        "tax_rate": 3.67
       }
     },
     "departments": [
       {
         "department": "Administration",
         "adopted": {
-          "2026": 2515017
+          "2026": 2515017,
+          "2025": 2516602
         }
       },
       {
         "department": "Clerk of Courts",
         "adopted": {
-          "2026": 1614602
+          "2026": 1614602,
+          "2025": 1674440
         }
       },
       {
         "department": "Conservation, Planning, and Zoning",
         "adopted": {
-          "2026": 1604669
+          "2026": 1604669,
+          "2025": 1686745
         }
       },
       {
         "department": "Corporation Counsel",
         "adopted": {
-          "2026": 711291
+          "2026": 711291,
+          "2025": 588793
         }
       },
       {
         "department": "County Board",
         "adopted": {
-          "2026": 459626
+          "2026": 459626,
+          "2025": 473653
         }
       },
       {
         "department": "County Clerk",
         "adopted": {
-          "2026": 517078
+          "2026": 517078,
+          "2025": 535042
         }
       },
       {
         "department": "County Treasurer",
         "adopted": {
-          "2026": 327816
+          "2026": 327816,
+          "2025": -23951268
         }
       },
       {
         "department": "District Attorney",
         "adopted": {
-          "2026": 1008527
+          "2026": 1008527,
+          "2025": 946320
         }
       },
       {
         "department": "Emergency Management",
         "adopted": {
-          "2026": 173916
+          "2026": 173916,
+          "2025": 137205
         }
       },
       {
         "department": "Facilities & Capital Management",
         "adopted": {
-          "2026": 5444943
+          "2026": 5444943,
+          "2025": 5384619
         }
       },
       {
         "department": "Finance",
         "adopted": {
-          "2026": 705521
+          "2026": 705521,
+          "2025": 705521
         }
       },
       {
         "department": "Health",
         "adopted": {
-          "2026": 2640685
+          "2026": 2640685,
+          "2025": 2644860
         }
       },
       {
         "department": "Human Resources",
         "adopted": {
-          "2026": 565414
+          "2026": 565414,
+          "2025": 590061
         }
       },
       {
         "department": "Library",
         "adopted": {
-          "2026": 3838584
+          "2026": 3838584,
+          "2025": 3681559
         }
       },
       {
         "department": "Medical Examiner",
         "adopted": {
-          "2026": 583937
+          "2026": 583937,
+          "2025": 545112
         }
       },
       {
         "department": "Register of Deeds",
         "adopted": {
-          "2026": -428722
+          "2026": -428722,
+          "2025": -405373
         }
       },
       {
@@ -741,19 +763,22 @@
       {
         "department": "UW-Extension",
         "adopted": {
-          "2026": 200235
+          "2026": 200235,
+          "2025": 240235
         }
       },
       {
         "department": "Veterans Services",
         "adopted": {
-          "2026": 240570
+          "2026": 240570,
+          "2025": 231420
         }
       },
       {
         "department": "Contingency Fund",
         "adopted": {
-          "2026": 600000
+          "2026": 600000,
+          "2025": 800000
         }
       },
       {
@@ -765,7 +790,14 @@
       {
         "department": "Support for Other Agencies",
         "adopted": {
-          "2026": 10910212
+          "2026": 10910212,
+          "2025": 10721021
+        }
+      },
+      {
+        "department": "Sheriff\u2019s Office",
+        "adopted": {
+          "2025": 25070982
         }
       }
     ],

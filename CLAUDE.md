@@ -46,11 +46,24 @@ pip install -r scripts/requirements.txt
 python scripts/extract_budget.py 2026-Annual-Budget.pdf public/budget.json
 
 # Multi-year: pass prior-year "Adopted Budget" PDFs as trailing args. The FIRST
-# PDF drives every detailed section; each prior PDF contributes only its adopted
-# department-levy and GF-category figures to the `history` block (keyed by year):
+# PDF drives every detailed section; each prior PDF contributes only the slice
+# `history` needs (its Appendix E/F tables) via extract_history_slice, keyed by
+# year. The committed budget.json is built from 2026 + 2025:
 python scripts/extract_budget.py 2026-Annual-Budget.pdf public/budget.json \
-       2025-Annual-Budget.pdf 2024-Annual-Budget.pdf 2023-Annual-Budget.pdf
+       2025-Annual-Budget.pdf
 ```
+
+**Prior-year format limitation.** Only the **2025 and 2026** books use the
+Appendix E/F detailed-table layout the extractor needs. The **2021–2024** books
+are an older, chart-and-summary format (~141 pp) with **no Appendix E/F tables**,
+so per-department/per-fund history cannot be extracted from them; passing one as
+a trailing arg fails loud at the `APPENDIX E:` lookup. Each prior year is taken
+from its own adopted book (the apples-to-apples basis); the county occasionally
+restates a prior year in the newer book for reorganizations (for 2025→2026, 18
+of 20 departments matched exactly, County Treasurer and Administration differed),
+so a cross-book department line can diverge slightly from the ledger's "vs '25"
+column. The "Over Time" department chart omits revenue-returning offices
+(negative levy) to avoid reclassification artifacts.
 
 The extractor locates tables by section marker (robust to page-number drift
 year to year) and **reconciles** parsed rows against the budget's own printed

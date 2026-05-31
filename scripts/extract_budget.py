@@ -310,6 +310,11 @@ def build_history(extractions):
     extractions = sorted(extractions, key=lambda e: e["meta"]["budget_year"], reverse=True)
     years = sorted(e["meta"]["budget_year"] for e in extractions)
 
+    # Prior-year slices don't parse the levy-history table, so their meta carries
+    # no mill rate. The latest book's levy_history covers every year, so fill any
+    # missing rate from there.
+    rate_by_year = {lh["year"]: lh["rate"] for e in extractions for lh in e.get("levy_history", [])}
+
     def merge(rows_of, name_key, value_key):
         # Union of names in latest-first order, each mapped to {year: value}.
         names, seen = [], set()
@@ -334,7 +339,7 @@ def build_history(extractions):
             str(e["meta"]["budget_year"]): {
                 "total_expenditures": e["meta"]["total_expenditures"],
                 "tax_levy": e["meta"]["tax_levy"],
-                "tax_rate": e["meta"]["tax_rate"],
+                "tax_rate": e["meta"].get("tax_rate") or rate_by_year.get(e["meta"]["budget_year"]),
             } for e in extractions
         },
         "departments": merge(lambda e: e["departments"], "department", "tax_levy"),
@@ -348,13 +353,50 @@ def build_history(extractions):
 def extract(latest_pdf, prior_pdfs=()):
     """Full extraction for the latest budget, plus a multi-year `history` block.
 
-    The latest PDF drives every detailed single-year section; each prior PDF (if
-    any) contributes only its adopted department/GF figures to `history`.
+    The latest PDF drives every detailed single-year section. Each prior PDF
+    contributes only the slice `history` needs — its Appendix E (by-fund) and
+    Appendix F (by-department) tables — via extract_history_slice. That avoids
+    the General Fund summary / debt / levy / homeowner parsers, whose formats
+    drift in older books and which `history` does not use.
     """
     latest = extract_one(latest_pdf)
-    priors = [extract_one(p) for p in prior_pdfs]
+    priors = [extract_history_slice(p) for p in prior_pdfs]
     latest["history"] = build_history([latest, *priors])
     return latest
+
+
+def extract_history_slice(pdf_path):
+    """Minimal prior-year parse for the `history` block: the Appendix E/F summary
+    tables plus the budget year, with the same loud reconciliation as the full
+    extractor. Books that lack these appendices (the pre-2025 format) fail here
+    with a clear missing-section error rather than emitting partial data.
+    """
+    pdf = pdfplumber.open(pdf_path)
+    TABLE = "Expenditures Expenditures Tax Levy Difference"
+
+    fund_text = clean(pdf.pages[find_one(pdf, "APPENDIX E:", TABLE)].extract_text() or "")
+    funds, fund_total = parse_six_col_table(fund_text, is_fund=True)
+    reconcile(funds, fund_total)
+
+    dept_raw = pdf.pages[find_one(pdf, "APPENDIX F:", TABLE)].extract_text() or ""
+    departments, dept_total = parse_six_col_table(clean(dept_raw), is_fund=False)
+    reconcile(departments, dept_total)
+
+    m = re.search(r"APPENDIX F:\s*(20\d{2})", dept_raw)
+    if not m:
+        raise ValueError(f"could not read budget year from Appendix F header in {pdf_path}")
+
+    return {
+        "meta": {
+            "budget_year": int(m.group(1)),
+            "total_expenditures": fund_total["operating_expenditures"] + fund_total["personnel_expenditures"],
+            "tax_levy": fund_total["tax_levy"],
+            "tax_rate": None,
+        },
+        "departments": departments,
+        "funds": funds,
+        "general_fund": {"expenditures": [], "revenues": []},
+    }
 
 
 def extract_one(pdf_path):

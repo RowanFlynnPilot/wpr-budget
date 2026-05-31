@@ -136,8 +136,12 @@ function Ledger({ b }) {
     const years = b.history.years;
     if (years.length < 2) return null;
     const first = String(years[0]), last = String(years[years.length - 1]);
+    // Exclude revenue-returning offices (County Treasurer, Register of Deeds,
+    // Non Departmental): their levy is negative because they return more revenue
+    // than they cost, and book-to-book reclassifications swing it by tens of
+    // millions — an accounting artifact that would dwarf every real department.
     const ranked = b.history.departments
-      .filter((d) => d.adopted[first] != null && d.adopted[last] != null)
+      .filter((d) => d.adopted[first] > 0 && d.adopted[last] > 0)
       .map((d) => ({ name: d.department, adopted: d.adopted, change: d.adopted[last] - d.adopted[first] }))
       .sort((a, c) => Math.abs(c.change) - Math.abs(a.change))
       .slice(0, 6);
@@ -360,8 +364,9 @@ function Ledger({ b }) {
               </LineChart>
             </ResponsiveContainer>
             <p className="note">
-              Adopted tax levy by department, {b.history.years[0]}&ndash;{b.history.years[b.history.years.length - 1]}.
-              The six departments with the largest change over the period are shown.
+              Adopted tax levy by department, {b.history.years[0]}&ndash;{b.history.years[b.history.years.length - 1]} —
+              the six with the largest change. Each year is taken from that year&rsquo;s own adopted budget book.
+              Revenue-returning offices (e.g.&nbsp;the County Treasurer), whose levy is negative, are omitted.
             </p>
           </div>
         )}
