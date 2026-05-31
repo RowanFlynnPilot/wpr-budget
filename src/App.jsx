@@ -1,0 +1,505 @@
+import React, { useState, useMemo, useEffect } from "react";
+import {
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceDot,
+} from "recharts";
+import { ChevronDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
+
+/*
+ * Follow the Money - Marathon County budget explorer (Wausau Pilot & Review)
+ *
+ * Reads public/budget.json (produced by scripts/extract_budget.py). One source
+ * of truth: no inline data, no fallback. If the file is missing the UI says so
+ * rather than rendering stale or invented numbers.
+ */
+/* ---------- formatting ---------- */
+const usd = (n) => (n < 0 ? "\u2212$" : "$") + Math.abs(n).toLocaleString("en-US");
+const compact = (n) => {
+  const a = Math.abs(n);
+  const s = a >= 1e6 ? "$" + (a / 1e6).toFixed(a >= 1e7 ? 0 : 1) + "M"
+    : a >= 1e3 ? "$" + Math.round(a / 1e3) + "K" : "$" + a;
+  return n < 0 ? "\u2212" + s : s;
+};
+const pct = (n) => (n > 0 ? "+" : "") + n.toFixed(1) + "%";
+const deptSpend = (d) => d.operating_expenditures + d.personnel_expenditures;
+
+/* ---------- small components ---------- */
+function Delta({ value, invertColor = false }) {
+  if (value === null || value === undefined) return <span className="muted">—</span>;
+  const up = value > 0;
+  const good = invertColor ? !up : up;
+  const Icon = up ? ArrowUpRight : ArrowDownRight;
+  return (
+    <span className="delta" style={{ color: good ? "var(--neg)" : "var(--pos)" }}>
+      <Icon size={13} strokeWidth={2.5} /> {pct(value)}
+    </span>
+  );
+}
+
+function SectionHead({ kicker, title, children }) {
+  return (
+    <header className="sec-head">
+      <div className="kicker">{kicker}</div>
+      <h2>{title}</h2>
+      {children && <p className="standfirst">{children}</p>}
+    </header>
+  );
+}
+
+/* ---------- main ---------- */
+export default function App() {
+  const [b, setB] = useState(null);
+  const [err, setErr] = useState(null);
+  useEffect(() => {
+    fetch(import.meta.env.BASE_URL + "budget.json")
+      .then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(setB)
+      .catch((e) => setErr(String(e.message || e)));
+  }, []);
+  if (err) return (<div className="ftm load"><style>{CSS}</style><p>Could not load budget.json &mdash; {err}</p></div>);
+  if (!b) return (<div className="ftm load"><style>{CSS}</style><p>Loading the ledger&hellip;</p></div>);
+  return <Ledger b={b} />;
+}
+
+function Ledger({ b }) {
+  const [flow, setFlow] = useState("expenditures");
+  const [sortKey, setSortKey] = useState("spend");
+  const [sortDir, setSortDir] = useState("desc");
+  const [open, setOpen] = useState(null);
+
+  const gfRows = b.general_fund[flow];
+  const gfTotal = useMemo(() => gfRows.reduce((s, r) => s + r.proposed_next, 0), [gfRows]);
+  const gfMax = useMemo(() => Math.max(...gfRows.map((r) => r.proposed_next)), [gfRows]);
+
+  const sortedDepts = useMemo(() => {
+    const val = (d) => (sortKey === "spend" ? deptSpend(d) : sortKey === "levy" ? d.tax_levy
+      : sortKey === "personnel" ? d.personnel_expenditures
+      : sortKey === "change" ? (d.levy_difference ?? -Infinity) : d.department);
+    const arr = [...b.departments];
+    arr.sort((a, c) => {
+      const va = val(a), vc = val(c);
+      if (typeof va === "string") return sortDir === "asc" ? va.localeCompare(vc) : vc.localeCompare(va);
+      return sortDir === "asc" ? va - vc : vc - va;
+    });
+    return arr;
+  }, [b.departments, sortKey, sortDir]);
+
+  const deptMaxSpend = useMemo(() => Math.max(...b.departments.map(deptSpend)), [b.departments]);
+  const debtTotal = useMemo(() => b.debt.reduce((s, d) => s + d.outstanding, 0), [b.debt]);
+
+  const setSort = (k) => {
+    if (k === sortKey) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortKey(k); setSortDir(k === "department" ? "asc" : "desc"); }
+  };
+
+  const trend = useMemo(
+    () => b.levy_history.map((l) => {
+      const h = b.homeowner_impact.find((x) => x.year === l.year);
+      return { year: l.year, rate: l.rate, bill: h ? h.tax_amount : null };
+    }),
+    [b.levy_history, b.homeowner_impact]
+  );
+  const lastTrend = trend[trend.length - 1];
+
+  const sections = [
+    ["where", "Where it goes"],
+    ["departments", "Departments"],
+    ["bill", "Your tax bill"],
+    ["funds", "Funds"],
+    ["debt", "Debt"],
+  ];
+
+  return (
+    <div className="ftm">
+      <style>{CSS}</style>
+
+      {/* masthead */}
+      <header className="masthead">
+        <div className="kicker-row">
+          <span className="pub">Wausau Pilot &amp; Review</span>
+          <span className="dot">·</span>
+          <span>The Public Ledger</span>
+          {/* sponsor slot lands here later */}
+        </div>
+        <h1>Follow the Money</h1>
+        <p className="dek">
+          Every dollar in {b.meta.entity}&rsquo;s {b.meta.budget_year} budget — where it comes from, where it
+          goes, and what it means for your tax bill. Adopted by the County Board on{" "}
+          {new Date(b.meta.adopted + "T00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}.
+        </p>
+
+        <div className="stat-strip">
+          <Stat label="Total budget" value={compact(b.meta.total_expenditures)} sub="all funds, 2026" />
+          <Stat label="County tax levy" value={compact(b.meta.tax_levy)} sub={<Delta value={5.99} invertColor />} />
+          <Stat label="Mill rate" value={"$" + b.meta.tax_rate.toFixed(2)} sub={<Delta value={-4.71} invertColor />} />
+        </div>
+      </header>
+
+      <nav className="subnav">
+        {sections.map(([id, label]) => (
+          <a key={id} href={"#" + id}>{label}</a>
+        ))}
+      </nav>
+
+      {/* WHERE IT GOES */}
+      <section id="where" className="block">
+        <SectionHead kicker="The General Fund" title="Where every dollar goes">
+          The county&rsquo;s general fund pays for day-to-day government. Toggle to see what it spends — and
+          where the money comes from before the property-tax levy fills the gap.
+        </SectionHead>
+
+        <div className="toggle">
+          <button className={flow === "expenditures" ? "on" : ""} onClick={() => setFlow("expenditures")}>Spending</button>
+          <button className={flow === "revenues" ? "on" : ""} onClick={() => setFlow("revenues")}>Revenue</button>
+        </div>
+
+        <div className="bars">
+          {gfRows.map((r, i) => (
+            <div className="bar-row" key={r.category} style={{ animationDelay: `${i * 45}ms` }}>
+              <div className="bar-label">{r.category}</div>
+              <div className="bar-track">
+                <div className="bar-fill" style={{ width: `${(r.proposed_next / gfMax) * 100}%` }} />
+              </div>
+              <div className="bar-val">{compact(r.proposed_next)}</div>
+              <div className="bar-share">{((r.proposed_next / gfTotal) * 100).toFixed(0)}%</div>
+              <div className="bar-delta"><Delta value={r.pct_change} invertColor={flow === "expenditures"} /></div>
+            </div>
+          ))}
+        </div>
+        <p className="note">
+          {flow === "expenditures"
+            ? "Change shown vs. the 2025 adopted budget. Public safety alone is roughly two-fifths of general-fund spending."
+            : "Change shown vs. the 2025 adopted budget. Whatever these sources don't cover is made up by the property-tax levy."}
+        </p>
+      </section>
+
+      {/* DEPARTMENTS */}
+      <section id="departments" className="block">
+        <SectionHead kicker="The Drill-Down" title="Department by department">
+          Twenty-one departments and agencies. Each one&rsquo;s total spending equals the tax levy that supports
+          it plus the revenue it raises on its own. Click any row to open the books.
+        </SectionHead>
+
+        <div className="ledger">
+          <div className="ledger-head">
+            <button className={sortKey === "department" ? "sorted" : ""} onClick={() => setSort("department")}>Department</button>
+            <button className={sortKey === "spend" ? "sorted" : ""} onClick={() => setSort("spend")}>Total spending</button>
+            <button className={"hide-sm " + (sortKey === "personnel" ? "sorted" : "")} onClick={() => setSort("personnel")}>Personnel</button>
+            <button className={sortKey === "levy" ? "sorted" : ""} onClick={() => setSort("levy")}>Tax levy</button>
+            <button className={"hide-sm " + (sortKey === "change" ? "sorted" : "")} onClick={() => setSort("change")}>vs &rsquo;24</button>
+            <span className="chev-col" />
+          </div>
+
+          {sortedDepts.map((d) => {
+            const spend = deptSpend(d);
+            const isOpen = open === d.department;
+            return (
+              <div key={d.department} className={"ledger-item" + (isOpen ? " open" : "")}>
+                <button className="ledger-row" onClick={() => setOpen(isOpen ? null : d.department)} aria-expanded={isOpen}>
+                  <span className="d-name">
+                    {d.department}
+                    <span className="d-spark"><span style={{ width: `${(spend / deptMaxSpend) * 100}%` }} /></span>
+                  </span>
+                  <span className="d-spend">{usd(spend)}</span>
+                  <span className="d-pers hide-sm">{compact(d.personnel_expenditures)}</span>
+                  <span className="d-levy">{compact(d.tax_levy)}</span>
+                  <span className="d-change hide-sm"><Delta value={d.levy_difference} invertColor /></span>
+                  <span className="chev-col"><ChevronDown size={16} className="chev" /></span>
+                </button>
+                {isOpen && (
+                  <div className="detail">
+                    <div className="detail-grid">
+                      <Balance title="Where it goes" rows={[
+                        ["Operating expenditures", d.operating_expenditures],
+                        ["Personnel", d.personnel_expenditures],
+                      ]} total={["Total spending", spend]} />
+                      <Balance title="Where it comes from" rows={[
+                        ["Revenue raised", d.operating_revenues],
+                        ["County tax levy", d.tax_levy],
+                      ]} total={["Total funding", d.operating_revenues + d.tax_levy]} />
+                    </div>
+                    <p className="detail-note">
+                      The levy supporting {d.department.replace(/&rsquo;/g, "'")} {d.levy_difference === null ? "is unchanged from 2024." :
+                        d.levy_difference >= 0
+                          ? `rose ${usd(d.levy_difference)} from 2024.`
+                          : `fell ${usd(Math.abs(d.levy_difference))} from 2024.`}
+                      {d.tax_levy < 0 && " It returns more revenue to the county than it costs to run."}
+                    </p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* TAX BILL */}
+      <section id="bill" className="block">
+        <SectionHead kicker="The Bottom Line" title="What it means for your tax bill">
+          The county&rsquo;s mill rate has fallen nearly every year since 2017. But because home values climbed
+          faster, the bill on a typical home kept rising anyway.
+        </SectionHead>
+
+        <div className="chart-wrap">
+          <div className="chart-legend">
+            <span><i className="sw sw-rate" /> Mill rate (per $1,000 of value)</span>
+            <span><i className="sw sw-bill" /> Avg. bill on a typical home</span>
+          </div>
+          <ResponsiveContainer width="100%" height={320}>
+            <LineChart data={trend} margin={{ top: 8, right: 16, bottom: 4, left: 4 }}>
+              <CartesianGrid stroke="var(--rule)" vertical={false} />
+              <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+              <YAxis yAxisId="rate" domain={[3, 5.5]} tick={{ fill: "var(--accent)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(1)} width={42} />
+              <YAxis yAxisId="bill" orientation="right" domain={[650, 900]} tick={{ fill: "var(--gold)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v} width={48} />
+              <Tooltip content={<BillTip />} />
+              <Line yAxisId="rate" type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+              <Line yAxisId="bill" type="monotone" dataKey="bill" stroke="var(--gold)" strokeWidth={2.5} strokeDasharray="5 3" dot={false} activeDot={{ r: 4 }} />
+              <ReferenceDot yAxisId="bill" x={lastTrend.year} y={lastTrend.bill} r={4} fill="var(--gold)" stroke="none" />
+            </LineChart>
+          </ResponsiveContainer>
+          <p className="note">
+            A typical home went from about {usd(b.homeowner_impact[0].avg_value)} in {b.homeowner_impact[0].year} to{" "}
+            {usd(b.homeowner_impact[b.homeowner_impact.length - 1].avg_value)} in {lastTrend.year}, while the mill
+            rate dropped from ${b.homeowner_impact[0].tax_rate.toFixed(2)} to ${lastTrend.rate.toFixed(2)}.
+          </p>
+        </div>
+      </section>
+
+      {/* FUNDS */}
+      <section id="funds" className="block">
+        <SectionHead kicker="Beyond the General Fund" title="The county&rsquo;s other funds">
+          Highways, the landfill, debt service and employee benefits run on their own dedicated funds.
+        </SectionHead>
+        <div className="fund-table">
+          <div className="fund-head">
+            <span>Fund</span><span>Levy support</span><span className="hide-sm">Revenue</span><span>Spending</span>
+          </div>
+          {b.funds.map((f) => (
+            <div className="fund-row" key={f.fund_no}>
+              <span className="f-name"><b>{f.name}</b><em>#{f.fund_no}</em></span>
+              <span>{f.tax_levy ? usd(f.tax_levy) : <span className="muted">none</span>}</span>
+              <span className="hide-sm">{usd(f.operating_revenues)}</span>
+              <span>{usd(f.operating_expenditures + f.personnel_expenditures)}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* DEBT */}
+      <section id="debt" className="block">
+        <SectionHead kicker="What the County Owes" title="Outstanding debt">
+          {b.debt.length} bond and note series, totaling <b>{usd(debtTotal)}</b> in long-term obligations.
+        </SectionHead>
+        <div className="debt-list">
+          {b.debt.map((d) => (
+            <div className="debt-row" key={d.series}>
+              <span className="db-bar" style={{ width: `${(d.outstanding / debtTotal) * 100}%` }} />
+              <span className="db-name">{d.series}</span>
+              <span className="db-val">{usd(d.outstanding)}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <footer className="foot">
+        <p>
+          <b>Source:</b> {b.meta.entity} Adopted {b.meta.budget_year} Annual Budget. Figures are as adopted and
+          may be amended during the year.
+        </p>
+        <p className="muted">
+          Built and maintained by Wausau Pilot &amp; Review. Department and fund detail extracted directly from the
+          county&rsquo;s published budget document; column totals reconciled against the county&rsquo;s own figures.
+        </p>
+      </footer>
+    </div>
+  );
+}
+
+/* ---------- sub-components ---------- */
+function Stat({ label, value, sub }) {
+  return (
+    <div className="stat">
+      <div className="stat-label">{label}</div>
+      <div className="stat-value">{value}</div>
+      <div className="stat-sub">{sub}</div>
+    </div>
+  );
+}
+
+function Balance({ title, rows, total }) {
+  return (
+    <div className="balance">
+      <div className="balance-title">{title}</div>
+      {rows.map(([k, v]) => (
+        <div className="balance-row" key={k}><span>{k}</span><span>{usd(v)}</span></div>
+      ))}
+      <div className="balance-row total"><span>{total[0]}</span><span>{usd(total[1])}</span></div>
+    </div>
+  );
+}
+
+function BillTip({ active, payload, label }) {
+  if (!active || !payload || !payload.length) return null;
+  const rate = payload.find((p) => p.dataKey === "rate");
+  const bill = payload.find((p) => p.dataKey === "bill");
+  return (
+    <div className="tip">
+      <div className="tip-year">{label}</div>
+      {rate && <div><i className="sw sw-rate" /> Mill rate ${rate.value.toFixed(2)}</div>}
+      {bill && <div><i className="sw sw-bill" /> Avg bill {usd(Math.round(bill.value))}</div>}
+    </div>
+  );
+}
+
+/* ---------- styles ---------- */
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap');
+
+.ftm {
+  --paper:#f5f1e8; --paper-2:#efe9da; --ink:#1c1a16; --ink-soft:#6b6555; --rule:#ddd5c2;
+  --accent:#16584a; --pos:#2f6f4f; --neg:#a8492f; --gold:#9a7b2e;
+  --serif:'Fraunces',Georgia,serif; --sans:'Public Sans',system-ui,sans-serif;
+  background:var(--paper); color:var(--ink); font-family:var(--sans);
+  font-feature-settings:"tnum" 1; line-height:1.5; max-width:1080px; margin:0 auto;
+  padding:0 24px 80px;
+}
+.ftm *{box-sizing:border-box;}
+.ftm h1,.ftm h2{font-family:var(--serif); font-weight:600; letter-spacing:-0.01em; margin:0;}
+
+/* masthead */
+.masthead{padding:54px 0 30px; border-bottom:2px solid var(--ink);}
+.kicker-row{display:flex; align-items:center; gap:10px; font-size:12px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-soft); font-weight:600;}
+.kicker-row .pub{color:var(--accent);}
+.kicker-row .dot{opacity:.5;}
+.masthead h1{font-size:clamp(44px,8vw,82px); line-height:.98; margin:14px 0 0; font-weight:600;}
+.masthead .dek{font-size:18px; max-width:60ch; color:#3a362d; margin:16px 0 0; line-height:1.55;}
+.stat-strip{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--rule);
+  border:1px solid var(--rule); margin-top:30px;}
+.stat{background:var(--paper); padding:18px 20px;}
+.stat-label{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); font-weight:600;}
+.stat-value{font-family:var(--serif); font-size:38px; font-weight:600; line-height:1; margin:8px 0 6px; letter-spacing:-0.02em;}
+.stat-sub{font-size:13px; color:var(--ink-soft);}
+
+/* subnav */
+.subnav{position:sticky; top:0; z-index:5; display:flex; gap:4px; flex-wrap:wrap;
+  background:var(--paper); border-bottom:1px solid var(--rule); padding:10px 0; margin-bottom:8px;}
+.subnav a{font-size:13px; font-weight:600; color:var(--ink-soft); text-decoration:none;
+  padding:5px 12px; border-radius:2px;}
+.subnav a:hover{color:var(--ink); background:var(--paper-2);}
+
+/* sections */
+.block{padding:46px 0; border-bottom:1px solid var(--rule);}
+.sec-head{max-width:62ch; margin-bottom:26px;}
+.kicker{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700;}
+.sec-head h2{font-size:clamp(28px,4.5vw,40px); margin:6px 0 0;}
+.standfirst{font-size:16px; color:#3a362d; margin:12px 0 0; line-height:1.55;}
+.note{font-size:13px; color:var(--ink-soft); margin:18px 0 0; font-style:italic; max-width:64ch;}
+.muted{color:var(--ink-soft);}
+.load{padding:90px 0; font-size:16px; color:var(--ink-soft);}
+
+/* toggle */
+.toggle{display:inline-flex; border:1px solid var(--ink); margin-bottom:24px;}
+.toggle button{font-family:var(--sans); font-size:13px; font-weight:600; padding:7px 20px;
+  background:var(--paper); color:var(--ink); border:none; cursor:pointer;}
+.toggle button.on{background:var(--ink); color:var(--paper);}
+.toggle button:first-child{border-right:1px solid var(--ink);}
+
+/* bars */
+.bars{display:flex; flex-direction:column; gap:2px;}
+.bar-row{display:grid; grid-template-columns:1.6fr 3fr auto 42px 72px; align-items:center; gap:14px;
+  padding:9px 0; border-bottom:1px solid var(--rule); animation:rise .5s both ease-out;}
+.bar-label{font-size:14px; font-weight:500;}
+.bar-track{height:14px; background:var(--paper-2);}
+.bar-fill{height:100%; background:var(--accent); transform-origin:left; animation:grow .7s both ease-out;}
+.bar-val{font-size:14px; font-weight:600; font-variant-numeric:tabular-nums; text-align:right;}
+.bar-share{font-size:13px; color:var(--ink-soft); text-align:right; font-variant-numeric:tabular-nums;}
+.bar-delta{font-size:12px; text-align:right;}
+.delta{display:inline-flex; align-items:center; gap:1px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap;}
+
+/* ledger / departments */
+.ledger{border-top:2px solid var(--ink);}
+.ledger-head{display:grid; grid-template-columns:2.4fr 1.1fr 1fr 1.1fr .8fr 24px; gap:12px;
+  padding:10px 8px; border-bottom:1px solid var(--rule);}
+.ledger-head button{font-family:var(--sans); font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+  font-weight:700; color:var(--ink-soft); background:none; border:none; cursor:pointer; text-align:right; padding:0;}
+.ledger-head button:first-child{text-align:left;}
+.ledger-head button.sorted{color:var(--accent);}
+.ledger-head button:hover{color:var(--ink);}
+.ledger-item{border-bottom:1px solid var(--rule);}
+.ledger-item.open{background:var(--paper-2);}
+.ledger-row{display:grid; grid-template-columns:2.4fr 1.1fr 1fr 1.1fr .8fr 24px; gap:12px; width:100%;
+  align-items:center; padding:13px 8px; background:none; border:none; cursor:pointer; text-align:right;
+  font-family:var(--sans); color:var(--ink); font-size:15px;}
+.ledger-row:hover{background:var(--paper-2);}
+.d-name{display:flex; flex-direction:column; align-items:flex-start; gap:5px; text-align:left; font-weight:600;}
+.d-spark{width:120px; max-width:40vw; height:3px; background:var(--rule);}
+.d-spark span{display:block; height:100%; background:var(--accent);}
+.d-spend{font-weight:700; font-variant-numeric:tabular-nums;}
+.d-pers,.d-levy{font-variant-numeric:tabular-nums; color:#3a362d;}
+.d-change{font-size:13px;}
+.chev-col{display:flex; justify-content:flex-end;}
+.chev{color:var(--ink-soft); transition:transform .2s;}
+.ledger-item.open .chev{transform:rotate(180deg);}
+
+.detail{padding:6px 8px 22px; animation:rise .35s both ease-out;}
+.detail-grid{display:grid; grid-template-columns:1fr 1fr; gap:30px; max-width:680px;}
+.balance{border-top:1px solid var(--ink);}
+.balance-title{font-size:11px; letter-spacing:.08em; text-transform:uppercase; font-weight:700;
+  color:var(--accent); padding:8px 0;}
+.balance-row{display:flex; justify-content:space-between; padding:7px 0; font-size:14px;
+  border-bottom:1px solid var(--rule); font-variant-numeric:tabular-nums;}
+.balance-row span:first-child{color:#3a362d;}
+.balance-row.total{font-weight:700; border-bottom:none; border-top:1px solid var(--ink); margin-top:2px;}
+.balance-row.total span:first-child{color:var(--ink);}
+.detail-note{font-size:13px; color:var(--ink-soft); margin:16px 0 0; max-width:62ch; font-style:italic;}
+
+/* chart */
+.chart-wrap{margin-top:6px;}
+.chart-legend{display:flex; gap:22px; font-size:13px; color:#3a362d; margin-bottom:12px; flex-wrap:wrap;}
+.sw{display:inline-block; width:14px; height:3px; vertical-align:middle; margin-right:6px;}
+.sw-rate{background:var(--accent);}
+.sw-bill{background:var(--gold);}
+.tip{background:var(--ink); color:var(--paper); padding:10px 12px; font-size:13px; border-radius:2px;}
+.tip-year{font-weight:700; font-family:var(--serif); margin-bottom:4px;}
+.tip i{margin-right:5px;}
+
+/* funds */
+.fund-table{border-top:2px solid var(--ink);}
+.fund-head{display:grid; grid-template-columns:2.4fr 1fr 1fr 1fr; gap:12px; padding:10px 8px;
+  border-bottom:1px solid var(--rule); font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+  font-weight:700; color:var(--ink-soft); text-align:right;}
+.fund-head span:first-child{text-align:left;}
+.fund-row{display:grid; grid-template-columns:2.4fr 1fr 1fr 1fr; gap:12px; padding:12px 8px;
+  border-bottom:1px solid var(--rule); font-size:14px; text-align:right; font-variant-numeric:tabular-nums;}
+.fund-row:hover{background:var(--paper-2);}
+.f-name{text-align:left; display:flex; flex-direction:column;}
+.f-name b{font-weight:600;}
+.f-name em{font-style:normal; font-size:11px; color:var(--ink-soft);}
+
+/* debt */
+.debt-list{display:flex; flex-direction:column; gap:3px; border-top:2px solid var(--ink); padding-top:10px;}
+.debt-row{position:relative; display:flex; justify-content:space-between; align-items:center;
+  padding:11px 12px; font-size:14px; overflow:hidden;}
+.db-bar{position:absolute; left:0; top:0; bottom:0; background:var(--paper-2); z-index:0;}
+.db-name,.db-val{position:relative; z-index:1;}
+.db-name{font-weight:500;}
+.db-val{font-weight:600; font-variant-numeric:tabular-nums;}
+
+/* footer */
+.foot{padding:34px 0 0; font-size:13px; color:#3a362d; max-width:70ch;}
+.foot p{margin:0 0 8px;}
+
+@keyframes grow{from{transform:scaleX(0);}to{transform:scaleX(1);}}
+@keyframes rise{from{opacity:0; transform:translateY(8px);}to{opacity:1; transform:translateY(0);}}
+
+@media(max-width:680px){
+  .ftm{padding:0 16px 60px;}
+  .hide-sm{display:none !important;}
+  .stat-strip{grid-template-columns:1fr;}
+  .bar-row{grid-template-columns:1.4fr 2fr auto 56px; }
+  .bar-share{display:none;}
+  .ledger-head,.ledger-row{grid-template-columns:2fr 1fr 1fr 22px;}
+  .detail-grid{grid-template-columns:1fr; gap:18px;}
+  .fund-head,.fund-row{grid-template-columns:2fr 1fr 1fr;}
+}
+`;

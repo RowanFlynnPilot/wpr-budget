@@ -1,0 +1,128 @@
+# CLAUDE.md — wpr-budget ("Follow the Money")
+
+Context for Claude Code sessions on this repo.
+
+## What this is
+
+A civic-transparency widget for **Wausau Pilot & Review** that visualizes the
+**Marathon County** annual budget — where the money comes from, where it goes,
+the per-department breakdown, the tax-levy/mill-rate story, other funds, and
+outstanding debt. It is the first entity in a planned "Follow the Money" suite;
+the **City of Wausau** is the intended second entity (format not yet verified).
+
+This is a grant-anchor project (accountability journalism) that pairs with the
+existing Marathon Meetings tracker as a "civic transparency suite," and is also
+advertiser-ready via a deferred sponsor slot (see below).
+
+## Architecture
+
+Same pattern as the other WPR widgets, with one deliberate difference:
+
+```
+official budget PDF (downloaded by hand)
+  -> scripts/extract_budget.py   (pdfplumber, run locally, once a year)
+  -> public/budget.json          (committed to the repo)
+  -> src/App.jsx                 (React + Vite, fetches budget.json at runtime)
+  -> GitHub Pages                (built + deployed by .github/workflows/deploy.yml)
+  -> WordPress iframe embed
+```
+
+**The difference: this is NOT a cron scraper.** Budget data changes once a year,
+so there is no scheduled GitHub Action fetching anything. The data pipeline is a
+**manual annual ingest**: when a new budget is adopted, download the PDF, run the
+extractor, commit the new `budget.json`. This also sidesteps the county site's
+Akamai datacenter-IP block (the same class of block that broke Whisper on
+Marathon Meetings) — downloading the PDF by hand from a browser avoids it
+entirely, so **no Webshare proxy is needed**.
+
+## Data pipeline — regenerating budget.json
+
+```bash
+# 1. Download the latest "Approved Budget" PDF by hand from:
+#    https://www.marathoncounty.gov/about-us/annual-budget
+#    (curl/wget from a server IP gets a 403 from Akamai — use a browser.)
+# 2. Run the extractor:
+pip install -r scripts/requirements.txt
+python scripts/extract_budget.py 2026-Annual-Budget.pdf public/budget.json
+```
+
+The extractor locates tables by section marker (robust to page-number drift
+year to year) and **reconciles** parsed rows against the budget's own printed
+totals — it raises on any mismatch rather than emitting silently-wrong numbers.
+It targets the **current** budget-book layout. If a future year's PDF changes
+the General Fund summary or debt page format, those two parsers are the likely
+break points; the failure will be loud (a thrown error or a missing-section
+error), not silent.
+
+### budget.json schema
+
+```
+meta:            { entity, budget_year, adopted, tax_levy, tax_rate, total_expenditures }
+general_fund:    { expenditures[], revenues[] }   # each: category, actual_prior, budget_current, proposed_next, pct_change
+departments[]:   department, tax_levy, operating_revenues, operating_expenditures,
+                 personnel_expenditures, prior_tax_levy, levy_difference
+funds[]:         fund_no, name, tax_levy, operating_revenues, operating_expenditures, personnel_expenditures
+levy_history[]:  year, levy, rate
+homeowner_impact[]: year, avg_value, tax_rate, tax_amount, pct_change_bill
+debt[]:          series, outstanding
+```
+
+Identity worth knowing for the UI: per department,
+`operating_expenditures + personnel_expenditures == tax_levy + operating_revenues`
+(total spending = levy support + revenue raised). Some departments (County
+Treasurer, Register of Deeds) have a **negative** tax_levy because they return
+more revenue than they cost; the UI handles negatives.
+
+> **The committed `public/budget.json` is currently a DEV FIXTURE** (see its
+> `_dev_note`): departments/funds/levy/homeowner are real **2025** figures
+> (validated, reconciled); general_fund/debt/meta are real **2026** captures.
+> Replace it with a clean single-year file by running the extractor on the 2026
+> PDF. The UI does not change when you do.
+
+## Frontend
+
+- `src/App.jsx` — entire UI in one file. `App` fetches `budget.json` and renders
+  a loading/error shell; `Ledger` holds all the render logic and hooks (split so
+  there are no conditional hooks). Styling is a single CSS string injected via a
+  `<style>` tag — no Tailwind, no CSS files.
+- Aesthetic: editorial / public-ledger. Fraunces (display) + Public Sans (data),
+  warm newsprint, hairline rules, tabular numerals. Keep this direction.
+- Sections: Where it goes (GF spending/revenue toggle) · Departments (sortable
+  ledger, click to expand a where-it-goes / where-it-comes-from balance) · Your
+  tax bill (dual-axis mill-rate vs avg-bill chart) · Funds · Debt.
+- Charts use `recharts`; icons use `lucide-react`.
+
+### Sponsor surface (deferred — not yet built)
+
+Intended slot is the masthead kicker row (search `sponsor slot` in App.jsx).
+Plan: a "Presented by" title-sponsor logo/line there, optionally a per-section
+sponsor. Keep it tasteful and clearly labeled; do not interleave with data.
+
+## Dev / deploy
+
+```bash
+npm install
+npm run dev      # local dev (BASE_URL = /)
+npm run build    # production build to dist/ (BASE_URL = /wpr-budget/)
+```
+
+- `vite.config.js` `base` must equal the Pages repo path (`/wpr-budget/`). It is
+  the only place the repo name appears; the data fetch uses `import.meta.env.BASE_URL`.
+- Pushing to `main` triggers `.github/workflows/deploy.yml` (build + deploy to
+  Pages). Enable Pages → "GitHub Actions" in repo settings once.
+- Embed on WordPress via iframe pointing at the Pages URL.
+
+## Design principles (house style)
+
+Surgical changes; no fallbacks / one correct path; fail fast (throw on bad
+preconditions) rather than defensive runtime checks; one source of truth for
+data; separation of concerns. Match the existing editorial aesthetic.
+
+## Next steps / backlog
+
+- Replace the dev-fixture `budget.json` with the real 2026 extraction.
+- Build the sponsor surface.
+- Add the City of Wausau as a second entity (verify its PDF format first; the
+  extractor's section-marker approach may need entity-specific markers).
+- Possible later: prior-year budget PDFs for deeper multi-year trends; capital
+  improvement plan (CIP); link relevant Marathon Meetings coverage inline.
