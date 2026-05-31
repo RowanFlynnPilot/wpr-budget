@@ -1,0 +1,11 @@
+import json
+b = json.load(open("public/budget.json", encoding="utf-8"))
+print("top-level keys :", list(b.keys()))
+print("has meta       :", "meta" in b)
+if "meta" in b: print("  meta:", b["meta"])
+gf = b.get("general_fund", {})
+print("gf expenditures:", len(gf.get("expenditures", [])), "| gf revenues:", len(gf.get("revenues", [])))
+print("departments    :", len(b.get("departments", [])), "| funds:", len(b.get("funds", [])))
+print("levy_history   :", len(b.get("levy_history", [])), "| homeowner:", len(b.get("homeowner_impact", [])))
+dbt = b.get("debt", [])
+print("debt series    :", len(dbt), "| debt total:", sum(d["outstanding"] for d in dbt))

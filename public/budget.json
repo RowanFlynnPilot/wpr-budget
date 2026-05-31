@@ -1,13 +1,314 @@
 {
-  "_dev_note": "DEV FIXTURE for UI build. departments/funds/levy/homeowner are real 2025 figures (validated, reconciled); general_fund/debt/meta are real 2026 figures captured from the official PDF. Regenerate a clean single-year file with extract_budget.py on the 2026 PDF.",
   "meta": {
     "entity": "Marathon County",
     "budget_year": 2026,
     "adopted": "2025-11-11",
     "tax_levy": 61225481,
     "tax_rate": 3.49,
-    "total_expenditures": 196357000
+    "total_expenditures": 196351665
   },
+  "funds": [
+    {
+      "tax_levy": 37304640,
+      "operating_revenues": 39216957,
+      "operating_expenditures": 31270687,
+      "personnel_expenditures": 45250910,
+      "prior_tax_levy": 35817549,
+      "levy_difference": 1487091,
+      "fund_no": "101",
+      "name": "General Fund"
+    },
+    {
+      "tax_levy": 6723462,
+      "operating_revenues": 5650814,
+      "operating_expenditures": 4301182,
+      "personnel_expenditures": 8073094,
+      "prior_tax_levy": 6723462,
+      "levy_difference": 0,
+      "fund_no": "200",
+      "name": "Social Improvement Fund"
+    },
+    {
+      "tax_levy": 2221939,
+      "operating_revenues": 3415303,
+      "operating_expenditures": 3101349,
+      "personnel_expenditures": 2535893,
+      "prior_tax_levy": 2267854,
+      "levy_difference": -45915,
+      "fund_no": "210",
+      "name": "Parks Fund"
+    },
+    {
+      "tax_levy": 0,
+      "operating_revenues": 17592768,
+      "operating_expenditures": 9894660,
+      "personnel_expenditures": 7698108,
+      "prior_tax_levy": 0,
+      "levy_difference": 0,
+      "fund_no": "291",
+      "name": "Grants Fund"
+    },
+    {
+      "tax_levy": 4514894,
+      "operating_revenues": 3345031,
+      "operating_expenditures": 7859925,
+      "personnel_expenditures": 0,
+      "prior_tax_levy": 2259816,
+      "levy_difference": 2255078,
+      "fund_no": "300",
+      "name": "Debt Service Fund"
+    },
+    {
+      "tax_levy": 0,
+      "operating_revenues": 5522619,
+      "operating_expenditures": 5522619,
+      "personnel_expenditures": 1182844,
+      "prior_tax_levy": -1182844,
+      "levy_difference": null,
+      "fund_no": "400",
+      "name": "Capital Projects Fund"
+    },
+    {
+      "tax_levy": 0,
+      "operating_revenues": 17448581,
+      "operating_expenditures": 16228537,
+      "personnel_expenditures": 1220044,
+      "prior_tax_levy": 0,
+      "levy_difference": 0,
+      "fund_no": "602",
+      "name": "Landfill Fund"
+    },
+    {
+      "tax_levy": 10460546,
+      "operating_revenues": 22187873,
+      "operating_expenditures": 20611713,
+      "personnel_expenditures": 12036706,
+      "prior_tax_levy": 9702578,
+      "levy_difference": 757968,
+      "fund_no": "610",
+      "name": "Highway Fund"
+    },
+    {
+      "tax_levy": 0,
+      "operating_revenues": 18036288,
+      "operating_expenditures": 16840167,
+      "personnel_expenditures": 1196121,
+      "prior_tax_levy": 0,
+      "levy_difference": 0,
+      "fund_no": "700",
+      "name": "Employee Benefits Fund"
+    },
+    {
+      "tax_levy": 0,
+      "operating_revenues": 2709950,
+      "operating_expenditures": 2619666,
+      "personnel_expenditures": 90284,
+      "prior_tax_levy": 0,
+      "levy_difference": 0,
+      "fund_no": "710",
+      "name": "Property and Casualty Insurance Fund"
+    }
+  ],
+  "departments": [
+    {
+      "tax_levy": 2515017,
+      "operating_revenues": 313950,
+      "operating_expenditures": 1815542,
+      "personnel_expenditures": 1013425,
+      "prior_tax_levy": 2673627,
+      "levy_difference": -158610,
+      "department": "Administration"
+    },
+    {
+      "tax_levy": 1614602,
+      "operating_revenues": 2407729,
+      "operating_expenditures": 1198550,
+      "personnel_expenditures": 2823781,
+      "prior_tax_levy": 1674440,
+      "levy_difference": -59838,
+      "department": "Clerk of Courts"
+    },
+    {
+      "tax_levy": 1604669,
+      "operating_revenues": 1974227,
+      "operating_expenditures": 1260861,
+      "personnel_expenditures": 2318035,
+      "prior_tax_levy": 1686745,
+      "levy_difference": -82076,
+      "department": "Conservation, Planning, and Zoning"
+    },
+    {
+      "tax_levy": 711291,
+      "operating_revenues": 419436,
+      "operating_expenditures": 61747,
+      "personnel_expenditures": 1068980,
+      "prior_tax_levy": 588793,
+      "levy_difference": 122498,
+      "department": "Corporation Counsel"
+    },
+    {
+      "tax_levy": 459626,
+      "operating_revenues": 0,
+      "operating_expenditures": 112400,
+      "personnel_expenditures": 347226,
+      "prior_tax_levy": 473653,
+      "levy_difference": -14027,
+      "department": "County Board"
+    },
+    {
+      "tax_levy": 517078,
+      "operating_revenues": 197900,
+      "operating_expenditures": 416380,
+      "personnel_expenditures": 298598,
+      "prior_tax_levy": 535042,
+      "levy_difference": -17964,
+      "department": "County Clerk"
+    },
+    {
+      "tax_levy": 327816,
+      "operating_revenues": 4000,
+      "operating_expenditures": 32175,
+      "personnel_expenditures": 299641,
+      "prior_tax_levy": -23108293,
+      "levy_difference": 23436109,
+      "department": "County Treasurer"
+    },
+    {
+      "tax_levy": 1008527,
+      "operating_revenues": 482897,
+      "operating_expenditures": 107300,
+      "personnel_expenditures": 1384124,
+      "prior_tax_levy": 946320,
+      "levy_difference": 62207,
+      "department": "District Attorney"
+    },
+    {
+      "tax_levy": 173916,
+      "operating_revenues": 10000,
+      "operating_expenditures": 61100,
+      "personnel_expenditures": 122816,
+      "prior_tax_levy": 137205,
+      "levy_difference": 36711,
+      "department": "Emergency Management"
+    },
+    {
+      "tax_levy": 5444943,
+      "operating_revenues": 839833,
+      "operating_expenditures": 3145451,
+      "personnel_expenditures": 3139325,
+      "prior_tax_levy": 5384619,
+      "levy_difference": 60324,
+      "department": "Facilities & Capital Management"
+    },
+    {
+      "tax_levy": 705521,
+      "operating_revenues": 226587,
+      "operating_expenditures": 193950,
+      "personnel_expenditures": 738158,
+      "prior_tax_levy": 705521,
+      "levy_difference": 0,
+      "department": "Finance"
+    },
+    {
+      "tax_levy": 2640685,
+      "operating_revenues": 1310743,
+      "operating_expenditures": 740134,
+      "personnel_expenditures": 3211294,
+      "prior_tax_levy": 2644860,
+      "levy_difference": -4175,
+      "department": "Health"
+    },
+    {
+      "tax_levy": 565414,
+      "operating_revenues": 121000,
+      "operating_expenditures": 178700,
+      "personnel_expenditures": 507714,
+      "prior_tax_levy": 590061,
+      "levy_difference": -24647,
+      "department": "Human Resources"
+    },
+    {
+      "tax_levy": 3838584,
+      "operating_revenues": 342215,
+      "operating_expenditures": 1123983,
+      "personnel_expenditures": 3056816,
+      "prior_tax_levy": 3681559,
+      "levy_difference": 157025,
+      "department": "Library"
+    },
+    {
+      "tax_levy": 583937,
+      "operating_revenues": 1073000,
+      "operating_expenditures": 196900,
+      "personnel_expenditures": 1460037,
+      "prior_tax_levy": 545112,
+      "levy_difference": 38825,
+      "department": "Medical Examiner"
+    },
+    {
+      "tax_levy": -428722,
+      "operating_revenues": 777000,
+      "operating_expenditures": 70275,
+      "personnel_expenditures": 278003,
+      "prior_tax_levy": -405373,
+      "levy_difference": -23349,
+      "department": "Register of Deeds"
+    },
+    {
+      "tax_levy": 26304007,
+      "operating_revenues": 3060756,
+      "operating_expenditures": 6403046,
+      "personnel_expenditures": 22961717,
+      "prior_tax_levy": 25070982,
+      "levy_difference": 1233025,
+      "department": "Sheriff's Office"
+    },
+    {
+      "tax_levy": 200235,
+      "operating_revenues": 62000,
+      "operating_expenditures": 262235,
+      "personnel_expenditures": 0,
+      "prior_tax_levy": 240235,
+      "levy_difference": -40000,
+      "department": "UW-Extension"
+    },
+    {
+      "tax_levy": 240570,
+      "operating_revenues": 4000,
+      "operating_expenditures": 23350,
+      "personnel_expenditures": 221220,
+      "prior_tax_levy": 231420,
+      "levy_difference": 9150,
+      "department": "Veterans Services"
+    },
+    {
+      "tax_levy": 600000,
+      "operating_revenues": 0,
+      "operating_expenditures": 600000,
+      "personnel_expenditures": 0,
+      "prior_tax_levy": 800000,
+      "levy_difference": -200000,
+      "department": "Contingency Fund"
+    },
+    {
+      "tax_levy": -23233288,
+      "operating_revenues": 25336852,
+      "operating_expenditures": 2103564,
+      "personnel_expenditures": 0,
+      "prior_tax_levy": 0,
+      "levy_difference": -23233288,
+      "department": "Non Departmental"
+    },
+    {
+      "tax_levy": 10910212,
+      "operating_revenues": 252832,
+      "operating_expenditures": 11163044,
+      "personnel_expenditures": 0,
+      "prior_tax_levy": 10721021,
+      "levy_difference": 189191,
+      "department": "Support for Other Agencies"
+    }
+  ],
   "general_fund": {
     "expenditures": [
       {
@@ -90,7 +391,7 @@
         "pct_change": 29.16
       },
       {
-        "category": "Fines, Forfeits & Penalties",
+        "category": "Fines & Forfeits & Penalties",
         "actual_prior": 532441,
         "budget_current": 656013,
         "proposed_next": 645513,
@@ -126,305 +427,7 @@
       }
     ]
   },
-  "departments": [
-    {
-      "tax_levy": 2516602,
-      "operating_revenues": 266436,
-      "operating_expenditures": 1714258,
-      "personnel_expenditures": 1068780,
-      "prior_tax_levy": 2720482,
-      "levy_difference": -203880,
-      "department": "Administration"
-    },
-    {
-      "tax_levy": 1674440,
-      "operating_revenues": 2271729,
-      "operating_expenditures": 1219550,
-      "personnel_expenditures": 2726619,
-      "prior_tax_levy": 1646783,
-      "levy_difference": 27657,
-      "department": "Clerk of Courts"
-    },
-    {
-      "tax_levy": 1686745,
-      "operating_revenues": 1980460,
-      "operating_expenditures": 1473168,
-      "personnel_expenditures": 2194037,
-      "prior_tax_levy": 1638963,
-      "levy_difference": 47782,
-      "department": "Conservation, Planning, and Zoning"
-    },
-    {
-      "tax_levy": 588793,
-      "operating_revenues": 414837,
-      "operating_expenditures": 28375,
-      "personnel_expenditures": 975255,
-      "prior_tax_levy": 583668,
-      "levy_difference": 5125,
-      "department": "Corporation Counsel"
-    },
-    {
-      "tax_levy": 473653,
-      "operating_revenues": 0,
-      "operating_expenditures": 139600,
-      "personnel_expenditures": 334053,
-      "prior_tax_levy": 458194,
-      "levy_difference": 15459,
-      "department": "County Board"
-    },
-    {
-      "tax_levy": 535042,
-      "operating_revenues": 165000,
-      "operating_expenditures": 429400,
-      "personnel_expenditures": 270642,
-      "prior_tax_levy": 455140,
-      "levy_difference": 79902,
-      "department": "County Clerk"
-    },
-    {
-      "tax_levy": -23951268,
-      "operating_revenues": 24502280,
-      "operating_expenditures": 266200,
-      "personnel_expenditures": 284812,
-      "prior_tax_levy": -21031006,
-      "levy_difference": -2920262,
-      "department": "County Treasurer"
-    },
-    {
-      "tax_levy": 946320,
-      "operating_revenues": 290000,
-      "operating_expenditures": 107300,
-      "personnel_expenditures": 1129020,
-      "prior_tax_levy": 950672,
-      "levy_difference": -4352,
-      "department": "District Attorney"
-    },
-    {
-      "tax_levy": 137205,
-      "operating_revenues": 40000,
-      "operating_expenditures": 61100,
-      "personnel_expenditures": 116105,
-      "prior_tax_levy": 167965,
-      "levy_difference": -30760,
-      "department": "Emergency Management"
-    },
-    {
-      "tax_levy": 5384619,
-      "operating_revenues": 671187,
-      "operating_expenditures": 3440003,
-      "personnel_expenditures": 2615803,
-      "prior_tax_levy": 5173106,
-      "levy_difference": 211513,
-      "department": "Facilities & Capital Management"
-    },
-    {
-      "tax_levy": 705521,
-      "operating_revenues": 185645,
-      "operating_expenditures": 184550,
-      "personnel_expenditures": 706616,
-      "prior_tax_levy": 793316,
-      "levy_difference": -87795,
-      "department": "Finance"
-    },
-    {
-      "tax_levy": 2644860,
-      "operating_revenues": 984500,
-      "operating_expenditures": 692041,
-      "personnel_expenditures": 2937319,
-      "prior_tax_levy": 2612183,
-      "levy_difference": 32677,
-      "department": "Health"
-    },
-    {
-      "tax_levy": 590061,
-      "operating_revenues": 121180,
-      "operating_expenditures": 188400,
-      "personnel_expenditures": 522841,
-      "prior_tax_levy": 644440,
-      "levy_difference": -54379,
-      "department": "Human Resources"
-    },
-    {
-      "tax_levy": 3681559,
-      "operating_revenues": 310653,
-      "operating_expenditures": 1073563,
-      "personnel_expenditures": 2918649,
-      "prior_tax_levy": 3603220,
-      "levy_difference": 78339,
-      "department": "Library"
-    },
-    {
-      "tax_levy": 545112,
-      "operating_revenues": 488000,
-      "operating_expenditures": 197300,
-      "personnel_expenditures": 835812,
-      "prior_tax_levy": 445150,
-      "levy_difference": 99962,
-      "department": "Medical Examiner"
-    },
-    {
-      "tax_levy": -405373,
-      "operating_revenues": 767000,
-      "operating_expenditures": 30850,
-      "personnel_expenditures": 330777,
-      "prior_tax_levy": -321594,
-      "levy_difference": -83779,
-      "department": "Register of Deeds"
-    },
-    {
-      "tax_levy": 25070982,
-      "operating_revenues": 3393657,
-      "operating_expenditures": 6320822,
-      "personnel_expenditures": 22143817,
-      "prior_tax_levy": 23629433,
-      "levy_difference": 1441549,
-      "department": "Sheriff\u2019s Office"
-    },
-    {
-      "tax_levy": 240235,
-      "operating_revenues": 59500,
-      "operating_expenditures": 299735,
-      "personnel_expenditures": 0,
-      "prior_tax_levy": 233580,
-      "levy_difference": 6655,
-      "department": "UW-Extension"
-    },
-    {
-      "tax_levy": 231420,
-      "operating_revenues": 6000,
-      "operating_expenditures": 25000,
-      "personnel_expenditures": 212420,
-      "prior_tax_levy": 240479,
-      "levy_difference": -9059,
-      "department": "Veterans Services"
-    },
-    {
-      "tax_levy": 800000,
-      "operating_revenues": 0,
-      "operating_expenditures": 800000,
-      "personnel_expenditures": 0,
-      "prior_tax_levy": 800000,
-      "levy_difference": null,
-      "department": "Contingency Fund"
-    },
-    {
-      "tax_levy": 10721021,
-      "operating_revenues": 252832,
-      "operating_expenditures": 10973853,
-      "personnel_expenditures": 0,
-      "prior_tax_levy": 10401353,
-      "levy_difference": 319668,
-      "department": "Support for Other Agencies"
-    }
-  ],
-  "funds": [
-    {
-      "tax_levy": 34817549,
-      "operating_revenues": 37170896,
-      "operating_expenditures": 29665068,
-      "personnel_expenditures": 42323377,
-      "prior_tax_levy": 35845527,
-      "levy_difference": -1027978,
-      "fund_no": "101",
-      "name": "General Fund"
-    },
-    {
-      "tax_levy": 6723462,
-      "operating_revenues": 4124801,
-      "operating_expenditures": 2973024,
-      "personnel_expenditures": 7875239,
-      "prior_tax_levy": 6935723,
-      "levy_difference": -212261,
-      "fund_no": "200",
-      "name": "Social Improvement Fund"
-    },
-    {
-      "tax_levy": 2267854,
-      "operating_revenues": 3137618,
-      "operating_expenditures": 2910374,
-      "personnel_expenditures": 2495098,
-      "prior_tax_levy": 2179452,
-      "levy_difference": 88402,
-      "fund_no": "210",
-      "name": "Parks Fund"
-    },
-    {
-      "tax_levy": 0,
-      "operating_revenues": 17651171,
-      "operating_expenditures": 10360393,
-      "personnel_expenditures": 7290778,
-      "prior_tax_levy": 0,
-      "levy_difference": 0,
-      "fund_no": "291",
-      "name": "Grants Fund"
-    },
-    {
-      "tax_levy": 4000000,
-      "operating_revenues": 3834919,
-      "operating_expenditures": 7834919,
-      "personnel_expenditures": 0,
-      "prior_tax_levy": 2553100,
-      "levy_difference": 1446900,
-      "fund_no": "300",
-      "name": "Debt Service Fund"
-    },
-    {
-      "tax_levy": 1182844,
-      "operating_revenues": 7848189,
-      "operating_expenditures": 8727207,
-      "personnel_expenditures": 303826,
-      "prior_tax_levy": 0,
-      "levy_difference": 1182844,
-      "fund_no": "400",
-      "name": "Capital Projects Fund"
-    },
-    {
-      "tax_levy": 0,
-      "operating_revenues": 6960864,
-      "operating_expenditures": 5717107,
-      "personnel_expenditures": 1243757,
-      "prior_tax_levy": 0,
-      "levy_difference": 0,
-      "fund_no": "602",
-      "name": "Landfill Fund"
-    },
-    {
-      "tax_levy": 10702578,
-      "operating_revenues": 19652188,
-      "operating_expenditures": 19956501,
-      "personnel_expenditures": 10398265,
-      "prior_tax_levy": 10440545,
-      "levy_difference": 262033,
-      "fund_no": "610",
-      "name": "Highway Fund"
-    },
-    {
-      "tax_levy": 0,
-      "operating_revenues": 18983235,
-      "operating_expenditures": 18688463,
-      "personnel_expenditures": 294772,
-      "prior_tax_levy": 0,
-      "levy_difference": 0,
-      "fund_no": "700",
-      "name": "Employee Benefits Fund"
-    },
-    {
-      "tax_levy": 0,
-      "operating_revenues": 2632908,
-      "operating_expenditures": 2540050,
-      "personnel_expenditures": 92858,
-      "prior_tax_levy": 0,
-      "levy_difference": 0,
-      "fund_no": "710",
-      "name": "Property and Casualty Insurance Fund"
-    }
-  ],
   "levy_history": [
-    {
-      "year": 2016,
-      "levy": 47608899,
-      "rate": 5.1252
-    },
     {
       "year": 2017,
       "levy": 48180111,
@@ -466,22 +469,31 @@
       "rate": 3.99
     },
     {
-      "year": 2020,
-      "levy": 550000,
-      "rate": 0.0
+      "year": 2025,
+      "levy": 57954103,
+      "rate": 3.67
     },
     {
-      "year": 2022,
-      "levy": 850000,
-      "rate": 0.0
-    },
-    {
-      "year": 2023,
-      "levy": 800000,
-      "rate": 0.0
+      "year": 2026,
+      "levy": 61225481,
+      "rate": 3.49
     }
   ],
   "homeowner_impact": [
+    {
+      "year": 2012,
+      "avg_value": 137023,
+      "tax_rate": 5.17,
+      "tax_amount": 708.41,
+      "pct_change_bill": -1.3
+    },
+    {
+      "year": 2013,
+      "avg_value": 132748,
+      "tax_rate": 5.17,
+      "tax_amount": 686.31,
+      "pct_change_bill": -3.2
+    },
     {
       "year": 2014,
       "avg_value": 133465,
@@ -562,46 +574,53 @@
     {
       "year": 2025,
       "avg_value": 232469,
-      "tax_rate": 3.78,
-      "tax_amount": 878.73,
-      "pct_change_bill": 2.8
+      "tax_rate": 3.67,
+      "tax_amount": 853.16,
+      "pct_change_bill": -0.19
+    },
+    {
+      "year": 2026,
+      "avg_value": 253392,
+      "tax_rate": 3.49,
+      "tax_amount": 884.33,
+      "pct_change_bill": 3.65
     }
   ],
   "debt": [
     {
-      "series": "2012A GO Bonds - Airport",
+      "series": "2012A GENERAL OBLIGATIONS BONDS-AIRPORT",
       "outstanding": 700000
     },
     {
-      "series": "2015A GO Bonds - Airport",
+      "series": "2015A GENERAL OBLIGATIONS BONDS-AIRPORT",
       "outstanding": 1610000
     },
     {
-      "series": "2019A GO Promissory Notes",
+      "series": "2019A GENERAL OBLIGATIONS PROMISSORY NOTES",
       "outstanding": 5520000
     },
     {
-      "series": "2020A GO Promissory Notes",
+      "series": "2020A GENERAL OBLIGATIONS PROMISSORY NOTES",
       "outstanding": 5745000
     },
     {
-      "series": "2020B GO Promissory Notes",
+      "series": "2020B GENERAL OBLIGATIONS PROMISSORY NOTES",
       "outstanding": 16085000
     },
     {
-      "series": "2021A GO Promissory Notes",
+      "series": "2021A GENERAL OBLIGATIONS PROMISSORY NOTES",
       "outstanding": 4840000
     },
     {
-      "series": "2021B GO Promissory Notes",
+      "series": "2021B GENERAL OBLIGATIONS PROMISSORY NOTES",
       "outstanding": 18690000
     },
     {
-      "series": "2022A GO Promissory Notes",
+      "series": "2022A GENERAL OBLIGATIONS PROMISSORY NOTES",
       "outstanding": 21920000
     },
     {
-      "series": "2022B GO Promissory Notes",
+      "series": "2022B GENERAL OBLIGATIONS PROMISSORY NOTES",
       "outstanding": 18675000
     }
   ]

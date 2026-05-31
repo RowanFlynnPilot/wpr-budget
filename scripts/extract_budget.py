@@ -65,16 +65,17 @@ def money(token):
     return -value if neg else value
 
 
-def section_page(pdf, header):
-    """Index of the single page whose text contains `header` (case-sensitive).
+def clean(text):
+    """Repair pdfplumber's number spacing in this budget's tables.
 
-    Section headers are uppercase on the page itself but title-case in the table
-    of contents, so a case-sensitive match isolates the real section page.
+    Every value in the county's tables is '$'-prefixed, and pdfplumber sometimes
+    injects spaces after the '$' and inside the digits ('$ 3 7,304,640'). Collapse
+    whitespace within each '$' + numeric run (the run stops at the first
+    non-numeric character, so space-separated prose and columns are untouched),
+    then turn the '$-' zero marker into '$0'.
     """
-    hits = [i for i, pg in enumerate(pdf.pages) if header in (pg.extract_text() or "")]
-    if len(hits) != 1:
-        raise ValueError(f"expected exactly one page for {header!r}, found pages {hits}")
-    return hits[0]
+    text = re.sub(r"\$[ \t\d,()\-\u2212]+", lambda m: re.sub(r"[ \t]+", "", m.group(0)), text)
+    return text.replace("$-", "$0").replace("$\u2212", "$0")
 
 
 def find_one(pdf, *needles):
@@ -84,6 +85,17 @@ def find_one(pdf, *needles):
     if len(hits) != 1:
         raise ValueError(f"expected exactly one page for {needles}, found pages {hits}")
     return hits[0]
+
+
+def find_first(pdf, *needles):
+    """Index of the first page containing all needles. Some summaries (the public-
+    hearing notice, the homeowner table) are reprinted on several pages; the first
+    copy is authoritative. Fail fast only if none is found."""
+    for i, pg in enumerate(pdf.pages):
+        t = (pg.extract_text() or "").lower()
+        if all(n.lower() in t for n in needles):
+            return i
+    raise ValueError(f"no page found for {needles}")
 
 
 def split_label_and_numbers(line):
@@ -129,7 +141,7 @@ def parse_six_col_table(text, is_fund):
 
         if "total" in full_label.lower():
             total = record
-            continue
+            break  # table ends at its total; ignore any per-line detail that follows
 
         if is_fund:
             fund_no = re.match(r"(\d{3})", full_label)
@@ -154,13 +166,22 @@ def reconcile(rows, total, key="tax_levy"):
 
 
 def parse_levy_history(text):
-    """Rows like '2017 $48,180,111 5.0398' -> {year, levy, rate}."""
-    out = []
+    """Rows like '2017 $48,180,111 5.0398' -> {year, levy, rate}.
+
+    The levy chart bleeds axis numbers onto these lines ('... 5.0398 60,000,000 5'),
+    so the rate is read as the first decimal after the levy and the rest ignored.
+    Homeowner-table rows start the same way but always carry a '%', so they're skipped.
+    The budget prints two overlapping levy/rate tables, so years are de-duplicated.
+    """
+    by_year = {}
     for line in text.split("\n"):
-        m = re.match(r"^(20\d{2})\s+\$([\d,]+)\s+\$?([\d.]+)\s*$", line.strip())
+        if "%" in line:
+            continue
+        m = re.match(r"^(20\d{2})\s+\$([\d,]+)\s+(\d+\.\d+)", line.strip())
         if m:
-            out.append({"year": int(m.group(1)), "levy": int(m.group(2).replace(",", "")), "rate": float(m.group(3))})
-    return out
+            year = int(m.group(1))
+            by_year.setdefault(year, {"year": year, "levy": int(m.group(2).replace(",", "")), "rate": float(m.group(3))})
+    return [by_year[y] for y in sorted(by_year)]
 
 
 def parse_homeowner_impact(text):
@@ -171,21 +192,22 @@ def parse_homeowner_impact(text):
     The tax amount carries cents, so it is parsed as a float rather than money().
     """
     row = re.compile(
-        r"^(20\d{2})\s+\$([\d,]+)\s+\$?\(?[\d,]+\)?\s+-?[\d.]+%\s+\$([\d.]+)\s+-?[\d.]+%\s+\$([\d.]+)\s"
+        r"^(20\d{2})\s+\$([\d,]+)\s+\(?\$?[\d,]+\)?\s+-?[\d.]+%\s+\$([\d.]+)\s+-?[\d.]+%\s+\$([\d.]+)\s"
     )
-    out = []
+    by_year = {}
     for line in text.split("\n"):
         m = row.match(line.strip())
         if not m:
             continue
-        out.append({
-            "year": int(m.group(1)),
+        year = int(m.group(1))
+        by_year.setdefault(year, {
+            "year": year,
             "avg_value": int(m.group(2).replace(",", "")),
             "tax_rate": float(m.group(3)),
             "tax_amount": float(m.group(4)),
             "pct_change_bill": float(re.findall(r"-?[\d.]+%", line)[-1].rstrip("%")),
         })
-    return out
+    return [by_year[y] for y in sorted(by_year)]
 
 
 def parse_debt(text):
@@ -249,31 +271,67 @@ def parse_gf_summary(text):
     }
 
 
+MONTHS = ["January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"]
+
+
+def build_meta(fund_total, levy_history, full_text):
+    """Top-level facts for the masthead, derived from the parsed tables + text.
+
+    Budget year and rate come from the (latest) levy-history row; the levy and
+    all-funds spending come from the by-fund total; the adoption date is parsed
+    from the approval sentence.
+    """
+    year = max((l["year"] for l in levy_history), default=None)
+    rate = next((l["rate"] for l in levy_history if l["year"] == year), None)
+    m = re.search(r"(" + "|".join(MONTHS) + r")\s+(\d{1,2}),\s+(20\d{2}),?\s+the Marathon County Board", full_text)
+    adopted = f"{m.group(3)}-{MONTHS.index(m.group(1)) + 1:02d}-{int(m.group(2)):02d}" if m else None
+    return {
+        "entity": "Marathon County",
+        "budget_year": year,
+        "adopted": adopted,
+        "tax_levy": fund_total["tax_levy"],
+        "tax_rate": rate,
+        "total_expenditures": fund_total["operating_expenditures"] + fund_total["personnel_expenditures"],
+    }
+
+
 def extract(pdf_path):
     pdf = pdfplumber.open(pdf_path)
 
-    fund_text = pdf.pages[section_page(pdf, "APPENDIX E:")].extract_text()
+    # The by-fund (E) and by-department (F) summary tables share this column
+    # header. Pairing it with the appendix marker isolates the summary-table page
+    # even when the appendix spans several pages of per-line account detail.
+    TABLE = "Expenditures Expenditures Tax Levy Difference"
+
+    # Only the appendix tables suffer pdfplumber's in-number spacing, so clean()
+    # is applied there alone. The early-page tables are already clean, and cleaning
+    # them would merge a levy with the first digit of its rate.
+    fund_text = clean(pdf.pages[find_one(pdf, "APPENDIX E:", TABLE)].extract_text() or "")
     funds, fund_total = parse_six_col_table(fund_text, is_fund=True)
     reconcile(funds, fund_total)
 
-    dept_text = pdf.pages[section_page(pdf, "APPENDIX F:")].extract_text()
+    dept_text = clean(pdf.pages[find_one(pdf, "APPENDIX F:", TABLE)].extract_text() or "")
     departments, dept_total = parse_six_col_table(dept_text, is_fund=False)
     reconcile(departments, dept_total)
 
-    # The consolidated General Fund summary lives on the public-hearing page;
-    # locate it by its function-row labels so a stray "EXPENDITURES" heading on a
-    # department page can't be picked up instead.
-    gf_page = find_one(pdf, "General Government", "Capital Outlay", "Other Financing Uses")
-    general_fund = parse_gf_summary(pdf.pages[gf_page].extract_text())
+    # The consolidated General Fund summary, located by its function-row labels.
+    gf_text = pdf.pages[find_first(pdf, "General Government", "Capital Outlay", "Other Financing Uses")].extract_text() or ""
+    general_fund = parse_gf_summary(gf_text)
 
     full_text = "\n".join((pg.extract_text() or "") for pg in pdf.pages)
+    levy_history = parse_levy_history(full_text)
+    # The homeowner row pattern is distinctive enough to find anywhere in the
+    # document; the parser de-duplicates the table's reprinted copies by year.
+    homeowner = parse_homeowner_impact(full_text)
 
     return {
+        "meta": build_meta(fund_total, levy_history, full_text),
         "funds": funds,
         "departments": departments,
         "general_fund": general_fund,
-        "levy_history": parse_levy_history(full_text),
-        "homeowner_impact": parse_homeowner_impact(full_text),
+        "levy_history": levy_history,
+        "homeowner_impact": homeowner,
         "debt": parse_debt(full_text),
     }
 
@@ -284,7 +342,11 @@ def main():
     data = extract(sys.argv[1])
     with open(sys.argv[2], "w") as f:
         json.dump(data, f, indent=2)
-    print(f"wrote {sys.argv[2]}: {len(data['departments'])} departments, {len(data['funds'])} funds")
+    m = data["meta"]
+    print(f"wrote {sys.argv[2]}: {m['entity']} {m['budget_year']} | "
+          f"{len(data['departments'])} departments, {len(data['funds'])} funds, "
+          f"{len(data['levy_history'])} levy yrs, {len(data['homeowner_impact'])} homeowner yrs, "
+          f"{len(data['debt'])} debt series")
 
 
 if __name__ == "__main__":
