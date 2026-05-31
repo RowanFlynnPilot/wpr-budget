@@ -296,7 +296,61 @@ def build_meta(fund_total, levy_history, full_text):
     }
 
 
-def extract(pdf_path):
+def build_history(extractions):
+    """Assemble per-year adopted figures from one or more single-year extractions.
+
+    Each extraction is a full extract_one() dict; we key its adopted department
+    levies and General Fund category figures by that book's budget year. With a
+    single PDF this yields one year per series; dropping in prior-year PDFs fills
+    the earlier years in losslessly, with no change to the schema or the UI.
+
+    'Adopted' is the apples-to-apples basis: a department's tax_levy and a GF
+    category's proposed_next are, in each book, that year's adopted figure.
+    """
+    extractions = sorted(extractions, key=lambda e: e["meta"]["budget_year"], reverse=True)
+    years = sorted(e["meta"]["budget_year"] for e in extractions)
+
+    def merge(rows_of, name_key, value_key):
+        # Union of names in latest-first order, each mapped to {year: value}.
+        names, seen = [], set()
+        for e in extractions:
+            for r in rows_of(e):
+                if r[name_key] not in seen:
+                    seen.add(r[name_key])
+                    names.append(r[name_key])
+        out = []
+        for name in names:
+            series = {}
+            for e in extractions:
+                for r in rows_of(e):
+                    if r[name_key] == name:
+                        series[str(e["meta"]["budget_year"])] = r[value_key]
+            out.append({name_key: name, "adopted": series})
+        return out
+
+    return {
+        "years": years,
+        "departments": merge(lambda e: e["departments"], "department", "tax_levy"),
+        "general_fund": {
+            "expenditures": merge(lambda e: e["general_fund"]["expenditures"], "category", "proposed_next"),
+            "revenues": merge(lambda e: e["general_fund"]["revenues"], "category", "proposed_next"),
+        },
+    }
+
+
+def extract(latest_pdf, prior_pdfs=()):
+    """Full extraction for the latest budget, plus a multi-year `history` block.
+
+    The latest PDF drives every detailed single-year section; each prior PDF (if
+    any) contributes only its adopted department/GF figures to `history`.
+    """
+    latest = extract_one(latest_pdf)
+    priors = [extract_one(p) for p in prior_pdfs]
+    latest["history"] = build_history([latest, *priors])
+    return latest
+
+
+def extract_one(pdf_path):
     pdf = pdfplumber.open(pdf_path)
 
     # The by-fund (E) and by-department (F) summary tables share this column
@@ -337,16 +391,17 @@ def extract(pdf_path):
 
 
 def main():
-    if len(sys.argv) != 3:
-        sys.exit("usage: python extract_budget.py <budget.pdf> <budget.json>")
-    data = extract(sys.argv[1])
-    with open(sys.argv[2], "w") as f:
+    if len(sys.argv) < 3:
+        sys.exit("usage: python extract_budget.py <latest.pdf> <budget.json> [<prior.pdf> ...]")
+    latest_pdf, out_path, prior_pdfs = sys.argv[1], sys.argv[2], sys.argv[3:]
+    data = extract(latest_pdf, prior_pdfs)
+    with open(out_path, "w") as f:
         json.dump(data, f, indent=2)
     m = data["meta"]
-    print(f"wrote {sys.argv[2]}: {m['entity']} {m['budget_year']} | "
+    print(f"wrote {out_path}: {m['entity']} {m['budget_year']} | "
           f"{len(data['departments'])} departments, {len(data['funds'])} funds, "
           f"{len(data['levy_history'])} levy yrs, {len(data['homeowner_impact'])} homeowner yrs, "
-          f"{len(data['debt'])} debt series")
+          f"{len(data['debt'])} debt series | history years {data['history']['years']}")
 
 
 if __name__ == "__main__":

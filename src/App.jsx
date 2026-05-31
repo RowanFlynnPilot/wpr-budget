@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceDot,
+  ComposedChart, Bar,
 } from "recharts";
 import { ChevronDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import logoUrl from "./assets/logo-32.png";
@@ -22,6 +23,10 @@ const compact = (n) => {
 };
 const pct = (n) => (n > 0 ? "+" : "") + n.toFixed(1) + "%";
 const deptSpend = (d) => d.operating_expenditures + d.personnel_expenditures;
+
+// Editorial line palette for the department trend (warm: green, gold, rust,
+// forest, slate, plum). Reused for legend swatches and tooltip dots.
+const LINE_COLORS = ["#16584a", "#9a7b2e", "#a8492f", "#2f6f4f", "#3d5a80", "#7a3b6b"];
 
 /* ---------- small components ---------- */
 function Delta({ value, invertColor = false }) {
@@ -101,9 +106,37 @@ function Ledger({ b }) {
   );
   const lastTrend = trend[trend.length - 1];
 
+  // Total county levy vs. mill rate, straight from the (already multi-year)
+  // levy_history. A different lens than the per-home bill chart below: total
+  // dollars raised, not the bill on a typical home.
+  const levyTrend = b.levy_history;
+  const levyFirst = levyTrend[0];
+  const levyLast = levyTrend[levyTrend.length - 1];
+
+  // Adopted department levy over time. Dormant until >=2 adopted years exist in
+  // history (i.e. once prior-year PDFs are ingested); then the six biggest
+  // movers light up automatically with no further code change.
+  const deptTrend = useMemo(() => {
+    const years = b.history.years;
+    if (years.length < 2) return null;
+    const first = String(years[0]), last = String(years[years.length - 1]);
+    const ranked = b.history.departments
+      .filter((d) => d.adopted[first] != null && d.adopted[last] != null)
+      .map((d) => ({ name: d.department, adopted: d.adopted, change: d.adopted[last] - d.adopted[first] }))
+      .sort((a, c) => Math.abs(c.change) - Math.abs(a.change))
+      .slice(0, 6);
+    const rows = years.map((y) => {
+      const o = { year: y };
+      ranked.forEach((d) => { o[d.name] = d.adopted[String(y)] ?? null; });
+      return o;
+    });
+    return { rows, names: ranked.map((d) => d.name) };
+  }, [b.history]);
+
   const sections = [
     ["where", "Where it goes"],
     ["departments", "Departments"],
+    ["trends", "Over time"],
     ["bill", "Your tax bill"],
     ["funds", "Funds"],
     ["debt", "Debt"],
@@ -172,6 +205,9 @@ function Ledger({ b }) {
               <div className="bar-track">
                 <div className="bar-fill" style={{ width: `${(r.proposed_next / gfMax) * 100}%` }} />
               </div>
+              <Spark className="hide-sm"
+                values={[r.actual_prior, r.budget_current, r.proposed_next]}
+                tone={(r.proposed_next >= r.actual_prior) === (flow === "revenues") ? "pos" : "neg"} />
               <div className="bar-val">{compact(r.proposed_next)}</div>
               <div className="bar-share">{((r.proposed_next / gfTotal) * 100).toFixed(0)}%</div>
               <div className="bar-delta"><Delta value={r.pct_change} invertColor={flow === "expenditures"} /></div>
@@ -182,6 +218,7 @@ function Ledger({ b }) {
           {flow === "expenditures"
             ? "Change shown vs. the 2025 adopted budget. Public safety alone is roughly two-fifths of general-fund spending."
             : "Change shown vs. the 2025 adopted budget. Whatever these sources don't cover is made up by the property-tax levy."}
+          {" "}The mini-trend traces each row from 2024 (actual) through 2025 (budget) to 2026 (adopted).
         </p>
       </section>
 
@@ -243,6 +280,64 @@ function Ledger({ b }) {
             );
           })}
         </div>
+      </section>
+
+      {/* OVER TIME */}
+      <section id="trends" className="block">
+        <SectionHead kicker="Shifting Priorities" title="How the budget has changed over time">
+          The total tax levy — every dollar the county raises from property taxes — has risen by more
+          than a quarter since 2017, even as the mill rate has fallen. Property values simply grew faster
+          than the rate came down.
+        </SectionHead>
+
+        <div className="chart-wrap">
+          <div className="chart-legend">
+            <span><i className="sw sw-levy" /> Total county tax levy</span>
+            <span><i className="sw sw-rate" /> Mill rate (per $1,000 of value)</span>
+          </div>
+          <ResponsiveContainer width="100%" height={320}>
+            <ComposedChart data={levyTrend} margin={{ top: 8, right: 12, bottom: 4, left: 10 }}>
+              <CartesianGrid stroke="var(--rule)" vertical={false} />
+              <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+              <YAxis yAxisId="levy" tick={{ fill: "var(--gold)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
+              <YAxis yAxisId="rate" orientation="right" domain={[3, 5.5]} tick={{ fill: "var(--accent)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(1)} width={42} />
+              <Tooltip content={<LevyTip />} cursor={{ fill: "var(--paper-2)" }} />
+              <Bar yAxisId="levy" dataKey="levy" fill="var(--gold)" fillOpacity={0.82} radius={[2, 2, 0, 0]} maxBarSize={34} />
+              <Line yAxisId="rate" type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+            </ComposedChart>
+          </ResponsiveContainer>
+          <p className="note">
+            The levy rose from {compact(levyFirst.levy)} in {levyFirst.year} to {compact(levyLast.levy)} in{" "}
+            {levyLast.year} — up {(((levyLast.levy / levyFirst.levy) - 1) * 100).toFixed(0)}% — while the mill
+            rate fell from ${levyFirst.rate.toFixed(2)} to ${levyLast.rate.toFixed(2)} per $1,000 of value.
+          </p>
+        </div>
+
+        {deptTrend && (
+          <div className="chart-wrap" style={{ marginTop: 40 }}>
+            <h3 className="subhead">Where department spending is moving</h3>
+            <div className="chart-legend">
+              {deptTrend.names.map((n, i) => (
+                <span key={n}><i className="sw" style={{ background: LINE_COLORS[i % LINE_COLORS.length] }} />{n}</span>
+              ))}
+            </div>
+            <ResponsiveContainer width="100%" height={340}>
+              <LineChart data={deptTrend.rows} margin={{ top: 8, right: 12, bottom: 4, left: 10 }}>
+                <CartesianGrid stroke="var(--rule)" vertical={false} />
+                <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+                <YAxis tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
+                <Tooltip content={<DeptTip />} />
+                {deptTrend.names.map((n, i) => (
+                  <Line key={n} type="monotone" dataKey={n} stroke={LINE_COLORS[i % LINE_COLORS.length]} strokeWidth={2} dot={false} connectNulls activeDot={{ r: 4 }} />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+            <p className="note">
+              Adopted tax levy by department, {b.history.years[0]}&ndash;{b.history.years[b.history.years.length - 1]}.
+              The six departments with the largest change over the period are shown.
+            </p>
+          </div>
+        )}
       </section>
 
       {/* TAX BILL */}
@@ -363,6 +458,51 @@ function BillTip({ active, payload, label }) {
   );
 }
 
+function LevyTip({ active, payload, label }) {
+  if (!active || !payload || !payload.length) return null;
+  const levy = payload.find((p) => p.dataKey === "levy");
+  const rate = payload.find((p) => p.dataKey === "rate");
+  return (
+    <div className="tip">
+      <div className="tip-year">{label}</div>
+      {levy && <div><i className="sw sw-levy" /> Levy {compact(levy.value)}</div>}
+      {rate && <div><i className="sw sw-rate" /> Mill rate ${rate.value.toFixed(2)}</div>}
+    </div>
+  );
+}
+
+function DeptTip({ active, payload, label }) {
+  if (!active || !payload || !payload.length) return null;
+  const rows = [...payload].filter((p) => p.value != null).sort((a, c) => c.value - a.value);
+  return (
+    <div className="tip">
+      <div className="tip-year">{label}</div>
+      {rows.map((p) => (
+        <div key={p.dataKey}><i className="sw" style={{ background: p.color }} /> {p.dataKey} {compact(p.value)}</div>
+      ))}
+    </div>
+  );
+}
+
+// Inline 3-point trajectory sparkline (pure SVG — no chart lib needed).
+function Spark({ values, tone, className = "" }) {
+  const w = 56, h = 16, pad = 2;
+  const min = Math.min(...values), max = Math.max(...values);
+  const span = max - min || 1;
+  const pts = values.map((v, i) => [
+    pad + (i / (values.length - 1)) * (w - 2 * pad),
+    h - pad - ((v - min) / span) * (h - 2 * pad),
+  ]);
+  const [ex, ey] = pts[pts.length - 1];
+  return (
+    <svg className={"spark " + className} width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
+      <polyline points={pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ")}
+        fill="none" stroke={`var(--${tone})`} strokeWidth="1.5" />
+      <circle cx={ex} cy={ey} r="1.8" fill={`var(--${tone})`} />
+    </svg>
+  );
+}
+
 /* ---------- styles ---------- */
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=Playfair+Display:wght@900&display=swap');
@@ -437,11 +577,12 @@ const CSS = `
 
 /* bars */
 .bars{display:flex; flex-direction:column; gap:2px;}
-.bar-row{display:grid; grid-template-columns:1.6fr 3fr auto 42px 72px; align-items:center; gap:14px;
+.bar-row{display:grid; grid-template-columns:1.6fr 3fr 56px auto 42px 72px; align-items:center; gap:14px;
   padding:9px 0; border-bottom:1px solid var(--rule); animation:rise .5s both ease-out;}
 .bar-label{font-size:14px; font-weight:500;}
 .bar-track{height:14px; background:var(--paper-2);}
 .bar-fill{height:100%; background:var(--accent); transform-origin:left; animation:grow .7s both ease-out;}
+.spark{display:block;}
 .bar-val{font-size:14px; font-weight:600; font-variant-numeric:tabular-nums; text-align:right;}
 .bar-share{font-size:13px; color:var(--ink-soft); text-align:right; font-variant-numeric:tabular-nums;}
 .bar-delta{font-size:12px; text-align:right;}
@@ -490,6 +631,8 @@ const CSS = `
 .sw{display:inline-block; width:14px; height:3px; vertical-align:middle; margin-right:6px;}
 .sw-rate{background:var(--accent);}
 .sw-bill{background:var(--gold);}
+.sw-levy{background:var(--gold);}
+.subhead{font-family:var(--serif); font-size:21px; font-weight:600; margin:0 0 10px; letter-spacing:-0.01em;}
 .tip{background:var(--ink); color:var(--paper); padding:10px 12px; font-size:13px; border-radius:2px;}
 .tip-year{font-weight:700; font-family:var(--serif); margin-bottom:4px;}
 .tip i{margin-right:5px;}

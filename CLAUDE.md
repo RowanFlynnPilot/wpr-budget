@@ -44,6 +44,12 @@ entirely, so **no Webshare proxy is needed**.
 # 2. Run the extractor:
 pip install -r scripts/requirements.txt
 python scripts/extract_budget.py 2026-Annual-Budget.pdf public/budget.json
+
+# Multi-year: pass prior-year "Adopted Budget" PDFs as trailing args. The FIRST
+# PDF drives every detailed section; each prior PDF contributes only its adopted
+# department-levy and GF-category figures to the `history` block (keyed by year):
+python scripts/extract_budget.py 2026-Annual-Budget.pdf public/budget.json \
+       2025-Annual-Budget.pdf 2024-Annual-Budget.pdf 2023-Annual-Budget.pdf
 ```
 
 The extractor locates tables by section marker (robust to page-number drift
@@ -65,6 +71,13 @@ funds[]:         fund_no, name, tax_levy, operating_revenues, operating_expendit
 levy_history[]:  year, levy, rate
 homeowner_impact[]: year, avg_value, tax_rate, tax_amount, pct_change_bill
 debt[]:          series, outstanding
+history:         { years[], departments[], general_fund:{expenditures[],revenues[]} }
+                 # multi-year ADOPTED figures merged across the PDFs passed to the
+                 # extractor. departments[]: {department, adopted:{<year>:tax_levy}};
+                 # general_fund blocks: {category, adopted:{<year>:proposed_next}}.
+                 # With one PDF, each series holds a single year; prior-year PDFs
+                 # fill earlier years losslessly. The "Over time" department chart
+                 # in the UI renders only once history.years has >= 2 entries.
 ```
 
 Identity worth knowing for the UI: per department,
@@ -87,10 +100,14 @@ more revenue than they cost; the UI handles negatives.
   `<style>` tag — no Tailwind, no CSS files.
 - Aesthetic: editorial / public-ledger. Fraunces (display) + Public Sans (data),
   warm newsprint, hairline rules, tabular numerals. Keep this direction.
-- Sections: Where it goes (GF spending/revenue toggle) · Departments (sortable
-  ledger, click to expand a where-it-goes / where-it-comes-from balance) · Your
-  tax bill (dual-axis mill-rate vs avg-bill chart) · Funds · Debt.
-- Charts use `recharts`; icons use `lucide-react`.
+- Sections: Where it goes (GF spending/revenue toggle, with inline 3-year
+  sparklines per row) · Departments (sortable ledger, click to expand a
+  where-it-goes / where-it-comes-from balance) · Over time (10-yr levy-vs-mill-
+  rate ComposedChart, plus a department-levy trend that appears once `history`
+  has >= 2 adopted years) · Your tax bill (dual-axis mill-rate vs avg-bill
+  chart) · Funds · Debt.
+- Charts use `recharts`; icons use `lucide-react`. Sparklines are hand-rolled
+  inline SVG (`Spark`), not recharts.
 
 ### Sponsor surface (deferred — not yet built)
 
@@ -123,7 +140,13 @@ data; separation of concerns. Match the existing editorial aesthetic.
 - ~~Replace the dev-fixture `budget.json` with the real 2026 extraction.~~ Done
   — committed `budget.json` is the reconciled FY2026 extraction.
 - Build the sponsor surface.
+- **Ingest prior-year PDFs (2023–2025) to populate `history`.** The plumbing is
+  done (extractor multi-PDF arg + `history` block + the dormant "Over time"
+  department chart). Remaining work is purely data: download the 2023/2024/2025
+  "Adopted Budget" PDFs by hand and re-run the extractor with them as trailing
+  args. Watch for older-layout parser breaks (loud, not silent) per the data-
+  pipeline note.
 - Add the City of Wausau as a second entity (verify its PDF format first; the
   extractor's section-marker approach may need entity-specific markers).
-- Possible later: prior-year budget PDFs for deeper multi-year trends; capital
-  improvement plan (CIP); link relevant Marathon Meetings coverage inline.
+- Possible later: capital improvement plan (CIP); link relevant Marathon
+  Meetings coverage inline.

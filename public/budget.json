@@ -623,5 +623,246 @@
       "series": "2022B GENERAL OBLIGATIONS PROMISSORY NOTES",
       "outstanding": 18675000
     }
-  ]
+  ],
+  "history": {
+    "years": [
+      2026
+    ],
+    "departments": [
+      {
+        "department": "Administration",
+        "adopted": {
+          "2026": 2515017
+        }
+      },
+      {
+        "department": "Clerk of Courts",
+        "adopted": {
+          "2026": 1614602
+        }
+      },
+      {
+        "department": "Conservation, Planning, and Zoning",
+        "adopted": {
+          "2026": 1604669
+        }
+      },
+      {
+        "department": "Corporation Counsel",
+        "adopted": {
+          "2026": 711291
+        }
+      },
+      {
+        "department": "County Board",
+        "adopted": {
+          "2026": 459626
+        }
+      },
+      {
+        "department": "County Clerk",
+        "adopted": {
+          "2026": 517078
+        }
+      },
+      {
+        "department": "County Treasurer",
+        "adopted": {
+          "2026": 327816
+        }
+      },
+      {
+        "department": "District Attorney",
+        "adopted": {
+          "2026": 1008527
+        }
+      },
+      {
+        "department": "Emergency Management",
+        "adopted": {
+          "2026": 173916
+        }
+      },
+      {
+        "department": "Facilities & Capital Management",
+        "adopted": {
+          "2026": 5444943
+        }
+      },
+      {
+        "department": "Finance",
+        "adopted": {
+          "2026": 705521
+        }
+      },
+      {
+        "department": "Health",
+        "adopted": {
+          "2026": 2640685
+        }
+      },
+      {
+        "department": "Human Resources",
+        "adopted": {
+          "2026": 565414
+        }
+      },
+      {
+        "department": "Library",
+        "adopted": {
+          "2026": 3838584
+        }
+      },
+      {
+        "department": "Medical Examiner",
+        "adopted": {
+          "2026": 583937
+        }
+      },
+      {
+        "department": "Register of Deeds",
+        "adopted": {
+          "2026": -428722
+        }
+      },
+      {
+        "department": "Sheriff's Office",
+        "adopted": {
+          "2026": 26304007
+        }
+      },
+      {
+        "department": "UW-Extension",
+        "adopted": {
+          "2026": 200235
+        }
+      },
+      {
+        "department": "Veterans Services",
+        "adopted": {
+          "2026": 240570
+        }
+      },
+      {
+        "department": "Contingency Fund",
+        "adopted": {
+          "2026": 600000
+        }
+      },
+      {
+        "department": "Non Departmental",
+        "adopted": {
+          "2026": -23233288
+        }
+      },
+      {
+        "department": "Support for Other Agencies",
+        "adopted": {
+          "2026": 10910212
+        }
+      }
+    ],
+    "general_fund": {
+      "expenditures": [
+        {
+          "category": "General Government",
+          "adopted": {
+            "2026": 24562478
+          }
+        },
+        {
+          "category": "Public Safety",
+          "adopted": {
+            "2026": 29548679
+          }
+        },
+        {
+          "category": "Health",
+          "adopted": {
+            "2026": 12070420
+          }
+        },
+        {
+          "category": "Social Services",
+          "adopted": {
+            "2026": 244570
+          }
+        },
+        {
+          "category": "Leisure Activities & Education",
+          "adopted": {
+            "2026": 4443034
+          }
+        },
+        {
+          "category": "Conservation & Ec Development",
+          "adopted": {
+            "2026": 3693653
+          }
+        },
+        {
+          "category": "Capital Outlay",
+          "adopted": {
+            "2026": 345500
+          }
+        },
+        {
+          "category": "Other Financing Uses",
+          "adopted": {
+            "2026": 1813264
+          }
+        }
+      ],
+      "revenues": [
+        {
+          "category": "Taxes (excluding levy)",
+          "adopted": {
+            "2026": 14832906
+          }
+        },
+        {
+          "category": "Intergovernmental Grants & Aids",
+          "adopted": {
+            "2026": 9890618
+          }
+        },
+        {
+          "category": "Licenses & Permits",
+          "adopted": {
+            "2026": 708750
+          }
+        },
+        {
+          "category": "Fines & Forfeits & Penalties",
+          "adopted": {
+            "2026": 645513
+          }
+        },
+        {
+          "category": "Public Charges for Services",
+          "adopted": {
+            "2026": 5088210
+          }
+        },
+        {
+          "category": "Intergovt Charges for Services",
+          "adopted": {
+            "2026": 3138026
+          }
+        },
+        {
+          "category": "Miscellaneous Revenue",
+          "adopted": {
+            "2026": 1339555
+          }
+        },
+        {
+          "category": "Other Financing Sources",
+          "adopted": {
+            "2026": 3773380
+          }
+        }
+      ]
+    }
+  }
 }
