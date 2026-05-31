@@ -121,6 +121,14 @@ function Ledger({ b }) {
   const levyPctChange = (levyLast.levy / levyPrev.levy - 1) * 100;
   const ratePctChange = (levyLast.rate / levyPrev.rate - 1) * 100;
 
+  // Total-budget YoY change — dormant until a prior year's totals land in
+  // history (i.e. once prior-year PDFs are ingested), mirroring the levy delta.
+  const tYears = Object.keys(b.history.totals).map(Number).sort((a, c) => a - c);
+  const budgetPctChange = tYears.length >= 2
+    ? (b.history.totals[String(tYears[tYears.length - 1])].total_expenditures
+      / b.history.totals[String(tYears[tYears.length - 2])].total_expenditures - 1) * 100
+    : null;
+
   // Adopted department levy over time. Dormant until >=2 adopted years exist in
   // history (i.e. once prior-year PDFs are ingested); then the six biggest
   // movers light up automatically with no further code change.
@@ -142,10 +150,10 @@ function Ledger({ b }) {
   }, [b.history]);
 
   const sections = [
-    ["where", "Where it goes"],
+    ["where", "Where It Goes"],
     ["departments", "Departments"],
-    ["trends", "Over time"],
-    ["bill", "Your tax bill"],
+    ["trends", "Over Time"],
+    ["bill", "Your Tax Bill"],
     ["funds", "Funds"],
     ["debt", "Debt"],
   ];
@@ -193,9 +201,9 @@ function Ledger({ b }) {
         </p>
 
         <div className="stat-strip">
-          <Stat label="Total budget" value={compact(b.meta.total_expenditures)} sub="all funds, 2026" />
-          <Stat label="County tax levy" value={compact(b.meta.tax_levy)} sub={<Delta value={levyPctChange} />} />
-          <Stat label="Mill rate" value={"$" + b.meta.tax_rate.toFixed(2)} sub={<Delta value={ratePctChange} />} />
+          <Stat icon="💰" label="Total budget" value={compact(b.meta.total_expenditures)} sub={budgetPctChange != null ? <Delta value={budgetPctChange} /> : null} />
+          <Stat icon="🏛️" label="County tax levy" value={compact(b.meta.tax_levy)} sub={<Delta value={levyPctChange} />} />
+          <Stat icon="🏠" label="Mill rate" value={"$" + b.meta.tax_rate.toFixed(2)} sub={<Delta value={ratePctChange} />} />
         </div>
       </header>
 
@@ -449,12 +457,13 @@ function Ledger({ b }) {
 }
 
 /* ---------- sub-components ---------- */
-function Stat({ label, value, sub }) {
+function Stat({ icon, label, value, sub }) {
   return (
     <div className="stat">
+      <div className="stat-icon" aria-hidden="true">{icon}</div>
       <div className="stat-label">{label}</div>
       <div className="stat-value">{value}</div>
-      <div className="stat-sub">{sub}</div>
+      {sub && <div className="stat-sub">{sub}</div>}
     </div>
   );
 }
@@ -573,19 +582,22 @@ html{scroll-behavior:smooth;}
 .masthead h1{font-size:clamp(44px,8vw,82px); line-height:.98; margin:14px 0 0; font-weight:600;}
 .masthead .dek{font-size:18px; max-width:60ch; color:#3a362d; margin:16px 0 0; line-height:1.55;}
 .stat-strip{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--rule);
-  border:1px solid var(--rule); margin-top:30px;}
-.stat{background:var(--paper); padding:18px 20px; transition:background .15s ease;}
+  border:1px solid var(--rule); margin-top:36px;}
+.stat{background:var(--paper); padding:40px 24px 34px; transition:background .15s ease;
+  display:flex; flex-direction:column; align-items:center; text-align:center;}
 .stat:hover{background:var(--paper-2);}
-.stat-label{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); font-weight:600;}
-.stat-value{font-family:var(--serif); font-size:38px; font-weight:600; line-height:1; margin:8px 0 6px; letter-spacing:-0.02em;}
-.stat-sub{font-size:13px; color:var(--ink-soft);}
+.stat-icon{font-size:34px; line-height:1; margin-bottom:16px;}
+.stat-label{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); font-weight:700;}
+.stat-value{font-family:var(--serif); font-size:clamp(44px,6vw,62px); font-weight:600; line-height:1;
+  margin:12px 0 10px; letter-spacing:-0.02em;}
+.stat-sub{font-size:15px; color:var(--ink-soft);}
 
 /* subnav — pronounced tab bar with an active scroll-spy underline */
-.subnav{position:sticky; top:0; z-index:5; display:flex; gap:2px; flex-wrap:wrap;
+.subnav{position:sticky; top:0; z-index:5; display:flex; justify-content:space-evenly; gap:4px; flex-wrap:wrap;
   background:var(--paper); border-bottom:2px solid var(--ink); padding:0; margin-bottom:8px;
   box-shadow:0 7px 14px -12px rgba(28,26,22,.4);}
-.subnav a{position:relative; font-size:13px; font-weight:600; letter-spacing:.01em;
-  color:var(--ink-soft); text-decoration:none; padding:13px 16px 12px;
+.subnav a{position:relative; flex:1 1 auto; text-align:center; font-size:14px; font-weight:600; letter-spacing:.02em;
+  color:var(--ink-soft); text-decoration:none; padding:16px 14px 14px;
   border-bottom:2px solid transparent; margin-bottom:-2px;
   transition:color .15s ease, background .15s ease, border-color .15s ease;}
 .subnav a:hover{color:var(--ink); background:var(--paper-2);}

@@ -628,6 +628,13 @@
     "years": [
       2026
     ],
+    "totals": {
+      "2026": {
+        "total_expenditures": 196351665,
+        "tax_levy": 61225481,
+        "tax_rate": 3.49
+      }
+    },
     "departments": [
       {
         "department": "Administration",

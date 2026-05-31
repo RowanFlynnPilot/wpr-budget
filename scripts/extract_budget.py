@@ -330,6 +330,13 @@ def build_history(extractions):
 
     return {
         "years": years,
+        "totals": {
+            str(e["meta"]["budget_year"]): {
+                "total_expenditures": e["meta"]["total_expenditures"],
+                "tax_levy": e["meta"]["tax_levy"],
+                "tax_rate": e["meta"]["tax_rate"],
+            } for e in extractions
+        },
         "departments": merge(lambda e: e["departments"], "department", "tax_levy"),
         "general_fund": {
             "expenditures": merge(lambda e: e["general_fund"]["expenditures"], "category", "proposed_next"),

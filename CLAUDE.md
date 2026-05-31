@@ -71,13 +71,15 @@ funds[]:         fund_no, name, tax_levy, operating_revenues, operating_expendit
 levy_history[]:  year, levy, rate
 homeowner_impact[]: year, avg_value, tax_rate, tax_amount, pct_change_bill
 debt[]:          series, outstanding
-history:         { years[], departments[], general_fund:{expenditures[],revenues[]} }
+history:         { years[], totals{}, departments[], general_fund:{expenditures[],revenues[]} }
                  # multi-year ADOPTED figures merged across the PDFs passed to the
-                 # extractor. departments[]: {department, adopted:{<year>:tax_levy}};
+                 # extractor. totals: {<year>:{total_expenditures,tax_levy,tax_rate}};
+                 # departments[]: {department, adopted:{<year>:tax_levy}};
                  # general_fund blocks: {category, adopted:{<year>:proposed_next}}.
                  # With one PDF, each series holds a single year; prior-year PDFs
-                 # fill earlier years losslessly. The "Over time" department chart
-                 # in the UI renders only once history.years has >= 2 entries.
+                 # fill earlier years losslessly. The "Over Time" department chart
+                 # and the masthead Total-budget delta render only once there are
+                 # >= 2 years (history.years / history.totals respectively).
 ```
 
 Identity worth knowing for the UI: per department,
