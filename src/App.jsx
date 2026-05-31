@@ -3,6 +3,7 @@ import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceDot,
 } from "recharts";
 import { ChevronDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import logoUrl from "./assets/logo-32.png";
 
 /*
  * Follow the Money - Marathon County budget explorer (Wausau Pilot & Review)
@@ -112,12 +113,24 @@ function Ledger({ b }) {
     <div className="ftm">
       <style>{CSS}</style>
 
+      {/* WPR brand chrome bar — shared suite chrome */}
+      <div className="chrome-bar">
+        <a className="chrome-bar__brand" href="https://wausaupilotandreview.com"
+           target="_blank" rel="noopener noreferrer">
+          <img className="chrome-bar__logo-img" src={logoUrl} alt="Wausau Pilot &amp; Review" />
+          <span className="chrome-bar__wordmark">Wausau Pilot &amp; Review</span>
+          <span className="chrome-bar__divider" />
+          <span className="chrome-bar__section">County Budget</span>
+        </a>
+        <span className="chrome-bar__meta">FY{b.meta.budget_year} Adopted Budget</span>
+      </div>
+
       {/* masthead */}
       <header className="masthead">
         <div className="kicker-row">
-          <span className="pub">Wausau Pilot &amp; Review</span>
+          <span className="pub">The Public Ledger</span>
           <span className="dot">·</span>
-          <span>The Public Ledger</span>
+          <span>{b.meta.entity}</span>
           {/* sponsor slot lands here later */}
         </div>
         <h1>Follow the Money</h1>
@@ -352,7 +365,7 @@ function BillTip({ active, payload, label }) {
 
 /* ---------- styles ---------- */
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=Playfair+Display:wght@900&display=swap');
 
 .ftm {
   --paper:#f5f1e8; --paper-2:#efe9da; --ink:#1c1a16; --ink-soft:#6b6555; --rule:#ddd5c2;
@@ -364,6 +377,24 @@ const CSS = `
 }
 .ftm *{box-sizing:border-box;}
 .ftm h1,.ftm h2{font-family:var(--serif); font-weight:600; letter-spacing:-0.01em; margin:0;}
+
+/* WPR brand chrome bar — shared "Follow the Money" suite chrome (matches River Conditions) */
+.chrome-bar{display:flex; align-items:center; justify-content:space-between; gap:12px;
+  margin:0 -24px; padding:10px 24px; background:#0d7377; color:#fff;}
+.chrome-bar__brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:#fff;}
+.chrome-bar__logo-img{height:30px; width:30px; border-radius:50%; object-fit:cover;
+  border:1.5px solid rgba(255,255,255,.5); flex-shrink:0;}
+.chrome-bar__wordmark{font-family:'Playfair Display',Georgia,serif; font-weight:900;
+  font-size:14px; letter-spacing:.03em; text-transform:uppercase; white-space:nowrap;}
+.chrome-bar__divider{width:1px; height:18px; background:rgba(255,255,255,.35);}
+.chrome-bar__section{font-weight:600; font-size:12px; letter-spacing:.04em;
+  text-transform:uppercase; opacity:.9; white-space:nowrap;}
+.chrome-bar__meta{font-size:11px; letter-spacing:.04em; opacity:.75; white-space:nowrap;}
+@media (max-width:560px){
+  .chrome-bar{flex-wrap:wrap; padding:8px 24px;}
+  .chrome-bar__divider,.chrome-bar__section{display:none;}
+  .chrome-bar__meta{width:100%; padding-top:2px;}
+}
 
 /* masthead */
 .masthead{padding:54px 0 30px; border-bottom:2px solid var(--ink);}
