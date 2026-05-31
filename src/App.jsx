@@ -652,8 +652,8 @@ html{scroll-behavior:smooth;}
 .d-name{display:flex; flex-direction:column; align-items:flex-start; gap:5px; text-align:left; font-weight:600;}
 .d-spark{width:120px; max-width:40vw; height:3px; background:var(--rule);}
 .d-spark span{display:block; height:100%; background:var(--accent);}
-.d-spend{font-weight:700; font-variant-numeric:tabular-nums;}
-.d-pers,.d-levy{font-variant-numeric:tabular-nums; color:#3a362d;}
+.d-spend{font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.d-pers,.d-levy{font-variant-numeric:tabular-nums; color:#3a362d; white-space:nowrap;}
 .d-change{font-size:13px;}
 .chev-col{display:flex; justify-content:flex-end;}
 .chev{color:var(--ink-soft); transition:transform .2s;}
@@ -716,6 +716,13 @@ html{scroll-behavior:smooth;}
   .ftm{padding:0 16px 60px;}
   .hide-sm{display:none !important;}
   .stat-strip{grid-template-columns:1fr;}
+  .stat{padding:26px 20px 22px;}
+  .stat-icon{font-size:30px; margin-bottom:10px;}
+  /* tabs: a clean swipeable single row instead of a ragged wrap */
+  .subnav{flex-wrap:nowrap; justify-content:flex-start; overflow-x:auto;
+    scrollbar-width:none; -webkit-overflow-scrolling:touch;}
+  .subnav::-webkit-scrollbar{display:none;}
+  .subnav a{flex:0 0 auto; white-space:nowrap;}
   .bar-row{grid-template-columns:1.4fr 2fr auto 56px; }
   .bar-share{display:none;}
   .ledger-head,.ledger-row{grid-template-columns:2fr 1fr 1fr 22px;}
