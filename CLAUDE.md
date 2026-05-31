@@ -73,11 +73,11 @@ Identity worth knowing for the UI: per department,
 Treasurer, Register of Deeds) have a **negative** tax_levy because they return
 more revenue than they cost; the UI handles negatives.
 
-> **The committed `public/budget.json` is currently a DEV FIXTURE** (see its
-> `_dev_note`): departments/funds/levy/homeowner are real **2025** figures
-> (validated, reconciled); general_fund/debt/meta are real **2026** captures.
-> Replace it with a clean single-year file by running the extractor on the 2026
-> PDF. The UI does not change when you do.
+> The committed `public/budget.json` is the **real, reconciled FY2026
+> extraction** — a clean single-year file produced by running the extractor on
+> `2026-Annual-Budget.pdf`. (It is no longer the mixed-year dev fixture; there is
+> no `_dev_note`.) Re-running the extractor on the same PDF reproduces it
+> byte-for-byte.
 
 ## Frontend
 
@@ -120,7 +120,8 @@ data; separation of concerns. Match the existing editorial aesthetic.
 
 ## Next steps / backlog
 
-- Replace the dev-fixture `budget.json` with the real 2026 extraction.
+- ~~Replace the dev-fixture `budget.json` with the real 2026 extraction.~~ Done
+  — committed `budget.json` is the reconciled FY2026 extraction.
 - Build the sponsor surface.
 - Add the City of Wausau as a second entity (verify its PDF format first; the
   extractor's section-marker approach may need entity-specific markers).
