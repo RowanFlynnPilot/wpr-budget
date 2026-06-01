@@ -4,7 +4,9 @@
     "kind": "city",
     "budget_year": 2026,
     "total_expenditures": 171366627,
-    "tax_levy": 34313205
+    "tax_levy": 34313205,
+    "gf_expenditures": 48014194,
+    "gf_revenues": 47714197
   },
   "expenditure_categories": [
     {
@@ -53,6 +55,150 @@
       "prior": 16406742
     }
   ],
+  "general_fund": {
+    "expenditures": [
+      {
+        "category": "Council",
+        "prior": 84938,
+        "proposed": 84928,
+        "pct_change": -0.01
+      },
+      {
+        "category": "Mayor",
+        "prior": 233775,
+        "proposed": 213387,
+        "pct_change": -8.72
+      },
+      {
+        "category": "Customer Service",
+        "prior": 1288650,
+        "proposed": 1375526,
+        "pct_change": 6.74
+      },
+      {
+        "category": "City County Information Technology",
+        "prior": 1376073,
+        "proposed": 1524680,
+        "pct_change": 10.8
+      },
+      {
+        "category": "Property Assessment",
+        "prior": 756088,
+        "proposed": 928826,
+        "pct_change": 22.85
+      },
+      {
+        "category": "Legal Affairs",
+        "prior": 746339,
+        "proposed": 680675,
+        "pct_change": -8.8
+      },
+      {
+        "category": "Human Resources",
+        "prior": 495625,
+        "proposed": 561416,
+        "pct_change": 13.27
+      },
+      {
+        "category": "Municipal Court",
+        "prior": 136610,
+        "proposed": 142094,
+        "pct_change": 4.01
+      },
+      {
+        "category": "Other General Government",
+        "prior": 197812,
+        "proposed": 162312,
+        "pct_change": -17.95
+      },
+      {
+        "category": "Police Department",
+        "prior": 13632812,
+        "proposed": 14477292,
+        "pct_change": 6.19
+      },
+      {
+        "category": "Fire Department",
+        "prior": 11468666,
+        "proposed": 11413330,
+        "pct_change": -0.48
+      },
+      {
+        "category": "Public Works",
+        "prior": 11300633,
+        "proposed": 11503442,
+        "pct_change": 1.79
+      },
+      {
+        "category": "Refuse Collection",
+        "prior": 1062000,
+        "proposed": 1305000,
+        "pct_change": 22.88
+      },
+      {
+        "category": "Parks Operations",
+        "prior": 3550520,
+        "proposed": 3641286,
+        "pct_change": 2.56
+      }
+    ],
+    "revenues": [
+      {
+        "category": "General Property Taxes",
+        "prior": 23414717,
+        "proposed": 24012338,
+        "pct_change": 2.55
+      },
+      {
+        "category": "Other Taxes",
+        "prior": 260000,
+        "proposed": 260745,
+        "pct_change": 0.29
+      },
+      {
+        "category": "Intergovernmental Grants and Aids",
+        "prior": 13012935,
+        "proposed": 12707838,
+        "pct_change": -2.34
+      },
+      {
+        "category": "Licenses and Permits",
+        "prior": 756655,
+        "proposed": 996680,
+        "pct_change": 31.72
+      },
+      {
+        "category": "Fines and Forfeitures",
+        "prior": 278000,
+        "proposed": 296000,
+        "pct_change": 6.47
+      },
+      {
+        "category": "Public Charges for Services",
+        "prior": 3155320,
+        "proposed": 3974066,
+        "pct_change": 25.95
+      },
+      {
+        "category": "Intergovernmental Charges for Services",
+        "prior": 1519743,
+        "proposed": 1515279,
+        "pct_change": -0.29
+      },
+      {
+        "category": "Miscellaneous Revenue",
+        "prior": 1411816,
+        "proposed": 1278915,
+        "pct_change": -9.41
+      },
+      {
+        "category": "Other Financing Sources",
+        "prior": 2221355,
+        "proposed": 2672336,
+        "pct_change": 20.3
+      }
+    ]
+  },
   "levy_history": [
     {
       "year": 2017,
@@ -94,5 +240,142 @@
       "year": 2026,
       "levy": 34313205
     }
-  ]
+  ],
+  "tax_by_jurisdiction": {
+    "rate_years": [
+      "2025",
+      "2024",
+      "2023"
+    ],
+    "rows": [
+      {
+        "jurisdiction": "City of Wausau",
+        "rates": {
+          "2025": 8.74,
+          "2024": 8.71,
+          "2023": 10.86
+        }
+      },
+      {
+        "jurisdiction": "NC Technical College",
+        "rates": {
+          "2025": 1.08,
+          "2024": 1.1,
+          "2023": 1.34
+        }
+      },
+      {
+        "jurisdiction": "Marathon County",
+        "rates": {
+          "2025": 3.67,
+          "2024": 3.77,
+          "2023": 4.81
+        }
+      },
+      {
+        "jurisdiction": "Wausau School District (net)",
+        "rates": {
+          "2025": 5.45,
+          "2024": 5.75,
+          "2023": 8.63
+        }
+      }
+    ],
+    "total": {
+      "2025": 18.94,
+      "2024": 19.33,
+      "2023": 25.64
+    }
+  },
+  "debt": {
+    "outstanding": 76507535,
+    "total_interest_remaining": 10136267,
+    "pct_of_limit": 33.49,
+    "retirement": [
+      {
+        "year": 2026,
+        "principal": 12494621,
+        "interest": 2474580,
+        "total": 14969201
+      },
+      {
+        "year": 2027,
+        "principal": 9970380,
+        "interest": 2036504,
+        "total": 12006884
+      },
+      {
+        "year": 2028,
+        "principal": 10020918,
+        "interest": 1679055,
+        "total": 11699973
+      },
+      {
+        "year": 2029,
+        "principal": 9846458,
+        "interest": 1323718,
+        "total": 11170176
+      },
+      {
+        "year": 2030,
+        "principal": 9076999,
+        "interest": 985030,
+        "total": 10062029
+      },
+      {
+        "year": 2031,
+        "principal": 8102541,
+        "interest": 670774,
+        "total": 8773315
+      },
+      {
+        "year": 2032,
+        "principal": 5248085,
+        "interest": 427390,
+        "total": 5675475
+      },
+      {
+        "year": 2033,
+        "principal": 4863631,
+        "interest": 259421,
+        "total": 5123052
+      },
+      {
+        "year": 2034,
+        "principal": 3044177,
+        "interest": 141446,
+        "total": 3185623
+      },
+      {
+        "year": 2035,
+        "principal": 2219725,
+        "interest": 71091,
+        "total": 2290816
+      },
+      {
+        "year": 2036,
+        "principal": 790000,
+        "interest": 32745,
+        "total": 822745
+      },
+      {
+        "year": 2037,
+        "principal": 270000,
+        "interest": 19113,
+        "total": 289113
+      },
+      {
+        "year": 2038,
+        "principal": 280000,
+        "interest": 11550,
+        "total": 291550
+      },
+      {
+        "year": 2039,
+        "principal": 280000,
+        "interest": 3850,
+        "total": 283850
+      }
+    ]
+  }
 }

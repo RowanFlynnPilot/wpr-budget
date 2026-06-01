@@ -43,7 +43,10 @@ def page_texts(pdf):
 
 
 def find_page(texts, *needles):
-    hits = [i for i, t in enumerate(texts) if all(n in t for n in needles)]
+    # Case-insensitive: the City book styles some section headers in alternating
+    # case (e.g. "ANNUAL RetIReMeNt oF eXIStING", "CoMpUtAtIoN oF deBt LIMIt").
+    needles = [n.lower() for n in needles]
+    hits = [i for i, t in enumerate(texts) if all(n in t.lower() for n in needles)]
     if len(hits) != 1:
         raise ValueError(f"expected exactly one page for {needles}, found {hits}")
     return hits[0]
@@ -96,6 +99,97 @@ def parse_levy_limit(text):
     return out
 
 
+# Each General Fund row: label + 2025 adopted/modified/estimated + 2026 adopted +
+# increase + percent. We keep 2025 adopted (prior), 2026 adopted (proposed), pct.
+GF_ROW = re.compile(
+    r"^(.+?)\s+([\d,]+)\s+[\d,]+\s+[\d,]+\s+([\d,]+)\s+\(?[\d,]+\)?\s+(\(?-?[\d.]+%\)?)$")
+
+
+def parse_general_fund(text):
+    """General Fund 'Combined Statement of Expenditures' — department spending
+    then revenue sources, each ending in a reconciling Total row."""
+    exp, rev, mode = [], [], "exp"
+    exp_total = rev_total = None
+    for line in text.split("\n"):
+        m = GF_ROW.match(line.strip())
+        if not m:
+            continue
+        label = m.group(1).strip()
+        prior, proposed = money(m.group(2)), money(m.group(3))
+        pct = float(m.group(4).strip("()%").replace("%", "")) if m.group(4) else None
+        low = label.lower()
+        if low == "total expenditures":
+            exp_total = proposed
+            mode = "rev"
+            continue
+        if low == "total revenues":
+            rev_total = proposed
+            break
+        (exp if mode == "exp" else rev).append(
+            {"category": label, "prior": prior, "proposed": proposed, "pct_change": pct})
+    if exp_total is None or rev_total is None:
+        raise ValueError("General Fund Total Expenditures/Revenues rows not found")
+    reconcile(exp, exp_total, "proposed")
+    reconcile(rev, rev_total, "proposed")
+    return {"expenditures": exp, "revenues": rev}, exp_total, rev_total
+
+
+def parse_tax_by_jurisdiction(text):
+    """'Property Tax Allocation by Taxing Jurisdiction' — the property-tax rate
+    split across City / college / county / school, for the three most recent
+    years. The per-jurisdiction rates sum to the printed Total Tax Rate."""
+    rows, total = [], None
+    for line in text.split("\n"):
+        m = re.match(r"^(.+?)\s+\$?\s*([\d.]+)\s+\$?\s*([\d.]+)\s+\$?\s*([\d.]+)\b", line.strip())
+        if not m:
+            continue
+        r1, r2, r3 = float(m.group(2)), float(m.group(3)), float(m.group(4))
+        if r1 > 100:  # the "2025 2024 2023" column-header row, not a rate
+            continue
+        label = re.sub(r"\*+$", "", m.group(1).strip()).strip()
+        if label.lower().startswith("total tax rate"):
+            total = {"2025": r1, "2024": r2, "2023": r3}
+            break
+        rows.append({"jurisdiction": label, "rates": {"2025": r1, "2024": r2, "2023": r3}})
+    if total is None:
+        raise ValueError("no 'Total Tax Rate' row found")
+    calc = round(sum(r["rates"]["2025"] for r in rows), 2)
+    if calc != total["2025"]:
+        raise ValueError(f"jurisdiction rate reconcile: {calc} vs printed {total['2025']}")
+    return rows, total
+
+
+def parse_debt(retire_text, limit_text):
+    """General-obligation debt: the annual retirement schedule (principal +
+    interest by year, reconciled to the printed totals) and the outstanding
+    total from the debt-limit computation."""
+    retire, printed = [], None
+    for line in retire_text.split("\n"):
+        s = line.strip()
+        m = re.match(r"^(20\d{2})\s+([\d,]+)\s+([\d,]+)\s+([\d,]+)$", s)
+        if m:
+            retire.append({"year": int(m.group(1)), "principal": money(m.group(2)),
+                           "interest": money(m.group(3)), "total": money(m.group(4))})
+            continue
+        mt = re.match(r"^([\d,]+)\s+([\d,]+)\s+([\d,]+)$", s)
+        if mt and retire:
+            printed = {"principal": money(mt.group(1)), "interest": money(mt.group(2)),
+                       "total": money(mt.group(3))}
+            break
+    if printed is None:
+        raise ValueError("debt retirement totals row not found")
+    reconcile(retire, printed["principal"], "principal")
+    reconcile(retire, printed["total"], "total")
+    mo = re.search(r"Outstanding GO Debt\s+\$\s*[\d,]+\s+\$\s*([\d,]+)", limit_text)
+    mu = re.search(r"% Utilized\s+[\d.]+%\s+([\d.]+)%", limit_text)
+    return {
+        "outstanding": money(mo.group(1)) if mo else printed["principal"],
+        "total_interest_remaining": printed["interest"],
+        "pct_of_limit": float(mu.group(1)) if mu else None,
+        "retirement": retire,
+    }
+
+
 # ---------- assembly ----------
 def extract(pdf_path):
     pdf = pdfplumber.open(pdf_path)
@@ -107,6 +201,18 @@ def extract(pdf_path):
     levy_text = texts[find_page(texts, "for", "Allowable Levy")]
     levy_history = parse_levy_limit(levy_text)
 
+    gf_text = texts[find_page(texts, "COMBINED STATEMENT OF EXPENDITURES - GENERAL FUND")]
+    general_fund, gf_exp_total, gf_rev_total = parse_general_fund(gf_text)
+
+    juris_text = texts[find_page(texts, "PROPERTY TAX ALLOCATION BY TAXING JURISDICTION")]
+    tax_by_jurisdiction, juris_total = parse_tax_by_jurisdiction(juris_text)
+
+    # "Existing General Obligation Debt" is unique to the GO retirement page; the
+    # sewer/water revenue-bond pages share the "Annual Retirement" header.
+    retire_text = texts[find_page(texts, "Existing General Obligation Debt")]
+    limit_text = texts[find_page(texts, "COMPUTATION OF DEBT LIMIT")]
+    debt = parse_debt(retire_text, limit_text)
+
     latest = max(l["year"] for l in levy_history)
 
     meta = {
@@ -115,12 +221,17 @@ def extract(pdf_path):
         "budget_year": latest,
         "total_expenditures": cat_total["current"],
         "tax_levy": next(l["levy"] for l in levy_history if l["year"] == latest),
+        "gf_expenditures": gf_exp_total,
+        "gf_revenues": gf_rev_total,
     }
 
     return {
         "meta": meta,
         "expenditure_categories": categories,
+        "general_fund": general_fund,
         "levy_history": levy_history,
+        "tax_by_jurisdiction": {"rate_years": ["2025", "2024", "2023"], "rows": tax_by_jurisdiction, "total": juris_total},
+        "debt": debt,
     }
 
 
@@ -133,7 +244,11 @@ def main():
     m = data["meta"]
     print(f"wrote {sys.argv[2]}: {m['entity']} {m['budget_year']} | "
           f"total ${m['total_expenditures']:,} | levy ${m['tax_levy']:,} | "
-          f"{len(data['expenditure_categories'])} categories, {len(data['levy_history'])} levy yrs")
+          f"{len(data['expenditure_categories'])} categories | "
+          f"GF {len(data['general_fund']['expenditures'])} depts / {len(data['general_fund']['revenues'])} rev sources | "
+          f"{len(data['levy_history'])} levy yrs | "
+          f"{len(data['tax_by_jurisdiction']['rows'])} jurisdictions | "
+          f"debt ${data['debt']['outstanding']:,}, {len(data['debt']['retirement'])} retirement yrs")
 
 
 if __name__ == "__main__":
