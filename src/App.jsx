@@ -156,7 +156,11 @@ function CityLedger({ b, chrome }) {
   const [taxTip, setTaxTip] = useState(null);
   const taxbarRef = useRef(null);
 
-  const gfRows = gfFlow === "departments" ? b.general_fund.expenditures : b.general_fund.revenues;
+  // Both tabs (departments / revenue) sorted by amount, largest first.
+  const gfRows = useMemo(() => {
+    const rows = gfFlow === "departments" ? b.general_fund.expenditures : b.general_fund.revenues;
+    return [...rows].sort((a, c) => c.proposed - a.proposed);
+  }, [gfFlow, b.general_fund]);
   const gfTotal = useMemo(() => gfRows.reduce((s, r) => s + r.proposed, 0), [gfRows]);
   const gfMax = useMemo(() => Math.max(...gfRows.map((r) => r.proposed)), [gfRows]);
 
