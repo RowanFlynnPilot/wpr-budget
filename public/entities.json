@@ -1,0 +1,16 @@
+[
+  {
+    "id": "marathon-county",
+    "name": "Marathon County",
+    "kind": "county",
+    "short": "County Budget",
+    "data": "marathon-county.json"
+  },
+  {
+    "id": "wausau-city",
+    "name": "City of Wausau",
+    "kind": "city",
+    "short": "City Budget",
+    "data": "wausau-city.json"
+  }
+]

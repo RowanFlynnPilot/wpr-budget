@@ -16,13 +16,29 @@ advertiser-ready via a deferred sponsor slot (see below).
 
 ## Architecture
 
-Same pattern as the other WPR widgets, with one deliberate difference:
+**Multi-entity suite.** The tool now serves more than one government. `App` reads
+`public/entities.json` (the manifest), then the active entity's data file, and
+routes to that entity's body component. A switcher in the chrome bar (and the URL
+hash, e.g. `#wausau-city`) chooses the entity. Each entity has its own extractor,
+data file, schema, and body — they deliberately do NOT share a schema, because a
+county (per-department tax levy) and a city (fund-based, no per-department levy)
+are structurally different governments.
+
+| Entity | kind | extractor | data file | body |
+|---|---|---|---|---|
+| Marathon County | county | `scripts/extract_budget.py` | `public/marathon-county.json` | `Ledger` |
+| City of Wausau | city | `scripts/extract_wausau.py` | `public/wausau-city.json` | `CityLedger` |
+
+`ChromeBar` is shared; `App` gates rendering on `data.id === activeId` so a body
+is never handed the previous entity's data mid-switch.
+
+Same pipeline pattern as the other WPR widgets, with one deliberate difference:
 
 ```
 official budget PDF (downloaded by hand)
-  -> scripts/extract_budget.py   (pdfplumber, run locally, once a year)
-  -> public/budget.json          (committed to the repo)
-  -> src/App.jsx                 (React + Vite, fetches budget.json at runtime)
+  -> scripts/extract_budget.py / extract_wausau.py   (pdfplumber, run locally, yearly)
+  -> public/<entity>.json        (committed to the repo)
+  -> src/App.jsx                 (React + Vite, fetches entities.json + the entity file)
   -> GitHub Pages                (built + deployed by .github/workflows/deploy.yml)
   -> WordPress iframe embed
 ```
@@ -43,14 +59,17 @@ entirely, so **no Webshare proxy is needed**.
 #    (curl/wget from a server IP gets a 403 from Akamai — use a browser.)
 # 2. Run the extractor:
 pip install -r scripts/requirements.txt
-python scripts/extract_budget.py 2026-Annual-Budget.pdf public/budget.json
+python scripts/extract_budget.py 2026-Annual-Budget.pdf public/marathon-county.json
 
 # Multi-year: pass prior-year "Adopted Budget" PDFs as trailing args. The FIRST
 # PDF drives every detailed section; each prior PDF contributes only the slice
 # `history` needs (its Appendix E/F tables) via extract_history_slice, keyed by
-# year. The committed budget.json is built from 2026 + 2025:
-python scripts/extract_budget.py 2026-Annual-Budget.pdf public/budget.json \
+# year. The committed county file is built from 2026 + 2025:
+python scripts/extract_budget.py 2026-Annual-Budget.pdf public/marathon-county.json \
        2025-Annual-Budget.pdf
+
+# City of Wausau (separate extractor, separate schema — see extract_wausau.py):
+python scripts/extract_wausau.py "2026-Wausau-Budget.pdf" public/wausau-city.json
 ```
 
 **Prior-year format limitation.** Only the **2025 and 2026** books use the

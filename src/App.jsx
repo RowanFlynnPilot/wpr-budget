@@ -7,11 +7,14 @@ import { ChevronDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import logoUrl from "./assets/logo-32.png";
 
 /*
- * Follow the Money - Marathon County budget explorer (Wausau Pilot & Review)
+ * Follow the Money — civic budget explorer suite (Wausau Pilot & Review)
  *
- * Reads public/budget.json (produced by scripts/extract_budget.py). One source
- * of truth: no inline data, no fallback. If the file is missing the UI says so
- * rather than rendering stale or invented numbers.
+ * Multi-entity: App reads public/entities.json (the manifest), then the active
+ * entity's data file — marathon-county.json or wausau-city.json, produced by
+ * scripts/extract_budget.py and scripts/extract_wausau.py respectively. Each
+ * entity has its own body component (Ledger / CityLedger) and schema. One source
+ * of truth: no inline data, no fallback; a missing file shows an error, not
+ * stale or invented numbers.
  */
 /* ---------- formatting ---------- */
 const usd = (n) => (n < 0 ? "\u2212$" : "$") + Math.abs(n).toLocaleString("en-US");
@@ -52,21 +55,132 @@ function SectionHead({ kicker, title, children }) {
 }
 
 /* ---------- main ---------- */
+// "Follow the Money" is a multi-entity suite. App loads the entity manifest,
+// picks the active entity (from the URL hash, else the first), fetches its data
+// file, and routes to the body for that entity's kind. The body components own
+// all the section logic; App owns only entity selection + the shared chrome.
 export default function App() {
-  const [b, setB] = useState(null);
+  const [entities, setEntities] = useState(null);
+  const [activeId, setActiveId] = useState(null);
+  const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
+
   useEffect(() => {
-    fetch(import.meta.env.BASE_URL + "budget.json")
+    fetch(import.meta.env.BASE_URL + "entities.json")
       .then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(setB)
+      .then((list) => {
+        setEntities(list);
+        const fromHash = list.find((e) => e.id === window.location.hash.slice(1));
+        setActiveId((fromHash || list[0]).id);
+      })
       .catch((e) => setErr(String(e.message || e)));
   }, []);
-  if (err) return (<div className="ftm load"><style>{CSS}</style><p>Could not load budget.json &mdash; {err}</p></div>);
-  if (!b) return (<div className="ftm load"><style>{CSS}</style><p>Loading the ledger&hellip;</p></div>);
-  return <Ledger b={b} />;
+
+  useEffect(() => {
+    if (!entities || !activeId) return;
+    const ent = entities.find((e) => e.id === activeId);
+    fetch(import.meta.env.BASE_URL + ent.data)
+      .then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then((payload) => setData({ id: activeId, payload }))
+      .catch((e) => setErr(String(e.message || e)));
+  }, [entities, activeId]);
+
+  const onSelect = (id) => { window.location.hash = id; setActiveId(id); };
+
+  if (err) return (<div className="ftm load"><style>{CSS}</style><p>Could not load budget data &mdash; {err}</p></div>);
+  // Gate on data.id === activeId so we never render a body with the previous
+  // entity's data during a switch (the bodies assume their own entity's schema).
+  if (!entities || !activeId || !data || data.id !== activeId)
+    return (<div className="ftm load"><style>{CSS}</style><p>Loading the ledger&hellip;</p></div>);
+
+  const ent = entities.find((e) => e.id === activeId);
+  const chrome = { entities, activeId, onSelect };
+  const Body = ent.kind === "city" ? CityLedger : Ledger;
+  return <Body key={activeId} b={data.payload} chrome={chrome} />;
 }
 
-function Ledger({ b }) {
+// Shared WPR brand chrome bar, with the entity switcher (rendered only when the
+// suite has more than one entity).
+function ChromeBar({ entities, activeId, onSelect, year }) {
+  const active = entities.find((e) => e.id === activeId);
+  return (
+    <div className="chrome-bar">
+      <div className="chrome-bar__left">
+        <a className="chrome-bar__brand" href="https://wausaupilotandreview.com"
+           target="_blank" rel="noopener noreferrer">
+          <img className="chrome-bar__logo-img" src={logoUrl} alt="Wausau Pilot &amp; Review" />
+          <span className="chrome-bar__wordmark">Wausau Pilot &amp; Review</span>
+        </a>
+        <span className="chrome-bar__divider" />
+        {entities.length > 1 ? (
+          <span className="chrome-bar__switch">
+            <select value={activeId} onChange={(e) => onSelect(e.target.value)} aria-label="Choose budget">
+              {entities.map((e) => <option key={e.id} value={e.id}>{e.short}</option>)}
+            </select>
+            <ChevronDown size={14} />
+          </span>
+        ) : (
+          <span className="chrome-bar__section">{active.short}</span>
+        )}
+      </div>
+      <span className="chrome-bar__meta">FY{year} Adopted Budget</span>
+    </div>
+  );
+}
+
+// City of Wausau body. Phase 2: entity-aware masthead + KPIs from the City's own
+// (validated) data; the detailed sections are wired up in the next phase.
+function CityLedger({ b, chrome }) {
+  const lh = b.levy_history;
+  const levyPct = (lh[lh.length - 1].levy / lh[lh.length - 2].levy - 1) * 100;
+  const j = b.tax_by_jurisdiction;
+  const ry = j.rate_years[0];
+  const cityShare = Math.round((j.rows[0].rates[ry] / j.total[ry]) * 100);
+  return (
+    <div className="ftm">
+      <style>{CSS}</style>
+      <ChromeBar {...chrome} year={b.meta.budget_year} />
+
+      <header className="masthead">
+        <div className="kicker-row">
+          <span className="pub">The Public Ledger</span>
+          <span className="dot">·</span>
+          <span>{b.meta.entity}</span>
+        </div>
+        <h1>Follow the Money</h1>
+        <p className="dek">
+          Every dollar in the {b.meta.entity}&rsquo;s {b.meta.budget_year} budget — where it comes from, where it
+          goes, and what it means for your tax bill.
+        </p>
+        <div className="stat-strip">
+          <Stat icon="💰" label="Total budget" value={compact(b.meta.total_expenditures)} sub="all funds" />
+          <Stat icon="🏛️" label="City tax levy" value={compact(b.meta.tax_levy)} sub={<Delta value={levyPct} />} />
+          <Stat icon="🏠" label="City share of tax bill" value={cityShare + "%"} sub={"of $" + j.total[ry].toFixed(2) + " total rate"} />
+        </div>
+      </header>
+
+      <section className="block">
+        <SectionHead kicker="In Progress" title="City sections are being wired up">
+          The City of Wausau budget is fully extracted and reconciled against the book&rsquo;s printed totals —
+          {" "}{compact(b.meta.total_expenditures)} across all funds, a {compact(b.meta.tax_levy)} levy, and
+          {" "}{compact(b.debt.outstanding)} in outstanding debt. The sections — where it goes, over time, your
+          tax bill, and debt — are being built next.
+        </SectionHead>
+      </section>
+
+      <footer className="foot">
+        <p>
+          <b>Source:</b> {b.meta.entity} Adopted {b.meta.budget_year} Budget. Figures are as adopted and may be
+          amended during the year.
+        </p>
+        <p className="muted">Built and maintained by Wausau Pilot &amp; Review; figures extracted from the
+          city&rsquo;s published budget document and reconciled against its printed totals.</p>
+      </footer>
+    </div>
+  );
+}
+
+function Ledger({ b, chrome }) {
   const [flow, setFlow] = useState("expenditures");
   const [sortKey, setSortKey] = useState("spend");
   const [sortDir, setSortDir] = useState("desc");
@@ -171,16 +285,7 @@ function Ledger({ b }) {
       <style>{CSS}</style>
 
       {/* WPR brand chrome bar — shared suite chrome */}
-      <div className="chrome-bar">
-        <a className="chrome-bar__brand" href="https://wausaupilotandreview.com"
-           target="_blank" rel="noopener noreferrer">
-          <img className="chrome-bar__logo-img" src={logoUrl} alt="Wausau Pilot &amp; Review" />
-          <span className="chrome-bar__wordmark">Wausau Pilot &amp; Review</span>
-          <span className="chrome-bar__divider" />
-          <span className="chrome-bar__section">County Budget</span>
-        </a>
-        <span className="chrome-bar__meta">FY{b.meta.budget_year} Adopted Budget</span>
-      </div>
+      <ChromeBar {...chrome} year={b.meta.budget_year} />
 
       {/* masthead */}
       <header className="masthead">
@@ -582,9 +687,18 @@ html{scroll-behavior:smooth;}
   border:1.5px solid rgba(255,255,255,.5); flex-shrink:0;}
 .chrome-bar__wordmark{font-family:'Playfair Display',Georgia,serif; font-weight:900;
   font-size:14px; letter-spacing:.03em; text-transform:uppercase; white-space:nowrap;}
+.chrome-bar__left{display:flex; align-items:center; gap:12px; min-width:0;}
 .chrome-bar__divider{width:1px; height:18px; background:rgba(255,255,255,.35);}
 .chrome-bar__section{font-weight:600; font-size:12px; letter-spacing:.04em;
   text-transform:uppercase; opacity:.9; white-space:nowrap;}
+.chrome-bar__switch{position:relative; display:inline-flex; align-items:center; color:#fff;}
+.chrome-bar__switch select{appearance:none; -webkit-appearance:none; -moz-appearance:none;
+  background:transparent; border:1px solid rgba(255,255,255,.4); color:#fff; font-family:var(--sans);
+  font-weight:600; font-size:12px; letter-spacing:.04em; text-transform:uppercase; line-height:1.2;
+  padding:4px 24px 4px 10px; border-radius:3px; cursor:pointer;}
+.chrome-bar__switch select:hover{background:rgba(255,255,255,.12);}
+.chrome-bar__switch svg{position:absolute; right:7px; pointer-events:none;}
+.chrome-bar__switch option{color:#1c1a16;}
 .chrome-bar__meta{font-size:11px; letter-spacing:.04em; opacity:.75; white-space:nowrap;}
 @media (max-width:560px){
   .chrome-bar{flex-wrap:wrap; padding:8px 24px;}
