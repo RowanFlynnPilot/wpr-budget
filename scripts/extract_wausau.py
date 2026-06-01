@@ -87,16 +87,87 @@ def parse_category(text):
 
 def parse_levy_limit(text):
     """The levy-limit history table: '<levy yr> for <budget yr> <allowable>
-    <actual> <exception> <under>'. We keep the actual levy per budget year."""
+    <actual> <exception> <under>'. We keep the actual levy plus the allowable
+    (basic limit) and the exception — how far the city went over the basic state
+    levy limit, via the debt-service exemption."""
     out = []
     for line in text.split("\n"):
-        m = re.match(r"\d{4}\s+for\s+(\d{4})\s+\$?\s*([\d,]+)\s+\$?\s*([\d,]+)", line.strip())
+        m = re.match(r"\d{4}\s+for\s+(\d{4})\s+\$?\s*([\d,]+)\s+\$?\s*([\d,]+)\s+\$?\s*([\d,]+|-)", line.strip())
         if m:
-            out.append({"year": int(m.group(1)), "levy": money(m.group(3))})
+            out.append({
+                "year": int(m.group(1)),
+                "levy": money(m.group(3)),
+                "allowable": money(m.group(2)),
+                "exception": money(m.group(4)),
+            })
     out.sort(key=lambda r: r["year"])
     if len(out) < 2:
         raise ValueError(f"levy-limit table parsed only {len(out)} rows")
     return out
+
+
+def parse_personnel(text):
+    """Personnel summary: FTE by department across ~11 years, reconciled to the
+    printed Grand Total. Wrapped department names (e.g. 'Community\\nDevelopment')
+    are stitched back together."""
+    lines = text.split("\n")
+    years = None
+    for ln in lines:
+        ys = re.findall(r"20\d{2}", ln)
+        if len(ys) >= 6 and "FTE" not in ln:
+            years = [int(y) for y in ys]
+            break
+    if years is None:
+        raise ValueError("personnel year header not found")
+    rows, total, pending = [], None, ""
+    for ln in lines:
+        s = ln.strip()
+        m = re.match(r"^(.+?)\s+((?:\d+\.\d{2}\s*)+)$", s)
+        if not m:
+            if re.search(r"[A-Za-z]", s) and not re.search(r"\d", s) and len(s) < 40:
+                pending = (pending + " " + s).strip()
+            else:
+                pending = ""
+            continue
+        label = re.sub(r"\s+", " ", (pending + " " + m.group(1)).strip())
+        pending = ""
+        fte = [float(x) for x in re.findall(r"\d+\.\d{2}", m.group(2))]
+        if label.lower().startswith("grand total"):
+            total = fte
+        elif label.lower().startswith("city council"):
+            continue  # the 11 elected alderpersons are listed but not staff FTE
+        else:
+            rows.append({"department": label, "fte": fte})
+    if total is None:
+        raise ValueError("personnel Grand Total row not found")
+    calc = round(sum(r["fte"][0] for r in rows if r["fte"]), 2)
+    if calc != total[0]:
+        raise ValueError(f"personnel reconcile (latest year): parsed {calc} vs printed {total[0]}")
+    return {"years": years, "rows": rows, "total": total}
+
+
+def parse_tif(text):
+    """Tax Increment Districts, from the budget message: per-district valuation
+    growth, developer payments, and the net TID levy change. (Prose-embedded —
+    no single table, so no reconcile; we capture the figures the city calls out.)"""
+    growth, payments = [], []
+    for line in text.split("\n"):
+        s = line.strip()
+        mp = re.search(r"TID\s+(\d+)\s*\D{0,3}\s*\$\s*([\d,]+)\s+(.+)", s)
+        mg = re.search(r"TID\s+(\d+)\s*\D{0,3}\s*([\d.]+)%", s)
+        if mp:
+            payments.append({"tid": int(mp.group(1)), "amount": money(mp.group(2)), "note": mp.group(3).strip()})
+        elif mg:
+            growth.append({"tid": int(mg.group(1)), "growth": float(mg.group(2))})
+    md = re.search(r"levy decrease of\s*\$\s*([\d,]+)", text)
+    if not growth:
+        raise ValueError("TIF valuation-growth list not found")
+    growth.sort(key=lambda r: r["tid"])
+    return {
+        "valuation_growth": growth,
+        "developer_payments": payments,
+        "levy_decrease": money(md.group(1)) if md else None,
+    }
 
 
 # Each General Fund row: label + 2025 adopted/modified/estimated + 2026 adopted +
@@ -213,6 +284,9 @@ def extract(pdf_path):
     limit_text = texts[find_page(texts, "COMPUTATION OF DEBT LIMIT")]
     debt = parse_debt(retire_text, limit_text)
 
+    personnel = parse_personnel(texts[find_page(texts, "PERSONNEL SUMMARY", "Grand Total")])
+    tif = parse_tif(texts[find_page(texts, "Valuation growth within the tax increment")])
+
     latest = max(l["year"] for l in levy_history)
 
     meta = {
@@ -232,6 +306,8 @@ def extract(pdf_path):
         "levy_history": levy_history,
         "tax_by_jurisdiction": {"rate_years": ["2025", "2024", "2023"], "rows": tax_by_jurisdiction, "total": juris_total},
         "debt": debt,
+        "personnel": personnel,
+        "tif": tif,
     }
 
 
@@ -248,7 +324,10 @@ def main():
           f"GF {len(data['general_fund']['expenditures'])} depts / {len(data['general_fund']['revenues'])} rev sources | "
           f"{len(data['levy_history'])} levy yrs | "
           f"{len(data['tax_by_jurisdiction']['rows'])} jurisdictions | "
-          f"debt ${data['debt']['outstanding']:,}, {len(data['debt']['retirement'])} retirement yrs")
+          f"debt ${data['debt']['outstanding']:,}, {len(data['debt']['retirement'])} retirement yrs | "
+          f"personnel {len(data['personnel']['rows'])} depts x {len(data['personnel']['years'])} yrs (latest {data['personnel']['total'][0]} FTE) | "
+          f"levy exception ${next(l['exception'] for l in data['levy_history'] if l['year']==m['budget_year']):,} | "
+          f"TIF {len(data['tif']['valuation_growth'])} districts, {len(data['tif']['developer_payments'])} payments")
 
 
 if __name__ == "__main__":

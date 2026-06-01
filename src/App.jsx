@@ -142,6 +142,9 @@ function ChromeBar({ entities, activeId, onSelect, year }) {
 // Jurisdiction colors for the "your tax bill" split (City / school / county /
 // college), sorted by rate descending: accent, gold, rust, slate.
 const JURIS_COLORS = ["#16584a", "#9a7b2e", "#a8492f", "#3d5a80"];
+// Editorial line palette for the workforce chart (green, gold, rust, slate,
+// forest, plum).
+const WORKFORCE_COLORS = ["#16584a", "#9a7b2e", "#a8492f", "#3d5a80", "#2f6f4f", "#7a3b6b"];
 
 // City of Wausau body. A municipality is fund-based with no per-department levy,
 // so the sections differ from the County's: spending by GF department and by
@@ -170,11 +173,28 @@ function CityLedger({ b, chrome }) {
 
   const debt = b.debt;
 
+  // Workforce: the six largest departments by current FTE, as year-ascending
+  // chart rows (the source arrays are newest-first).
+  const wf = b.personnel;
+  const wfTop = useMemo(() => [...wf.rows].sort((a, c) => c.fte[0] - a.fte[0]).slice(0, 6), [wf.rows]);
+  const wfData = useMemo(() => wf.years.map((_, i) => {
+    const idx = wf.years.length - 1 - i; // ascending position -> newest-first index
+    const o = { year: wf.years[idx] };
+    wfTop.forEach((d) => { o[d.department] = d.fte[idx] ?? null; });
+    return o;
+  }), [wf.years, wfTop]);
+
+  const tif = b.tif;
+  const tifGrowth = useMemo(() => [...tif.valuation_growth].sort((a, c) => c.growth - a.growth), [tif.valuation_growth]);
+  const tifMaxGrowth = Math.max(...tifGrowth.map((g) => g.growth));
+
   const sections = [
     ["where", "Where It Goes"],
     ["allfunds", "All Funds"],
     ["overtime", "Over Time"],
+    ["workforce", "Workforce"],
     ["taxbill", "Your Tax Bill"],
+    ["development", "Development"],
     ["debt", "Debt"],
   ];
 
@@ -288,6 +308,47 @@ function CityLedger({ b, chrome }) {
           </ResponsiveContainer>
           <p className="note">Actual property-tax levy as adopted, {levyFirst.year}&ndash;{levyLast.year}.</p>
         </div>
+
+        <div className="callout">
+          <div className="callout-title">The city is at its levy ceiling</div>
+          <p>
+            For the eleventh year running, Wausau&rsquo;s levy sits above the basic state limit — {compact(levyLast.exception)}{" "}
+            over in {levyLast.year}, allowed only through the debt-service exemption. And in 2027, the federal ARPA and
+            SAFER grants that pay for 15 first-responder positions expire, leaving an estimated $1.5 million for the
+            levy to absorb — the structural gap the mayor&rsquo;s budget message calls a &ldquo;ticking time bomb.&rdquo;
+          </p>
+        </div>
+      </section>
+
+      {/* WORKFORCE — FTE over time */}
+      <section id="workforce" className="block">
+        <SectionHead kicker="The People" title="The city&rsquo;s workforce over time">
+          The city budgets {wf.total[0]} full-time-equivalent positions in {b.meta.budget_year}, up from {wf.total[wf.total.length - 1]}{" "}
+          a decade ago. Police and Fire have grown the most — Fire alone added 15 positions since 2022, largely
+          grant-funded.
+        </SectionHead>
+        <div className="chart-wrap">
+          <div className="chart-legend">
+            {wfTop.map((d, i) => (
+              <span key={d.department}><i className="sw" style={{ background: WORKFORCE_COLORS[i % WORKFORCE_COLORS.length] }} />{d.department}</span>
+            ))}
+          </div>
+          <ResponsiveContainer width="100%" height={330}>
+            <LineChart data={wfData} margin={{ top: 8, right: 12, bottom: 4, left: 6 }}>
+              <CartesianGrid stroke="var(--rule)" vertical={false} />
+              <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+              <YAxis tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={34} />
+              <Tooltip content={<WorkforceTip />} />
+              {wfTop.map((d, i) => (
+                <Line key={d.department} type="monotone" dataKey={d.department} stroke={WORKFORCE_COLORS[i % WORKFORCE_COLORS.length]} strokeWidth={2} dot={false} connectNulls activeDot={{ r: 4 }} />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+          <p className="note">
+            Budgeted full-time-equivalent (FTE) positions by department, {wf.years[wf.years.length - 1]}&ndash;{wf.years[0]}.
+            The six largest departments are shown; the 11 elected alderpersons are excluded.
+          </p>
+        </div>
       </section>
 
       {/* YOUR TAX BILL — jurisdiction split */}
@@ -327,6 +388,37 @@ function CityLedger({ b, chrome }) {
         <p className="note">
           Rate per $1,000 of equalized value, {ry} (the most recent year all jurisdictions have set). The City
           of Wausau collects the bill on behalf of all four.
+        </p>
+      </section>
+
+      {/* DEVELOPMENT — tax increment districts */}
+      <section id="development" className="block">
+        <SectionHead kicker="Betting on Growth" title="Tax increment districts">
+          The city runs {tifGrowth.length} active tax increment districts (TIDs) — areas where the growth in property
+          value is captured to repay public investment in development. Here is how much each district&rsquo;s value
+          grew last year.
+        </SectionHead>
+        <div className="gbars">
+          {tifGrowth.map((g) => (
+            <div className="gbar" key={g.tid}>
+              <span className="gbar-name">District {g.tid}</span>
+              <span className="gbar-track"><i style={{ width: `${(g.growth / tifMaxGrowth) * 100}%` }} /></span>
+              <span className="gbar-val">+{g.growth.toFixed(2)}%</span>
+            </div>
+          ))}
+        </div>
+        {tif.developer_payments.length > 0 && (
+          <div className="tif-pays">
+            {tif.developer_payments.map((p) => (
+              <div className="tif-pay" key={p.tid}>
+                <b>District {p.tid}</b> &middot; {compact(p.amount)} <span>{p.note}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="note">
+          Valuation growth, 2025. The budget also includes the developer incentive payments above. A net TID levy
+          decrease of {compact(tif.levy_decrease)} this year reflects the closure of District 6.
         </p>
       </section>
 
@@ -826,6 +918,20 @@ function BillTip({ active, payload, label }) {
   );
 }
 
+// Workforce line-chart tooltip — plain FTE counts (not dollars).
+function WorkforceTip({ active, payload, label }) {
+  if (!active || !payload || !payload.length) return null;
+  const rows = [...payload].filter((p) => p.value != null).sort((a, c) => c.value - a.value);
+  return (
+    <div className="tip">
+      <div className="tip-year">{label}</div>
+      {rows.map((p) => (
+        <div key={p.dataKey}><i className="sw" style={{ background: p.color }} /> {p.dataKey} {p.value} FTE</div>
+      ))}
+    </div>
+  );
+}
+
 // Generic bar-chart tooltip (City levy + debt charts). `seriesName` labels a
 // series whose Bar has no `name`; multi-series bars use their own names.
 function BarTip({ active, payload, label, seriesName }) {
@@ -1006,6 +1112,23 @@ html{scroll-behavior:smooth;}
 .jrow-name{font-weight:500;}
 .jrow-rate,.jrow-share{text-align:right;}
 .jrow.total{font-weight:700; border-bottom:none; border-top:1px solid var(--ink); margin-top:2px;}
+
+/* callout (e.g. the levy-ceiling note) */
+.callout{margin-top:26px; padding:18px 22px; background:var(--paper-2); border-left:3px solid var(--neg);}
+.callout-title{font-family:var(--serif); font-size:19px; font-weight:600; letter-spacing:-0.01em; margin-bottom:7px;}
+.callout p{font-size:15px; color:#3a362d; line-height:1.55; margin:0; max-width:66ch;}
+
+/* growth bars (TIF valuation growth) */
+.gbars{border-top:2px solid var(--ink); margin-top:4px;}
+.gbar{display:grid; grid-template-columns:108px 1fr 70px; align-items:center; gap:14px;
+  padding:11px 2px; border-bottom:1px solid var(--rule);}
+.gbar-name{font-size:14px; font-weight:600;}
+.gbar-track{height:14px; background:var(--paper-2);}
+.gbar-track i{display:block; height:100%; background:var(--accent); transform-origin:left; animation:grow .6s both ease-out;}
+.gbar-val{text-align:right; font-size:14px; font-weight:600; font-variant-numeric:tabular-nums;}
+.tif-pays{display:flex; flex-direction:column; gap:8px; margin-top:22px;}
+.tif-pay{font-size:14px; padding:11px 14px; background:var(--paper-2); border-left:3px solid var(--accent);}
+.tif-pay span{color:var(--ink-soft);}
 
 /* ledger / departments */
 .ledger{border-top:2px solid var(--ink);}
