@@ -25,6 +25,18 @@ const ENTITY_LOGOS = { "marathon-county": marathonLogo, "wausau-city": wausauLog
  */
 /* ---------- formatting ---------- */
 const usd = (n) => (n < 0 ? "\u2212$" : "$") + Math.abs(n).toLocaleString("en-US");
+
+// Build a CSV from an array of flat objects and trigger a download.
+function downloadCSV(filename, rows) {
+  if (!rows || !rows.length) return;
+  const headers = Object.keys(rows[0]);
+  const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const csv = [headers.join(","), ...rows.map((r) => headers.map((h) => esc(r[h])).join(","))].join("\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
 const compact = (n) => {
   const a = Math.abs(n);
   const s = a >= 1e6 ? "$" + (a / 1e6).toFixed(a >= 1e7 ? 0 : 1) + "M"
@@ -58,6 +70,41 @@ function SectionHead({ kicker, title, children }) {
       <h2>{title}</h2>
       {children && <p className="standfirst">{children}</p>}
     </header>
+  );
+}
+
+// Shared methodology + open-data section, rendered by both entity bodies. The
+// reconcile-against-printed-totals point is the core trust signal.
+function Methodology({ b, chrome }) {
+  const ent = chrome.entities.find((e) => e.id === chrome.activeId);
+  const jsonUrl = import.meta.env.BASE_URL + ent.data;
+  const csvRows = ent.kind === "city"
+    ? b.general_fund.expenditures.map((r) => ({ department: r.category, fund: "General Fund", budget_2025: r.prior, budget_2026: r.proposed }))
+    : b.departments.map((d) => ({ department: d.department, tax_levy: d.tax_levy, operating_revenues: d.operating_revenues, operating_expenditures: d.operating_expenditures, personnel_expenditures: d.personnel_expenditures }));
+  return (
+    <section id="methodology" className="block">
+      <SectionHead kicker="How We Built This" title="Methodology &amp; open data">
+        Every figure on this page is pulled straight from {b.meta.entity}&rsquo;s official adopted {b.meta.budget_year}{" "}
+        budget — the same document the {ent.kind} publishes — and checked against the budget&rsquo;s own printed
+        totals. Nothing here is hand-typed or estimated.
+      </SectionHead>
+      <ol className="method">
+        <li><b>Source.</b> The official Adopted {b.meta.budget_year} Annual Budget (PDF), published by {b.meta.entity}.</li>
+        <li><b>Extraction.</b> An open-source script reads the budget&rsquo;s tables directly from the PDF — no manual transcription.</li>
+        <li><b>Verification.</b> Each table is reconciled line-by-line against the budget&rsquo;s printed totals. If a number doesn&rsquo;t add up, the process stops rather than publish a wrong figure.</li>
+        <li><b>Updates.</b> Refreshed once a year, when a new budget is adopted.</li>
+      </ol>
+      <div className="downloads">
+        <a className="dl-btn" href={jsonUrl} download>Download the full data (JSON)</a>
+        <button type="button" className="dl-btn" onClick={() => downloadCSV(`${ent.id}-${b.meta.budget_year}-spending.csv`, csvRows)}>
+          Download spending (CSV)
+        </button>
+      </div>
+      <p className="note">
+        This data is free to reuse. Built and maintained by Wausau Pilot &amp; Review as part of its civic
+        transparency work.
+      </p>
+    </section>
   );
 }
 
@@ -242,6 +289,7 @@ function CityLedger({ b, chrome }) {
     ["taxbill", "Your Tax Bill"],
     ["development", "Development"],
     ["debt", "Debt"],
+    ["methodology", "Methodology"],
   ];
 
   useEffect(() => {
@@ -294,9 +342,9 @@ function CityLedger({ b, chrome }) {
           The general fund — {compact(b.meta.gf_expenditures)} — pays for day-to-day city services. Toggle to
           see what it spends by department, and where that money comes from.
         </SectionHead>
-        <div className="toggle">
-          <button className={gfFlow === "departments" ? "on" : ""} onClick={() => setGfFlow("departments")}>By department</button>
-          <button className={gfFlow === "revenues" ? "on" : ""} onClick={() => setGfFlow("revenues")}>Revenue</button>
+        <div className="toggle" role="group" aria-label="General fund view">
+          <button aria-pressed={gfFlow === "departments"} className={gfFlow === "departments" ? "on" : ""} onClick={() => setGfFlow("departments")}>By department</button>
+          <button aria-pressed={gfFlow === "revenues"} className={gfFlow === "revenues" ? "on" : ""} onClick={() => setGfFlow("revenues")}>Revenue</button>
         </div>
         <div className="bars">
           {gfRows.map((r, i) => (
@@ -324,7 +372,8 @@ function CityLedger({ b, chrome }) {
         </SectionHead>
         <div className="chart-wrap">
           <div className="sankey-scroll">
-            <div className="sankey-inner">
+            <div className="sankey-inner" role="img"
+              aria-label={`Money-flow diagram: General Fund revenue sources flowing into the ${compact(b.meta.gf_expenditures)} general fund and out to departments. Largest department: ${sankey.nodes.find((n) => n.col === 2)?.name}.`}>
               <ResponsiveContainer width="100%" height={440}>
                 <Sankey data={sankey} nodePadding={28} nodeWidth={12} iterations={64}
                   node={<SankeyNode />} link={{ stroke: "#16584a", strokeOpacity: 0.2 }}
@@ -407,9 +456,9 @@ function CityLedger({ b, chrome }) {
           The city budgets {wf.total[0]} full-time-equivalent positions in {b.meta.budget_year}, up from {wf.total[wf.total.length - 1]}{" "}
           a decade ago. Pick a department to see how its staffing has changed.
         </SectionHead>
-        <div className="wf-pick">
+        <div className="wf-pick" role="group" aria-label="Choose a department">
           {wfDepts.map((d) => (
-            <button key={d.department} type="button"
+            <button key={d.department} type="button" aria-pressed={d.department === wfDept}
               className={"wf-chip" + (d.department === wfDept ? " on" : "")}
               onClick={() => setWfDept(d.department)}>{d.department}</button>
           ))}
@@ -562,6 +611,8 @@ function CityLedger({ b, chrome }) {
         </div>
       </section>
 
+      <Methodology b={b} chrome={chrome} />
+
       <footer className="foot">
         <p>
           <b>Source:</b> {b.meta.entity} Adopted {b.meta.budget_year} Budget. Figures are as adopted and may be
@@ -663,6 +714,7 @@ function Ledger({ b, chrome }) {
     ["bill", "Your Tax Bill"],
     ["funds", "Funds"],
     ["debt", "Debt"],
+    ["methodology", "Methodology"],
   ];
 
   // Scroll-spy: highlight the tab for whichever section sits near mid-viewport.
@@ -723,9 +775,9 @@ function Ledger({ b, chrome }) {
           where the money comes from before the property-tax levy fills the gap.
         </SectionHead>
 
-        <div className="toggle">
-          <button className={flow === "expenditures" ? "on" : ""} onClick={() => setFlow("expenditures")}>Spending</button>
-          <button className={flow === "revenues" ? "on" : ""} onClick={() => setFlow("revenues")}>Revenue</button>
+        <div className="toggle" role="group" aria-label="General fund view">
+          <button aria-pressed={flow === "expenditures"} className={flow === "expenditures" ? "on" : ""} onClick={() => setFlow("expenditures")}>Spending</button>
+          <button aria-pressed={flow === "revenues"} className={flow === "revenues" ? "on" : ""} onClick={() => setFlow("revenues")}>Revenue</button>
         </div>
 
         <div className="bars">
@@ -846,9 +898,9 @@ function Ledger({ b, chrome }) {
         {deptCompare && (
           <div className="chart-wrap" style={{ marginTop: 44 }}>
             <h3 className="subhead">Department by department, {deptCompare.first} vs {deptCompare.last}</h3>
-            <div className="toggle">
-              <button className={deptView === "amount" ? "on" : ""} onClick={() => setDeptView("amount")}>Amounts</button>
-              <button className={deptView === "change" ? "on" : ""} onClick={() => setDeptView("change")}>Change</button>
+            <div className="toggle" role="group" aria-label="Department comparison view">
+              <button aria-pressed={deptView === "amount"} className={deptView === "amount" ? "on" : ""} onClick={() => setDeptView("amount")}>Amounts</button>
+              <button aria-pressed={deptView === "change"} className={deptView === "change" ? "on" : ""} onClick={() => setDeptView("change")}>Change</button>
             </div>
 
             {deptView === "amount" ? (
@@ -988,6 +1040,8 @@ function Ledger({ b, chrome }) {
           ))}
         </div>
       </section>
+
+      <Methodology b={b} chrome={chrome} />
 
       <footer className="foot">
         <p>
@@ -1317,6 +1371,24 @@ html{scroll-behavior:smooth;}
   transition:color .12s ease, background .12s ease, border-color .12s ease;}
 .wf-chip:hover{color:var(--ink); border-color:var(--ink-soft);}
 .wf-chip.on{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+
+/* methodology & open data */
+.method{margin:6px 0 0; padding:0 0 0 22px; max-width:66ch;}
+.method li{font-size:15px; color:#3a362d; line-height:1.55; margin-bottom:11px;}
+.downloads{display:flex; flex-wrap:wrap; gap:12px; margin-top:26px;}
+.dl-btn{display:inline-flex; align-items:center; font-family:var(--sans); font-size:13px; font-weight:600;
+  padding:10px 18px; border:1px solid var(--ink); background:var(--ink); color:var(--paper);
+  text-decoration:none; cursor:pointer; transition:background .15s ease, color .15s ease;}
+.dl-btn:hover{background:transparent; color:var(--ink);}
+
+/* accessibility: visible focus + respect reduced-motion */
+.ftm a:focus-visible, .ftm button:focus-visible, .ftm input:focus-visible, .ftm select:focus-visible{
+  outline:2px solid var(--accent); outline-offset:2px;}
+.chrome-bar a:focus-visible, .chrome-bar button:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  .ftm *, .ftm *::before, .ftm *::after{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+}
 
 /* ledger / departments */
 .ledger{border-top:2px solid var(--ink);}
