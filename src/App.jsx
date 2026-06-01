@@ -24,10 +24,6 @@ const compact = (n) => {
 const pct = (n) => (n > 0 ? "+" : "") + n.toFixed(1) + "%";
 const deptSpend = (d) => d.operating_expenditures + d.personnel_expenditures;
 
-// Editorial line palette for the department trend (warm: green, gold, rust,
-// forest, slate, plum). Reused for legend swatches and tooltip dots.
-const LINE_COLORS = ["#16584a", "#9a7b2e", "#a8492f", "#2f6f4f", "#3d5a80", "#7a3b6b"];
-
 /* ---------- small components ---------- */
 function Delta({ value, invertColor = false, money = false }) {
   if (value === null || value === undefined) return <span className="muted">—</span>;
@@ -73,6 +69,7 @@ function Ledger({ b }) {
   const [sortDir, setSortDir] = useState("desc");
   const [open, setOpen] = useState(null);
   const [active, setActive] = useState("where");
+  const [deptView, setDeptView] = useState("amount");
 
   const gfRows = b.general_fund[flow];
   const gfTotal = useMemo(() => gfRows.reduce((s, r) => s + r.proposed_next, 0), [gfRows]);
@@ -129,28 +126,21 @@ function Ledger({ b }) {
       / b.history.totals[String(tYears[tYears.length - 2])].total_expenditures - 1) * 100
     : null;
 
-  // Adopted department levy over time. Dormant until >=2 adopted years exist in
-  // history (i.e. once prior-year PDFs are ingested); then the six biggest
-  // movers light up automatically with no further code change.
-  const deptTrend = useMemo(() => {
+  // Department adopted levy, prior year vs latest, for the comparison chart.
+  // Dormant until >=2 adopted years exist in history. Excludes revenue-returning
+  // offices (negative levy: County Treasurer, Register of Deeds, Non
+  // Departmental), whose book-to-book reclassifications swing levy by tens of
+  // millions — an artifact that would dwarf every real department.
+  const deptCompare = useMemo(() => {
     const years = b.history.years;
     if (years.length < 2) return null;
     const first = String(years[0]), last = String(years[years.length - 1]);
-    // Exclude revenue-returning offices (County Treasurer, Register of Deeds,
-    // Non Departmental): their levy is negative because they return more revenue
-    // than they cost, and book-to-book reclassifications swing it by tens of
-    // millions — an accounting artifact that would dwarf every real department.
-    const ranked = b.history.departments
+    const rows = b.history.departments
       .filter((d) => d.adopted[first] > 0 && d.adopted[last] > 0)
-      .map((d) => ({ name: d.department, adopted: d.adopted, change: d.adopted[last] - d.adopted[first] }))
-      .sort((a, c) => Math.abs(c.change) - Math.abs(a.change))
-      .slice(0, 6);
-    const rows = years.map((y) => {
-      const o = { year: y };
-      ranked.forEach((d) => { o[d.name] = d.adopted[String(y)] ?? null; });
-      return o;
-    });
-    return { rows, names: ranked.map((d) => d.name) };
+      .map((d) => ({ name: d.department, first: d.adopted[first], last: d.adopted[last], change: d.adopted[last] - d.adopted[first] }));
+    const maxVal = Math.max(...rows.map((r) => Math.max(r.first, r.last)), 1);
+    const maxChange = Math.max(...rows.map((r) => Math.abs(r.change)), 1);
+    return { first, last, rows, maxVal, maxChange };
   }, [b.history]);
 
   const sections = [
@@ -344,29 +334,60 @@ function Ledger({ b }) {
           </p>
         </div>
 
-        {deptTrend && (
-          <div className="chart-wrap" style={{ marginTop: 40 }}>
-            <h3 className="subhead">Where department spending is moving</h3>
-            <div className="chart-legend">
-              {deptTrend.names.map((n, i) => (
-                <span key={n}><i className="sw" style={{ background: LINE_COLORS[i % LINE_COLORS.length] }} />{n}</span>
-              ))}
+        {deptCompare && (
+          <div className="chart-wrap" style={{ marginTop: 44 }}>
+            <h3 className="subhead">Department by department, {deptCompare.first} vs {deptCompare.last}</h3>
+            <div className="toggle">
+              <button className={deptView === "amount" ? "on" : ""} onClick={() => setDeptView("amount")}>Amounts</button>
+              <button className={deptView === "change" ? "on" : ""} onClick={() => setDeptView("change")}>Change</button>
             </div>
-            <ResponsiveContainer width="100%" height={340}>
-              <LineChart data={deptTrend.rows} margin={{ top: 8, right: 12, bottom: 4, left: 10 }}>
-                <CartesianGrid stroke="var(--rule)" vertical={false} />
-                <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
-                <YAxis tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
-                <Tooltip content={<DeptTip />} />
-                {deptTrend.names.map((n, i) => (
-                  <Line key={n} type="monotone" dataKey={n} stroke={LINE_COLORS[i % LINE_COLORS.length]} strokeWidth={2} dot={false} connectNulls activeDot={{ r: 4 }} />
+
+            {deptView === "amount" ? (
+              <>
+                <div className="chart-legend">
+                  <span><i className="sw sw-old" /> {deptCompare.first} levy</span>
+                  <span><i className="sw sw-new" /> {deptCompare.last} levy</span>
+                </div>
+                <div className="cmp">
+                  {[...deptCompare.rows].sort((a, c) => c.last - a.last).map((d) => (
+                    <div className="cmp-row" key={d.name}>
+                      <div className="cmp-head">
+                        <span className="cmp-name">{d.name}</span>
+                        <span className="cmp-delta"><Delta value={d.change} money /></span>
+                      </div>
+                      <div className="cmp-bar">
+                        <span className="cmp-yr">&rsquo;{String(deptCompare.first).slice(2)}</span>
+                        <span className="cmp-track"><i className="cmp-fill old" style={{ width: `${(d.first / deptCompare.maxVal) * 100}%` }} /></span>
+                        <span className="cmp-val">{compact(d.first)}</span>
+                      </div>
+                      <div className="cmp-bar">
+                        <span className="cmp-yr">&rsquo;{String(deptCompare.last).slice(2)}</span>
+                        <span className="cmp-track"><i className="cmp-fill new" style={{ width: `${(d.last / deptCompare.maxVal) * 100}%` }} /></span>
+                        <span className="cmp-val">{compact(d.last)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="chg">
+                {[...deptCompare.rows].sort((a, c) => c.change - a.change).map((d) => (
+                  <div className="chg-row" key={d.name}>
+                    <span className="chg-name">{d.name}</span>
+                    <span className="chg-track">
+                      <i className={"chg-fill " + (d.change >= 0 ? "up" : "down")}
+                        style={{ width: `${(Math.abs(d.change) / deptCompare.maxChange) * 50}%` }} />
+                    </span>
+                    <span className="chg-val"><Delta value={d.change} money /></span>
+                  </div>
                 ))}
-              </LineChart>
-            </ResponsiveContainer>
+              </div>
+            )}
+
             <p className="note">
-              Adopted tax levy by department, {b.history.years[0]}&ndash;{b.history.years[b.history.years.length - 1]} —
-              the six with the largest change. Each year is taken from that year&rsquo;s own adopted budget book.
-              Revenue-returning offices (e.g.&nbsp;the County Treasurer), whose levy is negative, are omitted.
+              Adopted county tax levy by department, {deptCompare.first}&ndash;{deptCompare.last}. Each year is taken
+              from that year&rsquo;s own adopted budget book. Revenue-returning offices (e.g.&nbsp;the County
+              Treasurer), whose levy is negative, are omitted. In a tax context an increase is shown in red.
             </p>
           </div>
         )}
@@ -507,19 +528,6 @@ function LevyTip({ active, payload, label }) {
       <div className="tip-year">{label}</div>
       {levy && <div><i className="sw sw-levy" /> Levy {compact(levy.value)}</div>}
       {rate && <div><i className="sw sw-rate" /> Mill rate ${rate.value.toFixed(2)}</div>}
-    </div>
-  );
-}
-
-function DeptTip({ active, payload, label }) {
-  if (!active || !payload || !payload.length) return null;
-  const rows = [...payload].filter((p) => p.value != null).sort((a, c) => c.value - a.value);
-  return (
-    <div className="tip">
-      <div className="tip-year">{label}</div>
-      {rows.map((p) => (
-        <div key={p.dataKey}><i className="sw" style={{ background: p.color }} /> {p.dataKey} {compact(p.value)}</div>
-      ))}
     </div>
   );
 }
@@ -683,7 +691,35 @@ html{scroll-behavior:smooth;}
 .sw-rate{background:var(--accent);}
 .sw-bill{background:var(--gold);}
 .sw-levy{background:var(--gold);}
-.subhead{font-family:var(--serif); font-size:21px; font-weight:600; margin:0 0 10px; letter-spacing:-0.01em;}
+.sw-old{background:var(--gold); opacity:.7;}
+.sw-new{background:var(--accent);}
+.subhead{font-family:var(--serif); font-size:21px; font-weight:600; margin:0 0 14px; letter-spacing:-0.01em;}
+
+/* department comparison — Amounts (grouped 2-year bars) */
+.cmp{display:flex; flex-direction:column; margin-top:4px; border-top:2px solid var(--ink);}
+.cmp-row{padding:13px 0; border-bottom:1px solid var(--rule);}
+.cmp-head{display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:8px;}
+.cmp-name{font-size:14px; font-weight:600;}
+.cmp-delta{font-size:12px; white-space:nowrap;}
+.cmp-bar{display:grid; grid-template-columns:24px 1fr 66px; align-items:center; gap:10px; margin-top:4px;}
+.cmp-yr{font-size:11px; color:var(--ink-soft); font-variant-numeric:tabular-nums; text-align:right;}
+.cmp-track{height:13px; background:var(--paper-2);}
+.cmp-fill{display:block; height:100%; transform-origin:left; animation:grow .6s both ease-out;}
+.cmp-fill.old{background:var(--gold); opacity:.7;}
+.cmp-fill.new{background:var(--accent);}
+.cmp-val{font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap;}
+
+/* department comparison — Change (diverging bars) */
+.chg{display:flex; flex-direction:column; margin-top:8px; border-top:2px solid var(--ink);}
+.chg-row{display:grid; grid-template-columns:1.5fr 2.2fr 74px; align-items:center; gap:12px;
+  padding:9px 0; border-bottom:1px solid var(--rule);}
+.chg-name{font-size:13px; font-weight:500;}
+.chg-track{position:relative; height:15px; background:var(--paper-2);}
+.chg-track::before{content:''; position:absolute; left:50%; top:-3px; bottom:-3px; width:1px; background:var(--ink-soft); opacity:.55;}
+.chg-fill{position:absolute; top:0; bottom:0; animation:grow .6s both ease-out;}
+.chg-fill.up{left:50%; background:var(--neg); transform-origin:left;}
+.chg-fill.down{right:50%; background:var(--pos); transform-origin:right;}
+.chg-val{font-size:12px; text-align:right;}
 .tip{background:var(--ink); color:var(--paper); padding:10px 12px; font-size:13px; border-radius:2px;}
 .tip-year{font-weight:700; font-family:var(--serif); margin-bottom:4px;}
 .tip i{margin-right:5px;}
