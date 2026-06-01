@@ -384,7 +384,7 @@ function Ledger({ b }) {
                       <i className={"chg-fill " + (d.change >= 0 ? "up" : "down")}
                         style={{ width: `${(Math.abs(d.change) / deptCompare.maxChange) * 50}%` }} />
                     </span>
-                    <span className="chg-val"><Delta value={d.change} money /></span>
+                    <span className="chg-val"><Delta value={d.change} money exact /></span>
                   </div>
                 ))}
               </div>
@@ -718,7 +718,7 @@ html{scroll-behavior:smooth;}
 
 /* department comparison — Change (diverging bars) */
 .chg{display:flex; flex-direction:column; margin-top:8px; border-top:2px solid var(--ink);}
-.chg-row{display:grid; grid-template-columns:1.5fr 2.2fr 74px; align-items:center; gap:12px;
+.chg-row{display:grid; grid-template-columns:1.5fr 1.9fr 96px; align-items:center; gap:12px;
   padding:9px 0; border-bottom:1px solid var(--rule);}
 .chg-name{font-size:13px; font-weight:500;}
 .chg-track{position:relative; height:15px; background:var(--paper-2);}
