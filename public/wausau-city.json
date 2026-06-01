@@ -1,0 +1,98 @@
+{
+  "meta": {
+    "entity": "City of Wausau",
+    "kind": "city",
+    "budget_year": 2026,
+    "total_expenditures": 171366627,
+    "tax_levy": 34313205
+  },
+  "expenditure_categories": [
+    {
+      "category": "Personal Services",
+      "current": 42313252,
+      "prior": 42847333
+    },
+    {
+      "category": "Contractual Services",
+      "current": 21046812,
+      "prior": 20512284
+    },
+    {
+      "category": "Supplies and Expense",
+      "current": 5348032,
+      "prior": 6217599
+    },
+    {
+      "category": "Building Materials",
+      "current": 3679760,
+      "prior": 3937250
+    },
+    {
+      "category": "Fixed Charges",
+      "current": 9393054,
+      "prior": 8835707
+    },
+    {
+      "category": "Debt Service",
+      "current": 24237319,
+      "prior": 20834639
+    },
+    {
+      "category": "Grants, Contributions, Indemnities and Other",
+      "current": 18251352,
+      "prior": 2211476
+    },
+    {
+      "category": "Capital Outlay",
+      "current": 33691243,
+      "prior": 38046719
+    },
+    {
+      "category": "Other Financing Uses",
+      "current": 13405803,
+      "prior": 16406742
+    }
+  ],
+  "levy_history": [
+    {
+      "year": 2017,
+      "levy": 23879534
+    },
+    {
+      "year": 2018,
+      "levy": 24462366
+    },
+    {
+      "year": 2019,
+      "levy": 24865156
+    },
+    {
+      "year": 2020,
+      "levy": 26096694
+    },
+    {
+      "year": 2021,
+      "levy": 27436246
+    },
+    {
+      "year": 2022,
+      "levy": 28556943
+    },
+    {
+      "year": 2023,
+      "levy": 29980918
+    },
+    {
+      "year": 2024,
+      "levy": 31002099
+    },
+    {
+      "year": 2025,
+      "levy": 32277020
+    },
+    {
+      "year": 2026,
+      "levy": 34313205
+    }
+  ]
+}
