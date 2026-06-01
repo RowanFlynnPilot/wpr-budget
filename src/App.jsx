@@ -5,6 +5,13 @@ import {
 } from "recharts";
 import { ChevronDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import logoUrl from "./assets/logo-32.png";
+import marathonLogo from "./assets/marathon-county.jpg";
+import wausauLogo from "./assets/wausau-city.jpg";
+
+// Per-entity logos, keyed by manifest id (used in the chrome-bar switcher and
+// the masthead). Square-format marks — shown whole (object-fit:contain), not
+// circle-cropped.
+const ENTITY_LOGOS = { "marathon-county": marathonLogo, "wausau-city": wausauLogo };
 
 /*
  * Follow the Money — civic budget explorer suite (Wausau Pilot & Review)
@@ -113,11 +120,15 @@ function ChromeBar({ entities, activeId, onSelect, year }) {
         </a>
         <span className="chrome-bar__divider" />
         {entities.length > 1 ? (
-          <span className="chrome-bar__switch">
-            <select value={activeId} onChange={(e) => onSelect(e.target.value)} aria-label="Choose budget">
-              {entities.map((e) => <option key={e.id} value={e.id}>{e.short}</option>)}
-            </select>
-            <ChevronDown size={14} />
+          <span className="chrome-bar__switch" role="tablist" aria-label="Choose budget">
+            {entities.map((e) => (
+              <button key={e.id} type="button" role="tab" aria-selected={e.id === activeId}
+                className={"chrome-bar__ent" + (e.id === activeId ? " on" : "")}
+                onClick={() => onSelect(e.id)}>
+                <img src={ENTITY_LOGOS[e.id]} alt="" />
+                <span>{e.short}</span>
+              </button>
+            ))}
           </span>
         ) : (
           <span className="chrome-bar__section">{active.short}</span>
@@ -183,10 +194,15 @@ function CityLedger({ b, chrome }) {
       <ChromeBar {...chrome} year={b.meta.budget_year} />
 
       <header className="masthead">
-        <div className="kicker-row">
-          <span className="pub">The Public Ledger</span>
-          <span className="dot">·</span>
-          <span>{b.meta.entity}</span>
+        <div className="masthead-head">
+          <div className="kicker-row">
+            <span className="pub">The Public Ledger</span>
+            <span className="dot">·</span>
+            <span>{b.meta.entity}</span>
+          </div>
+          {ENTITY_LOGOS[chrome.activeId] && (
+            <img className="masthead-logo" src={ENTITY_LOGOS[chrome.activeId]} alt={b.meta.entity} />
+          )}
         </div>
         <h1>Follow the Money</h1>
         <p className="dek">
@@ -464,11 +480,16 @@ function Ledger({ b, chrome }) {
 
       {/* masthead */}
       <header className="masthead">
-        <div className="kicker-row">
-          <span className="pub">The Public Ledger</span>
-          <span className="dot">·</span>
-          <span>{b.meta.entity}</span>
-          {/* sponsor slot lands here later */}
+        <div className="masthead-head">
+          <div className="kicker-row">
+            <span className="pub">The Public Ledger</span>
+            <span className="dot">·</span>
+            <span>{b.meta.entity}</span>
+            {/* sponsor slot lands here later */}
+          </div>
+          {ENTITY_LOGOS[chrome.activeId] && (
+            <img className="masthead-logo" src={ENTITY_LOGOS[chrome.activeId]} alt={b.meta.entity} />
+          )}
         </div>
         <h1>Follow the Money</h1>
         <p className="dek">
@@ -880,23 +901,32 @@ html{scroll-behavior:smooth;}
 .chrome-bar__divider{width:1px; height:18px; background:rgba(255,255,255,.35);}
 .chrome-bar__section{font-weight:600; font-size:12px; letter-spacing:.04em;
   text-transform:uppercase; opacity:.9; white-space:nowrap;}
-.chrome-bar__switch{position:relative; display:inline-flex; align-items:center; color:#fff;}
-.chrome-bar__switch select{appearance:none; -webkit-appearance:none; -moz-appearance:none;
-  background:transparent; border:1px solid rgba(255,255,255,.4); color:#fff; font-family:var(--sans);
-  font-weight:600; font-size:12px; letter-spacing:.04em; text-transform:uppercase; line-height:1.2;
-  padding:4px 24px 4px 10px; border-radius:3px; cursor:pointer;}
-.chrome-bar__switch select:hover{background:rgba(255,255,255,.12);}
-.chrome-bar__switch svg{position:absolute; right:7px; pointer-events:none;}
-.chrome-bar__switch option{color:#1c1a16;}
+.chrome-bar__switch{display:inline-flex; align-items:center; gap:6px;}
+.chrome-bar__ent{display:inline-flex; align-items:center; gap:7px; cursor:pointer;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.28); color:#fff;
+  font-family:var(--sans); font-weight:600; font-size:12px; letter-spacing:.02em; line-height:1;
+  padding:3px 11px 3px 3px; border-radius:18px; white-space:nowrap;
+  transition:background .15s ease, border-color .15s ease, color .15s ease;}
+.chrome-bar__ent img{width:24px; height:24px; border-radius:5px; object-fit:contain;
+  background:#fff; padding:2px; flex-shrink:0;}
+.chrome-bar__ent:hover{background:rgba(255,255,255,.18);}
+.chrome-bar__ent.on{background:#fff; color:var(--ink); border-color:#fff;}
 .chrome-bar__meta{font-size:11px; letter-spacing:.04em; opacity:.75; white-space:nowrap;}
 @media (max-width:560px){
   .chrome-bar{flex-wrap:wrap; padding:8px 24px;}
   .chrome-bar__divider,.chrome-bar__section{display:none;}
+  .chrome-bar__left{flex-wrap:wrap; gap:8px 10px;}
+  .chrome-bar__switch{flex:1 1 100%; gap:8px;}
+  .chrome-bar__ent{font-size:11px; padding:3px 10px 3px 3px;}
+  .chrome-bar__ent img{width:20px; height:20px;}
   .chrome-bar__meta{width:100%; padding-top:2px;}
 }
 
 /* masthead */
 .masthead{padding:54px 0 30px; border-bottom:2px solid var(--ink);}
+.masthead-head{display:flex; align-items:flex-start; justify-content:space-between; gap:18px;}
+.masthead-logo{width:78px; height:78px; flex-shrink:0; border-radius:14px; object-fit:contain;
+  background:#fff; padding:7px; border:1px solid var(--rule); box-shadow:0 1px 5px rgba(28,26,22,.08);}
 .kicker-row{display:flex; align-items:center; gap:10px; font-size:12px; letter-spacing:.14em;
   text-transform:uppercase; color:var(--ink-soft); font-weight:600;}
 .kicker-row .pub{color:var(--accent);}
