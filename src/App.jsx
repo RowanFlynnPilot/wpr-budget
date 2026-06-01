@@ -912,6 +912,14 @@ html{scroll-behavior:smooth;}
 .chrome-bar__ent:hover{background:rgba(255,255,255,.18);}
 .chrome-bar__ent.on{background:#fff; color:var(--ink); border-color:#fff;}
 .chrome-bar__meta{font-size:11px; letter-spacing:.04em; opacity:.75; white-space:nowrap;}
+/* Desktop: let the two entity buttons grow to fill the space between the brand
+   and the FY label, for a more prominent switcher. */
+@media (min-width:561px){
+  .chrome-bar__left{flex:1;}
+  .chrome-bar__switch{flex:1; gap:10px;}
+  .chrome-bar__ent{flex:1 1 0; justify-content:center; font-size:13px; gap:9px; padding:7px 18px 7px 7px;}
+  .chrome-bar__ent img{width:26px; height:26px;}
+}
 @media (max-width:560px){
   .chrome-bar{flex-wrap:wrap; padding:8px 24px;}
   .chrome-bar__divider,.chrome-bar__section{display:none;}

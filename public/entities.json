@@ -3,14 +3,14 @@
     "id": "marathon-county",
     "name": "Marathon County",
     "kind": "county",
-    "short": "County Budget",
+    "short": "Marathon County Budget",
     "data": "marathon-county.json"
   },
   {
     "id": "wausau-city",
     "name": "City of Wausau",
     "kind": "city",
-    "short": "City Budget",
+    "short": "City of Wausau Budget",
     "data": "wausau-city.json"
   }
 ]
