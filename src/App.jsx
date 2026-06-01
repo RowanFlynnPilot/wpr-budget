@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceDot,
-  ComposedChart, BarChart, Bar,
+  ComposedChart, BarChart, Bar, Area,
 } from "recharts";
 import { ChevronDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import logoUrl from "./assets/logo-32.png";
@@ -142,9 +142,6 @@ function ChromeBar({ entities, activeId, onSelect, year }) {
 // Jurisdiction colors for the "your tax bill" split (City / school / county /
 // college), sorted by rate descending: accent, gold, rust, slate.
 const JURIS_COLORS = ["#16584a", "#9a7b2e", "#a8492f", "#3d5a80"];
-// Editorial line palette for the workforce chart (green, gold, rust, slate,
-// forest, plum).
-const WORKFORCE_COLORS = ["#16584a", "#9a7b2e", "#a8492f", "#3d5a80", "#2f6f4f", "#7a3b6b"];
 
 // City of Wausau body. A municipality is fund-based with no per-department levy,
 // so the sections differ from the County's: spending by GF department and by
@@ -153,6 +150,9 @@ const WORKFORCE_COLORS = ["#16584a", "#9a7b2e", "#a8492f", "#3d5a80", "#2f6f4f",
 function CityLedger({ b, chrome }) {
   const [gfFlow, setGfFlow] = useState("departments");
   const [active, setActive] = useState("where");
+  const [wfDept, setWfDept] = useState(
+    () => [...b.personnel.rows].sort((a, c) => c.fte[0] - a.fte[0])[0].department
+  );
 
   const gfRows = gfFlow === "departments" ? b.general_fund.expenditures : b.general_fund.revenues;
   const gfTotal = useMemo(() => gfRows.reduce((s, r) => s + r.proposed, 0), [gfRows]);
@@ -173,16 +173,19 @@ function CityLedger({ b, chrome }) {
 
   const debt = b.debt;
 
-  // Workforce: the six largest departments by current FTE, as year-ascending
-  // chart rows (the source arrays are newest-first).
+  // Workforce: one department at a time. Departments sorted by current FTE for
+  // the picker; the selected department's FTE becomes a year-ascending series
+  // (the source arrays are newest-first).
   const wf = b.personnel;
-  const wfTop = useMemo(() => [...wf.rows].sort((a, c) => c.fte[0] - a.fte[0]).slice(0, 6), [wf.rows]);
-  const wfData = useMemo(() => wf.years.map((_, i) => {
+  const wfDepts = useMemo(() => [...wf.rows].sort((a, c) => c.fte[0] - a.fte[0]), [wf.rows]);
+  const wfSel = wf.rows.find((r) => r.department === wfDept) || wfDepts[0];
+  const wfSeries = useMemo(() => wf.years.map((_, i) => {
     const idx = wf.years.length - 1 - i; // ascending position -> newest-first index
-    const o = { year: wf.years[idx] };
-    wfTop.forEach((d) => { o[d.department] = d.fte[idx] ?? null; });
-    return o;
-  }), [wf.years, wfTop]);
+    return { year: wf.years[idx], fte: wfSel.fte[idx] ?? null };
+  }), [wfSel, wf.years]);
+  const wfNow = wfSel.fte[0];
+  const wfThen = wfSel.fte[wfSel.fte.length - 1];
+  const wfChange = wfNow - wfThen;
 
   const tif = b.tif;
   const tifGrowth = useMemo(() => [...tif.valuation_growth].sort((a, c) => c.growth - a.growth), [tif.valuation_growth]);
@@ -320,33 +323,34 @@ function CityLedger({ b, chrome }) {
         </div>
       </section>
 
-      {/* WORKFORCE — FTE over time */}
+      {/* WORKFORCE — FTE over time, one department at a time */}
       <section id="workforce" className="block">
         <SectionHead kicker="The People" title="The city&rsquo;s workforce over time">
           The city budgets {wf.total[0]} full-time-equivalent positions in {b.meta.budget_year}, up from {wf.total[wf.total.length - 1]}{" "}
-          a decade ago. Police and Fire have grown the most — Fire alone added 15 positions since 2022, largely
-          grant-funded.
+          a decade ago. Pick a department to see how its staffing has changed.
         </SectionHead>
+        <div className="wf-pick">
+          {wfDepts.map((d) => (
+            <button key={d.department} type="button"
+              className={"wf-chip" + (d.department === wfDept ? " on" : "")}
+              onClick={() => setWfDept(d.department)}>{d.department}</button>
+          ))}
+        </div>
         <div className="chart-wrap">
-          <div className="chart-legend">
-            {wfTop.map((d, i) => (
-              <span key={d.department}><i className="sw" style={{ background: WORKFORCE_COLORS[i % WORKFORCE_COLORS.length] }} />{d.department}</span>
-            ))}
-          </div>
-          <ResponsiveContainer width="100%" height={330}>
-            <LineChart data={wfData} margin={{ top: 8, right: 12, bottom: 4, left: 6 }}>
+          <ResponsiveContainer width="100%" height={320}>
+            <ComposedChart data={wfSeries} margin={{ top: 8, right: 12, bottom: 4, left: 6 }}>
               <CartesianGrid stroke="var(--rule)" vertical={false} />
               <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
               <YAxis tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={34} />
-              <Tooltip content={<WorkforceTip />} />
-              {wfTop.map((d, i) => (
-                <Line key={d.department} type="monotone" dataKey={d.department} stroke={WORKFORCE_COLORS[i % WORKFORCE_COLORS.length]} strokeWidth={2} dot={false} connectNulls activeDot={{ r: 4 }} />
-              ))}
-            </LineChart>
+              <Tooltip content={<WorkforceTip />} cursor={{ stroke: "var(--rule)" }} />
+              <Area type="monotone" dataKey="fte" name={wfDept} stroke="var(--accent)" strokeWidth={2.5}
+                fill="var(--accent)" fillOpacity={0.12} dot={{ r: 2.5, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
+            </ComposedChart>
           </ResponsiveContainer>
           <p className="note">
-            Budgeted full-time-equivalent (FTE) positions by department, {wf.years[wf.years.length - 1]}&ndash;{wf.years[0]}.
-            The six largest departments are shown; the 11 elected alderpersons are excluded.
+            <b>{wfDept}</b>: {wfNow} budgeted FTE in {b.meta.budget_year}
+            {wfChange === 0 ? ", unchanged" : wfChange > 0 ? `, up ${wfChange.toFixed(2).replace(/\.?0+$/, "")}` : `, down ${Math.abs(wfChange).toFixed(2).replace(/\.?0+$/, "")}`}
+            {wfChange !== 0 ? ` since ${wf.years[wf.years.length - 1]}` : ""}. Elected alderpersons are excluded from the workforce total.
           </p>
         </div>
       </section>
@@ -926,7 +930,7 @@ function WorkforceTip({ active, payload, label }) {
     <div className="tip">
       <div className="tip-year">{label}</div>
       {rows.map((p) => (
-        <div key={p.dataKey}><i className="sw" style={{ background: p.color }} /> {p.dataKey} {p.value} FTE</div>
+        <div key={p.dataKey}><i className="sw" style={{ background: p.color }} /> {p.name || p.dataKey} {p.value} FTE</div>
       ))}
     </div>
   );
@@ -1129,6 +1133,14 @@ html{scroll-behavior:smooth;}
 .tif-pays{display:flex; flex-direction:column; gap:8px; margin-top:22px;}
 .tif-pay{font-size:14px; padding:11px 14px; background:var(--paper-2); border-left:3px solid var(--accent);}
 .tif-pay span{color:var(--ink-soft);}
+
+/* workforce department picker */
+.wf-pick{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px;}
+.wf-chip{font-family:var(--sans); font-size:13px; font-weight:600; padding:6px 14px; cursor:pointer;
+  background:var(--paper); color:var(--ink-soft); border:1px solid var(--rule); border-radius:18px;
+  transition:color .12s ease, background .12s ease, border-color .12s ease;}
+.wf-chip:hover{color:var(--ink); border-color:var(--ink-soft);}
+.wf-chip.on{background:var(--ink); color:var(--paper); border-color:var(--ink);}
 
 /* ledger / departments */
 .ledger{border-top:2px solid var(--ink);}
