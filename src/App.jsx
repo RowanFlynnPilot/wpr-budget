@@ -25,15 +25,18 @@ const pct = (n) => (n > 0 ? "+" : "") + n.toFixed(1) + "%";
 const deptSpend = (d) => d.operating_expenditures + d.personnel_expenditures;
 
 /* ---------- small components ---------- */
-function Delta({ value, invertColor = false, money = false }) {
+function Delta({ value, invertColor = false, money = false, exact = false }) {
   if (value === null || value === undefined) return <span className="muted">—</span>;
   const up = value > 0;
   const good = invertColor ? !up : up;
   const Icon = up ? ArrowUpRight : ArrowDownRight;
   const sign = value > 0 ? "+" : value < 0 ? "−" : "";
+  const text = money
+    ? sign + (exact ? "$" + Math.abs(value).toLocaleString("en-US") : compact(Math.abs(value)))
+    : pct(value);
   return (
     <span className="delta" style={{ color: good ? "var(--neg)" : "var(--pos)" }}>
-      <Icon size={13} strokeWidth={2.5} /> {money ? sign + compact(Math.abs(value)) : pct(value)}
+      <Icon size={13} strokeWidth={2.5} /> {text}
     </span>
   );
 }
@@ -353,17 +356,20 @@ function Ledger({ b }) {
                     <div className="cmp-row" key={d.name}>
                       <div className="cmp-head">
                         <span className="cmp-name">{d.name}</span>
-                        <span className="cmp-delta"><Delta value={d.change} money /></span>
+                        <span className="cmp-delta">
+                          <Delta value={d.change} money exact />
+                          <span className="cmp-pct">{pct((d.change / d.first) * 100)}</span>
+                        </span>
                       </div>
                       <div className="cmp-bar">
                         <span className="cmp-yr">&rsquo;{String(deptCompare.first).slice(2)}</span>
                         <span className="cmp-track"><i className="cmp-fill old" style={{ width: `${(d.first / deptCompare.maxVal) * 100}%` }} /></span>
-                        <span className="cmp-val">{compact(d.first)}</span>
+                        <span className="cmp-val">{usd(d.first)}</span>
                       </div>
                       <div className="cmp-bar">
                         <span className="cmp-yr">&rsquo;{String(deptCompare.last).slice(2)}</span>
                         <span className="cmp-track"><i className="cmp-fill new" style={{ width: `${(d.last / deptCompare.maxVal) * 100}%` }} /></span>
-                        <span className="cmp-val">{compact(d.last)}</span>
+                        <span className="cmp-val">{usd(d.last)}</span>
                       </div>
                     </div>
                   ))}
@@ -700,8 +706,9 @@ html{scroll-behavior:smooth;}
 .cmp-row{padding:13px 0; border-bottom:1px solid var(--rule);}
 .cmp-head{display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:8px;}
 .cmp-name{font-size:14px; font-weight:600;}
-.cmp-delta{font-size:12px; white-space:nowrap;}
-.cmp-bar{display:grid; grid-template-columns:24px 1fr 66px; align-items:center; gap:10px; margin-top:4px;}
+.cmp-delta{display:inline-flex; align-items:baseline; gap:8px; font-size:12px; white-space:nowrap;}
+.cmp-pct{font-size:11px; color:var(--ink-soft); font-variant-numeric:tabular-nums;}
+.cmp-bar{display:grid; grid-template-columns:24px 1fr 108px; align-items:center; gap:10px; margin-top:4px;}
 .cmp-yr{font-size:11px; color:var(--ink-soft); font-variant-numeric:tabular-nums; text-align:right;}
 .cmp-track{height:13px; background:var(--paper-2);}
 .cmp-fill{display:block; height:100%; transform-origin:left; animation:grow .6s both ease-out;}
