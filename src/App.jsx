@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceDot,
-  ComposedChart, Bar,
+  ComposedChart, BarChart, Bar,
 } from "recharts";
 import { ChevronDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import logoUrl from "./assets/logo-32.png";
@@ -128,14 +128,55 @@ function ChromeBar({ entities, activeId, onSelect, year }) {
   );
 }
 
-// City of Wausau body. Phase 2: entity-aware masthead + KPIs from the City's own
-// (validated) data; the detailed sections are wired up in the next phase.
+// Jurisdiction colors for the "your tax bill" split (City / school / county /
+// college), sorted by rate descending: accent, gold, rust, slate.
+const JURIS_COLORS = ["#16584a", "#9a7b2e", "#a8492f", "#3d5a80"];
+
+// City of Wausau body. A municipality is fund-based with no per-department levy,
+// so the sections differ from the County's: spending by GF department and by
+// all-funds category, the levy over time, the property-tax-by-jurisdiction
+// split, and debt — all from the City's own validated schema.
 function CityLedger({ b, chrome }) {
-  const lh = b.levy_history;
-  const levyPct = (lh[lh.length - 1].levy / lh[lh.length - 2].levy - 1) * 100;
+  const [gfFlow, setGfFlow] = useState("departments");
+  const [active, setActive] = useState("where");
+
+  const gfRows = gfFlow === "departments" ? b.general_fund.expenditures : b.general_fund.revenues;
+  const gfTotal = useMemo(() => gfRows.reduce((s, r) => s + r.proposed, 0), [gfRows]);
+  const gfMax = useMemo(() => Math.max(...gfRows.map((r) => r.proposed)), [gfRows]);
+
+  const cats = useMemo(() => [...b.expenditure_categories].sort((a, c) => c.current - a.current), [b.expenditure_categories]);
+  const catMax = useMemo(() => Math.max(...cats.map((c) => c.current)), [cats]);
+
+  const levy = b.levy_history;
+  const levyFirst = levy[0], levyLast = levy[levy.length - 1];
+  const levyPct = (levyLast.levy / levy[levy.length - 2].levy - 1) * 100;
+
   const j = b.tax_by_jurisdiction;
   const ry = j.rate_years[0];
-  const cityShare = Math.round((j.rows[0].rates[ry] / j.total[ry]) * 100);
+  const jrows = useMemo(() => [...j.rows].sort((a, c) => c.rates[ry] - a.rates[ry]), [j.rows, ry]);
+  const jtotal = j.total[ry];
+  const cityShare = Math.round((jrows[0].rates[ry] / jtotal) * 100);
+
+  const debt = b.debt;
+
+  const sections = [
+    ["where", "Where It Goes"],
+    ["allfunds", "All Funds"],
+    ["overtime", "Over Time"],
+    ["taxbill", "Your Tax Bill"],
+    ["debt", "Debt"],
+  ];
+
+  useEffect(() => {
+    const els = sections.map(([id]) => document.getElementById(id)).filter(Boolean);
+    const obs = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) setActive(e.target.id); }),
+      { rootMargin: "-45% 0px -50% 0px" }
+    );
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
+
   return (
     <div className="ftm">
       <style>{CSS}</style>
@@ -150,22 +191,155 @@ function CityLedger({ b, chrome }) {
         <h1>Follow the Money</h1>
         <p className="dek">
           Every dollar in the {b.meta.entity}&rsquo;s {b.meta.budget_year} budget — where it comes from, where it
-          goes, and what it means for your tax bill.
+          goes, and what it means for your tax bill. Adopted by the Common Council.
         </p>
         <div className="stat-strip">
           <Stat icon="💰" label="Total budget" value={compact(b.meta.total_expenditures)} sub="all funds" />
           <Stat icon="🏛️" label="City tax levy" value={compact(b.meta.tax_levy)} sub={<Delta value={levyPct} />} />
-          <Stat icon="🏠" label="City share of tax bill" value={cityShare + "%"} sub={"of $" + j.total[ry].toFixed(2) + " total rate"} />
+          <Stat icon="🏠" label="City share of tax bill" value={cityShare + "%"} sub={"of $" + jtotal.toFixed(2) + " total rate"} />
         </div>
       </header>
 
-      <section className="block">
-        <SectionHead kicker="In Progress" title="City sections are being wired up">
-          The City of Wausau budget is fully extracted and reconciled against the book&rsquo;s printed totals —
-          {" "}{compact(b.meta.total_expenditures)} across all funds, a {compact(b.meta.tax_levy)} levy, and
-          {" "}{compact(b.debt.outstanding)} in outstanding debt. The sections — where it goes, over time, your
-          tax bill, and debt — are being built next.
+      <nav className="subnav">
+        {sections.map(([id, label]) => (
+          <a key={id} href={"#" + id} className={active === id ? "active" : ""}>{label}</a>
+        ))}
+      </nav>
+
+      {/* WHERE IT GOES — General Fund */}
+      <section id="where" className="block">
+        <SectionHead kicker="The General Fund" title="Where every dollar goes">
+          The general fund — {compact(b.meta.gf_expenditures)} — pays for day-to-day city services. Toggle to
+          see what it spends by department, and where that money comes from.
         </SectionHead>
+        <div className="toggle">
+          <button className={gfFlow === "departments" ? "on" : ""} onClick={() => setGfFlow("departments")}>By department</button>
+          <button className={gfFlow === "revenues" ? "on" : ""} onClick={() => setGfFlow("revenues")}>Revenue</button>
+        </div>
+        <div className="bars">
+          {gfRows.map((r, i) => (
+            <div className="bar-row no-spark" key={r.category} style={{ animationDelay: `${i * 40}ms` }}>
+              <div className="bar-label">{r.category}</div>
+              <div className="bar-track"><div className="bar-fill" style={{ width: `${(r.proposed / gfMax) * 100}%` }} /></div>
+              <div className="bar-val">{compact(r.proposed)}</div>
+              <div className="bar-share">{((r.proposed / gfTotal) * 100).toFixed(0)}%</div>
+              <div className="bar-delta"><Delta value={r.pct_change} invertColor={gfFlow === "departments"} /></div>
+            </div>
+          ))}
+        </div>
+        <p className="note">
+          {gfFlow === "departments"
+            ? "Change shown vs. the 2025 adopted budget. Police and Fire together are the largest share of city spending."
+            : "Change shown vs. the 2025 adopted budget. Property taxes are the city's single largest revenue source."}
+        </p>
+      </section>
+
+      {/* ALL FUNDS — by category */}
+      <section id="allfunds" className="block">
+        <SectionHead kicker="The Whole Picture" title="All funds, by category">
+          Beyond the general fund, the city&rsquo;s {compact(b.meta.total_expenditures)} all-funds budget covers
+          capital projects, debt service, enterprise and special-revenue funds. Here it is by type of spending.
+        </SectionHead>
+        <div className="bars">
+          {cats.map((c, i) => (
+            <div className="bar-row no-spark" key={c.category} style={{ animationDelay: `${i * 40}ms` }}>
+              <div className="bar-label">{c.category}</div>
+              <div className="bar-track"><div className="bar-fill" style={{ width: `${(c.current / catMax) * 100}%` }} /></div>
+              <div className="bar-val">{compact(c.current)}</div>
+              <div className="bar-share">{((c.current / b.meta.total_expenditures) * 100).toFixed(0)}%</div>
+              <div className="bar-delta"><Delta value={(c.current / c.prior - 1) * 100} invertColor /></div>
+            </div>
+          ))}
+        </div>
+        <p className="note">Change shown vs. the 2025 adopted budget, all funds.</p>
+      </section>
+
+      {/* OVER TIME — levy */}
+      <section id="overtime" className="block">
+        <SectionHead kicker="Shifting Priorities" title="The levy over time">
+          The city&rsquo;s property-tax levy has risen from {compact(levyFirst.levy)} in {levyFirst.year} to{" "}
+          {compact(levyLast.levy)} in {levyLast.year} — up {(((levyLast.levy / levyFirst.levy) - 1) * 100).toFixed(0)}%.
+        </SectionHead>
+        <div className="chart-wrap">
+          <ResponsiveContainer width="100%" height={300}>
+            <ComposedChart data={levy} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
+              <CartesianGrid stroke="var(--rule)" vertical={false} />
+              <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+              <YAxis tick={{ fill: "var(--gold)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
+              <Tooltip content={<BarTip seriesName="Tax levy" />} cursor={{ fill: "var(--paper-2)" }} />
+              <Bar dataKey="levy" fill="var(--gold)" fillOpacity={0.82} radius={[2, 2, 0, 0]} maxBarSize={38} />
+            </ComposedChart>
+          </ResponsiveContainer>
+          <p className="note">Actual property-tax levy as adopted, {levyFirst.year}&ndash;{levyLast.year}.</p>
+        </div>
+      </section>
+
+      {/* YOUR TAX BILL — jurisdiction split */}
+      <section id="taxbill" className="block">
+        <SectionHead kicker="The Bottom Line" title="Where your property-tax dollar goes">
+          The city is only one line on your tax bill. Of the ${jtotal.toFixed(2)} per $1,000 of value a Wausau
+          homeowner paid in {ry}, the city kept just ${jrows[0].rates[ry].toFixed(2)} — {cityShare}%. The rest
+          funds the school district, the county, and the technical college.
+        </SectionHead>
+        <div className="taxbar">
+          {jrows.map((r, i) => {
+            const share = (r.rates[ry] / jtotal) * 100;
+            return (
+              <div className="taxbar-seg" key={r.jurisdiction}
+                style={{ width: share + "%", background: JURIS_COLORS[i % JURIS_COLORS.length] }}>
+                {share > 9 ? Math.round(share) + "%" : ""}
+              </div>
+            );
+          })}
+        </div>
+        <div className="jrows">
+          {jrows.map((r, i) => (
+            <div className="jrow" key={r.jurisdiction}>
+              <span className="jrow-sw" style={{ background: JURIS_COLORS[i % JURIS_COLORS.length] }} />
+              <span className="jrow-name">{r.jurisdiction}</span>
+              <span className="jrow-rate">${r.rates[ry].toFixed(2)}</span>
+              <span className="jrow-share">{((r.rates[ry] / jtotal) * 100).toFixed(0)}%</span>
+            </div>
+          ))}
+          <div className="jrow total">
+            <span className="jrow-sw" />
+            <span className="jrow-name">Total tax rate</span>
+            <span className="jrow-rate">${jtotal.toFixed(2)}</span>
+            <span className="jrow-share">100%</span>
+          </div>
+        </div>
+        <p className="note">
+          Rate per $1,000 of equalized value, {ry} (the most recent year all jurisdictions have set). The City
+          of Wausau collects the bill on behalf of all four.
+        </p>
+      </section>
+
+      {/* DEBT */}
+      <section id="debt" className="block">
+        <SectionHead kicker="What the City Owes" title="Outstanding debt">
+          The city carries <b>{compact(debt.outstanding)}</b> in general-obligation debt — {debt.pct_of_limit}% of
+          its legal borrowing limit. Here is how it is scheduled to be paid down.
+        </SectionHead>
+        <div className="chart-wrap">
+          <div className="chart-legend">
+            <span><i className="sw sw-new" /> Principal</span>
+            <span><i className="sw sw-old" /> Interest</span>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={debt.retirement} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
+              <CartesianGrid stroke="var(--rule)" vertical={false} />
+              <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+              <YAxis tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
+              <Tooltip content={<BarTip />} cursor={{ fill: "var(--paper-2)" }} />
+              <Bar dataKey="principal" stackId="d" fill="var(--accent)" name="Principal" maxBarSize={26} />
+              <Bar dataKey="interest" stackId="d" fill="var(--gold)" fillOpacity={0.82} name="Interest" maxBarSize={26} />
+            </BarChart>
+          </ResponsiveContainer>
+          <p className="note">
+            Annual principal + interest on existing general-obligation debt. The {debt.retirement[0].year} payment
+            is {compact(debt.retirement[0].total)}; the schedule runs through {debt.retirement[debt.retirement.length - 1].year}.
+          </p>
+        </div>
       </section>
 
       <footer className="foot">
@@ -173,8 +347,9 @@ function CityLedger({ b, chrome }) {
           <b>Source:</b> {b.meta.entity} Adopted {b.meta.budget_year} Budget. Figures are as adopted and may be
           amended during the year.
         </p>
-        <p className="muted">Built and maintained by Wausau Pilot &amp; Review; figures extracted from the
-          city&rsquo;s published budget document and reconciled against its printed totals.</p>
+        <p className="muted">Built and maintained by Wausau Pilot &amp; Review; department, fund, levy, tax-rate
+          and debt figures extracted directly from the city&rsquo;s published budget document and reconciled
+          against its printed totals.</p>
       </footer>
     </div>
   );
@@ -630,6 +805,20 @@ function BillTip({ active, payload, label }) {
   );
 }
 
+// Generic bar-chart tooltip (City levy + debt charts). `seriesName` labels a
+// series whose Bar has no `name`; multi-series bars use their own names.
+function BarTip({ active, payload, label, seriesName }) {
+  if (!active || !payload || !payload.length) return null;
+  return (
+    <div className="tip">
+      <div className="tip-year">{label}</div>
+      {payload.map((p) => (
+        <div key={p.dataKey}><i className="sw" style={{ background: p.color }} /> {p.name || seriesName || p.dataKey} {compact(p.value)}</div>
+      ))}
+    </div>
+  );
+}
+
 function LevyTip({ active, payload, label }) {
   if (!active || !payload || !payload.length) return null;
   const levy = payload.find((p) => p.dataKey === "levy");
@@ -762,10 +951,23 @@ html{scroll-behavior:smooth;}
 .bar-track{height:14px; background:var(--paper-2);}
 .bar-fill{height:100%; background:var(--accent); transform-origin:left; animation:grow .7s both ease-out;}
 .spark{display:block;}
+.bar-row.no-spark{grid-template-columns:1.6fr 3fr auto 42px 72px;}
 .bar-val{font-size:14px; font-weight:600; font-variant-numeric:tabular-nums; text-align:right;}
 .bar-share{font-size:13px; color:var(--ink-soft); text-align:right; font-variant-numeric:tabular-nums;}
 .bar-delta{font-size:12px; text-align:right;}
 .delta{display:inline-flex; align-items:center; gap:1px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap;}
+
+/* tax bill — property-tax-by-jurisdiction split (City body) */
+.taxbar{display:flex; height:46px; margin-top:6px; border:1px solid var(--ink); overflow:hidden;}
+.taxbar-seg{display:flex; align-items:center; justify-content:center; color:#fff; min-width:0;
+  font-size:13px; font-weight:700; font-variant-numeric:tabular-nums; animation:grow .6s both ease-out; transform-origin:left;}
+.jrows{margin-top:20px; border-top:2px solid var(--ink);}
+.jrow{display:grid; grid-template-columns:16px 1fr 72px 52px; align-items:center; gap:12px;
+  padding:11px 2px; border-bottom:1px solid var(--rule); font-size:14px; font-variant-numeric:tabular-nums;}
+.jrow-sw{width:12px; height:12px; border-radius:2px;}
+.jrow-name{font-weight:500;}
+.jrow-rate,.jrow-share{text-align:right;}
+.jrow.total{font-weight:700; border-bottom:none; border-top:1px solid var(--ink); margin-top:2px;}
 
 /* ledger / departments */
 .ledger{border-top:2px solid var(--ink);}
@@ -885,7 +1087,7 @@ html{scroll-behavior:smooth;}
     scrollbar-width:none; -webkit-overflow-scrolling:touch;}
   .subnav::-webkit-scrollbar{display:none;}
   .subnav a{flex:0 0 auto; white-space:nowrap;}
-  .bar-row{grid-template-columns:1.4fr 2fr auto 56px; }
+  .bar-row, .bar-row.no-spark{grid-template-columns:1.4fr 2fr auto 56px; }
   .bar-share{display:none;}
   .ledger-head,.ledger-row{grid-template-columns:2fr 1fr 1fr 22px;}
   .detail-grid{grid-template-columns:1fr; gap:18px;}
