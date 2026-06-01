@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceDot,
-  ComposedChart, BarChart, Bar, Area,
+  ComposedChart, BarChart, Bar, Area, Sankey, Layer,
 } from "recharts";
 import { ChevronDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import logoUrl from "./assets/logo-32.png";
@@ -142,6 +142,15 @@ function ChromeBar({ entities, activeId, onSelect, year }) {
 // Jurisdiction colors for the "your tax bill" split (City / school / county /
 // college), sorted by rate descending: accent, gold, rust, slate.
 const JURIS_COLORS = ["#16584a", "#9a7b2e", "#a8492f", "#3d5a80"];
+// Shorter labels for the Sankey (the full names are too long to fit beside nodes).
+const SANKEY_SHORT = {
+  "Intergovernmental Grants and Aids": "Intergovernmental",
+  "City County Information Technology": "Info Technology",
+  "Public Charges for Services": "Public Charges",
+  "Intergovernmental Charges for Services": "Intergov. Charges",
+  "Other Financing Sources": "Other Financing",
+};
+const shortName = (n) => SANKEY_SHORT[n] || n;
 
 // City of Wausau body. A municipality is fund-based with no per-department levy,
 // so the sections differ from the County's: spending by GF department and by
@@ -167,6 +176,32 @@ function CityLedger({ b, chrome }) {
 
   const cats = useMemo(() => [...b.expenditure_categories].sort((a, c) => c.current - a.current), [b.expenditure_categories]);
   const catMax = useMemo(() => Math.max(...cats.map((c) => c.current)), [cats]);
+
+  // General Fund money flow: revenue sources -> General Fund -> departments. Keep
+  // the largest few of each; group the rest so the diagram stays readable.
+  const sankey = useMemo(() => {
+    const TOP = 5;
+    const group = (rows) => {
+      const sorted = [...rows].sort((a, c) => c.proposed - a.proposed);
+      const main = sorted.slice(0, TOP);
+      const other = sorted.slice(TOP).reduce((s, r) => s + r.proposed, 0);
+      return { main, other };
+    };
+    const rev = group(b.general_fund.revenues);
+    const exp = group(b.general_fund.expenditures);
+    const nodes = [];
+    const id = (name, col) => { nodes.push({ name, col }); return nodes.length - 1; };
+    const revIds = rev.main.map((r) => ({ i: id(shortName(r.category), 0), v: r.proposed }));
+    if (rev.other > 0) revIds.push({ i: id("Other revenue", 0), v: rev.other });
+    const gf = id("General Fund", 1);
+    const expIds = exp.main.map((r) => ({ i: id(shortName(r.category), 2), v: r.proposed }));
+    if (exp.other > 0) expIds.push({ i: id("Other departments", 2), v: exp.other });
+    const links = [
+      ...revIds.map((r) => ({ source: r.i, target: gf, value: r.v })),
+      ...expIds.map((r) => ({ source: gf, target: r.i, value: r.v })),
+    ];
+    return { nodes, links };
+  }, [b.general_fund]);
 
   const levy = b.levy_history;
   const levyFirst = levy[0], levyLast = levy[levy.length - 1];
@@ -200,6 +235,7 @@ function CityLedger({ b, chrome }) {
 
   const sections = [
     ["where", "Where It Goes"],
+    ["flow", "Money Flow"],
     ["allfunds", "All Funds"],
     ["overtime", "Over Time"],
     ["workforce", "Workforce"],
@@ -278,6 +314,41 @@ function CityLedger({ b, chrome }) {
             ? "Change shown vs. the 2025 adopted budget. Police and Fire together are the largest share of city spending."
             : "Change shown vs. the 2025 adopted budget. Property taxes are the city's single largest revenue source."}
         </p>
+      </section>
+
+      {/* MONEY FLOW — General Fund Sankey */}
+      <section id="flow" className="block">
+        <SectionHead kicker="Follow the Money" title="How the general fund flows">
+          Every general-fund dollar, traced from where it comes from, through the fund, to what it pays for.
+          Hover any ribbon to follow the money.
+        </SectionHead>
+        <div className="chart-wrap">
+          <div className="sankey-scroll">
+            <div className="sankey-inner">
+              <ResponsiveContainer width="100%" height={440}>
+                <Sankey data={sankey} nodePadding={28} nodeWidth={12} iterations={64}
+                  node={<SankeyNode />} link={{ stroke: "#16584a", strokeOpacity: 0.2 }}
+                  margin={{ top: 24, right: 162, bottom: 24, left: 178 }}>
+                  <Tooltip content={({ active, payload }) => {
+                    if (!active || !payload || !payload.length) return null;
+                    const p = (payload[0].payload && payload[0].payload.payload) || payload[0].payload || {};
+                    const isLink = p.source && p.target && typeof p.source === "object";
+                    return (
+                      <div className="tip">
+                        <div className="tip-year">{isLink ? `${p.source.name} → ${p.target.name}` : p.name}</div>
+                        <div>{usd(p.value)}</div>
+                      </div>
+                    );
+                  }} />
+                </Sankey>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <p className="note">
+            General Fund revenue sources (left) into the fund (center) and out to departments (right). The
+            largest five of each are named; the rest are grouped. Hover a flow for its amount.
+          </p>
+        </div>
       </section>
 
       {/* ALL FUNDS — by category */}
@@ -990,6 +1061,35 @@ function WorkforceTip({ active, payload, label }) {
   );
 }
 
+// Sankey node: a colored bar with a label (revenue sources on the left, the
+// General Fund hub in the middle, departments on the right).
+function SankeyNode({ x, y, width, height, payload }) {
+  const col = payload.col;
+  const fill = col === 0 ? "#9a7b2e" : col === 1 ? "#16584a" : "#1c1a16";
+  if (height < 5) return null;
+  const amt = compact(payload.value);
+  if (col === 1) {
+    return (
+      <Layer>
+        <rect x={x} y={y} width={width} height={height} fill={fill} />
+        <text x={x + width / 2} y={y - 9} textAnchor="middle" fontSize={13} fontWeight={700}
+          fontFamily="Public Sans, system-ui, sans-serif" fill="#1c1a16">{payload.name} {amt}</text>
+      </Layer>
+    );
+  }
+  const left = col === 0;
+  return (
+    <Layer>
+      <rect x={x} y={y} width={width} height={height} fill={fill} fillOpacity={0.9} />
+      <text x={left ? x - 8 : x + width + 8} y={y + height / 2} textAnchor={left ? "end" : "start"}
+        dominantBaseline="middle" fontSize={11.5} fontWeight={600}
+        fontFamily="Public Sans, system-ui, sans-serif" fill="#1c1a16">
+        {payload.name} <tspan fill="#6b6555" fontWeight={400}>{amt}</tspan>
+      </text>
+    </Layer>
+  );
+}
+
 // Generic bar-chart tooltip (City levy + debt charts). `seriesName` labels a
 // series whose Bar has no `name`; multi-series bars use their own names.
 function BarTip({ active, payload, label, seriesName }) {
@@ -1175,6 +1275,10 @@ html{scroll-behavior:smooth;}
 .jrow-amt,.jrow-share{text-align:right;}
 .jrow-amt{font-weight:600;}
 .jrow.total{font-weight:700; border-bottom:none; border-top:1px solid var(--ink); margin-top:2px;}
+
+/* money-flow Sankey — scrolls horizontally on small screens */
+.sankey-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+.sankey-inner{width:100%; min-width:680px;}
 
 /* tax-bill calculator */
 .calc{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:18px;
