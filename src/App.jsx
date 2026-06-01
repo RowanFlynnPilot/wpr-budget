@@ -325,7 +325,7 @@ function CityLedger({ b, chrome }) {
         </p>
         <div className="stat-strip">
           <Stat icon="💰" label="Total budget" value={compact(b.meta.total_expenditures)} sub="all funds" />
-          <Stat icon="🏛️" label="City tax levy" value={compact(b.meta.tax_levy)} sub={<Delta value={levyPct} />} />
+          <Stat icon="🏛️" label="City tax levy" value={usd(b.meta.tax_levy)} sub={<Delta value={levyPct} />} />
           <Stat icon="🏠" label="City share of tax bill" value={cityShare + "%"} sub={"of $" + jtotal.toFixed(2) + " total rate"} />
         </div>
       </header>
@@ -423,8 +423,8 @@ function CityLedger({ b, chrome }) {
       {/* OVER TIME — levy */}
       <section id="overtime" className="block">
         <SectionHead kicker="Shifting Priorities" title="The levy over time">
-          The city&rsquo;s property-tax levy has risen from {compact(levyFirst.levy)} in {levyFirst.year} to{" "}
-          {compact(levyLast.levy)} in {levyLast.year} — up {(((levyLast.levy / levyFirst.levy) - 1) * 100).toFixed(0)}%.
+          The city&rsquo;s property-tax levy has risen from {usd(levyFirst.levy)} in {levyFirst.year} to{" "}
+          {usd(levyLast.levy)} in {levyLast.year} — up {(((levyLast.levy / levyFirst.levy) - 1) * 100).toFixed(0)}%.
         </SectionHead>
         <div className="chart-wrap">
           <ResponsiveContainer width="100%" height={300}>
@@ -442,7 +442,7 @@ function CityLedger({ b, chrome }) {
         <div className="callout">
           <div className="callout-title">The city is at its levy ceiling</div>
           <p>
-            For the eleventh year running, Wausau&rsquo;s levy sits above the basic state limit — {compact(levyLast.exception)}{" "}
+            For the eleventh year running, Wausau&rsquo;s levy sits above the basic state limit — {usd(levyLast.exception)}{" "}
             over in {levyLast.year}, allowed only through the debt-service exemption. And in 2027, the federal ARPA and
             SAFER grants that pay for 15 first-responder positions expire, leaving an estimated $1.5 million for the
             levy to absorb — the structural gap the mayor&rsquo;s budget message calls a &ldquo;ticking time bomb.&rdquo;
@@ -579,7 +579,7 @@ function CityLedger({ b, chrome }) {
         )}
         <p className="note">
           Valuation growth, 2025. The budget also includes the developer incentive payments above. A net TID levy
-          decrease of {compact(tif.levy_decrease)} this year reflects the closure of District 6.
+          decrease of {usd(tif.levy_decrease)} this year reflects the closure of District 6.
         </p>
       </section>
 
@@ -635,7 +635,8 @@ function Ledger({ b, chrome }) {
   const [deptView, setDeptView] = useState("amount");
   const [homeValue, setHomeValue] = useState(200000);
 
-  const gfRows = b.general_fund[flow];
+  // Both tabs sorted by amount, largest first.
+  const gfRows = useMemo(() => [...b.general_fund[flow]].sort((a, c) => c.proposed_next - a.proposed_next), [flow, b.general_fund]);
   const gfTotal = useMemo(() => gfRows.reduce((s, r) => s + r.proposed_next, 0), [gfRows]);
   const gfMax = useMemo(() => Math.max(...gfRows.map((r) => r.proposed_next)), [gfRows]);
 
@@ -757,7 +758,7 @@ function Ledger({ b, chrome }) {
 
         <div className="stat-strip">
           <Stat icon="💰" label="Total budget" value={compact(b.meta.total_expenditures)} sub={budgetPctChange != null ? <Delta value={budgetPctChange} /> : null} />
-          <Stat icon="🏛️" label="County tax levy" value={compact(b.meta.tax_levy)} sub={<Delta value={levyPctChange} />} />
+          <Stat icon="🏛️" label="County tax levy" value={usd(b.meta.tax_levy)} sub={<Delta value={levyPctChange} />} />
           <Stat icon="🏠" label="Mill rate" value={"$" + b.meta.tax_rate.toFixed(2)} sub={<Delta value={ratePctChange} />} />
         </div>
       </header>
@@ -833,7 +834,7 @@ function Ledger({ b, chrome }) {
                   </span>
                   <span className="d-spend">{usd(spend)}</span>
                   <span className="d-pers hide-sm">{compact(d.personnel_expenditures)}</span>
-                  <span className="d-levy">{compact(d.tax_levy)}</span>
+                  <span className="d-levy"><span className="lg-only">{usd(d.tax_levy)}</span><span className="sm-only">{compact(d.tax_levy)}</span></span>
                   <span className="d-change hide-sm"><Delta value={d.levy_difference} money /></span>
                   <span className="chev-col"><ChevronDown size={16} className="chev" /></span>
                 </button>
@@ -889,7 +890,7 @@ function Ledger({ b, chrome }) {
             </ComposedChart>
           </ResponsiveContainer>
           <p className="note">
-            The levy rose from {compact(levyFirst.levy)} in {levyFirst.year} to {compact(levyLast.levy)} in{" "}
+            The levy rose from {usd(levyFirst.levy)} in {levyFirst.year} to {usd(levyLast.levy)} in{" "}
             {levyLast.year} — up {(((levyLast.levy / levyFirst.levy) - 1) * 100).toFixed(0)}% — while the mill
             rate fell from ${levyFirst.rate.toFixed(2)} to ${levyLast.rate.toFixed(2)} per $1,000 of value.
           </p>
@@ -1165,7 +1166,7 @@ function LevyTip({ active, payload, label }) {
   return (
     <div className="tip">
       <div className="tip-year">{label}</div>
-      {levy && <div><i className="sw sw-levy" /> Levy {compact(levy.value)}</div>}
+      {levy && <div><i className="sw sw-levy" /> Levy {usd(levy.value)}</div>}
       {rate && <div><i className="sw sw-rate" /> Mill rate ${rate.value.toFixed(2)}</div>}
     </div>
   );
@@ -1266,8 +1267,8 @@ html{scroll-behavior:smooth;}
 .stat:hover{background:var(--paper-2);}
 .stat-icon{font-size:34px; line-height:1; margin-bottom:16px;}
 .stat-label{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); font-weight:700;}
-.stat-value{font-family:var(--serif); font-size:clamp(44px,6vw,62px); font-weight:600; line-height:1;
-  margin:12px 0 10px; letter-spacing:-0.02em;}
+.stat-value{font-family:var(--serif); font-size:clamp(32px,4.6vw,54px); font-weight:600; line-height:1;
+  margin:12px 0 10px; letter-spacing:-0.02em; max-width:100%;}
 .stat-sub{font-size:15px; color:var(--ink-soft);}
 
 /* subnav — pronounced tab bar with an active scroll-spy underline */
@@ -1330,9 +1331,9 @@ html{scroll-behavior:smooth;}
 .jrow-amt{font-weight:600;}
 .jrow.total{font-weight:700; border-bottom:none; border-top:1px solid var(--ink); margin-top:2px;}
 
-/* money-flow Sankey — scrolls horizontally on small screens */
-.sankey-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
-.sankey-inner{width:100%; min-width:680px;}
+/* money-flow Sankey — fits on desktop; scrolls horizontally only when too narrow */
+.sankey-scroll{overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;}
+.sankey-inner{width:100%; min-width:640px;}
 
 /* tax-bill calculator */
 .calc{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:18px;
@@ -1497,9 +1498,13 @@ html{scroll-behavior:smooth;}
 @keyframes grow{from{transform:scaleX(0);}to{transform:scaleX(1);}}
 @keyframes rise{from{opacity:0; transform:translateY(8px);}to{opacity:1; transform:translateY(0);}}
 
+.sm-only{display:none;}
+
 @media(max-width:680px){
   .ftm{padding:0 16px 60px;}
   .hide-sm{display:none !important;}
+  .lg-only{display:none;}
+  .sm-only{display:inline;}
   .stat-strip{grid-template-columns:1fr;}
   .stat{padding:26px 20px 22px;}
   .stat-icon{font-size:30px; margin-bottom:10px;}
