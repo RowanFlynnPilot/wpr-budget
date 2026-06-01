@@ -126,22 +126,52 @@ more revenue than they cost; the UI handles negatives.
 > no `_dev_note`.) Re-running the extractor on the same PDF reproduces it
 > byte-for-byte.
 
+### wausau-city.json schema (City of Wausau — separate from the County)
+
+```
+meta:           { entity, kind:"city", budget_year, total_expenditures, tax_levy,
+                  gf_expenditures, gf_revenues }
+expenditure_categories[]: { category, current, prior }      # all funds, by category
+general_fund:   { expenditures[], revenues[] }              # each: category, prior, proposed, pct_change
+levy_history[]: { year, levy, allowable, exception }        # levy-limit table; exception = amount over basic limit
+tax_by_jurisdiction: { rate_years[], rows[], total }        # rows: {jurisdiction, rates:{<year>:rate}}; rates per $1,000
+debt:           { outstanding, total_interest_remaining, pct_of_limit, retirement[] }  # retirement: {year,principal,interest,total}
+personnel:      { years[], total[], rows[] }                # rows: {department, fte[]} — ALL arrays newest-first
+tif:            { valuation_growth[], developer_payments[], levy_decrease }
+```
+
+The City has NO per-department tax levy (it levies city-wide and funds
+departments from the General Fund), so its schema and body deliberately differ
+from the County's.
+
 ## Frontend
 
-- `src/App.jsx` — entire UI in one file. `App` fetches `budget.json` and renders
-  a loading/error shell; `Ledger` holds all the render logic and hooks (split so
-  there are no conditional hooks). Styling is a single CSS string injected via a
-  `<style>` tag — no Tailwind, no CSS files.
+- `src/App.jsx` — the ENTIRE UI in one file (~1,500 lines), one injected CSS
+  string (no Tailwind / CSS files). `App` loads `entities.json` + the active
+  entity's data (see Architecture) and routes to a body by kind: `Ledger`
+  (County) or `CityLedger` (City). `ChromeBar` (brand + logo-button entity
+  switcher) is shared. Hooks are top-level in each body (no conditional hooks).
+  Charts use `recharts`; icons `lucide-react`; sparklines, the Sankey nodes, and
+  the tax-bill stacked bar are hand-rolled SVG/CSS.
 - Aesthetic: editorial / public-ledger. Fraunces (display) + Public Sans (data),
   warm newsprint, hairline rules, tabular numerals. Keep this direction.
-- Sections: Where it goes (GF spending/revenue toggle, with inline 3-year
-  sparklines per row) · Departments (sortable ledger, click to expand a
-  where-it-goes / where-it-comes-from balance) · Over time (10-yr levy-vs-mill-
-  rate ComposedChart, plus a department-levy trend that appears once `history`
-  has >= 2 adopted years) · Your tax bill (dual-axis mill-rate vs avg-bill
-  chart) · Funds · Debt.
-- Charts use `recharts`; icons use `lucide-react`. Sparklines are hand-rolled
-  inline SVG (`Spark`), not recharts.
+- **County (`Ledger`) sections:** Where It Goes (GF spending/revenue toggle +
+  3-yr sparklines, sorted largest-first) · Departments (sortable levy ledger,
+  expandable) · Over Time (10-yr levy-vs-mill-rate ComposedChart + a department
+  Amounts/Change comparison once `history` has ≥2 years) · Your Tax Bill
+  (home-value calculator + dual-axis mill-rate-vs-bill chart) · Funds · Debt ·
+  Methodology.
+- **City (`CityLedger`) sections:** Where It Goes (GF dept/revenue toggle) ·
+  Money Flow (recharts `Sankey`: revenue → GF → departments) · All Funds (by
+  category) · Over Time (10-yr levy bars) · Workforce (11-yr FTE, one department
+  at a time via a chip picker) · Your Tax Bill (calculator + property-tax-by-
+  jurisdiction split with hover tooltip) · Development (TIF) · Debt · Methodology.
+- **Shared features:** the "Your Tax Bill" calculator (`homeValue` state →
+  estimated bill); the `Methodology` component (JSON via link + CSV via
+  `downloadCSV`); accessibility (`:focus-visible`, `prefers-reduced-motion`,
+  `aria-pressed` on toggles/chips, `role="img"` on the Sankey). Tax-levy values
+  render in full dollars everywhere EXCEPT the levy chart y-axes ($M); the County
+  dept-ledger levy uses compact on mobile via `.lg-only`/`.sm-only`.
 
 ### Sponsor surface (deferred — not yet built)
 
@@ -169,18 +199,44 @@ Surgical changes; no fallbacks / one correct path; fail fast (throw on bad
 preconditions) rather than defensive runtime checks; one source of truth for
 data; separation of concerns. Match the existing editorial aesthetic.
 
+## Current state (as of last session — read this first)
+
+Both entities are LIVE and deployed. `main` is the source of truth; pushing to
+it auto-deploys. Local PDFs (`*.pdf`, gitignored) needed to re-run extractors:
+`2026-Annual-Budget.pdf` + `2025-…` (County) and `2026-Wausau-Budget.pdf` (City).
+
+Done and shipped:
+- ✅ County entity (FY2026) + 2025 history (department trend + total-budget delta).
+- ✅ City of Wausau entity — full build (extractor `extract_wausau.py`, schema,
+  `CityLedger` with all sections above).
+- ✅ WPR brand chrome bar + logo-button entity switcher + per-entity masthead logos.
+- ✅ Grant-pitch features: interactive tax-bill calculator (both), money-flow
+  Sankey (City), Methodology + open-data (JSON/CSV) + accessibility pass (both).
+- ✅ CI bumped off Node 20 (deploy uses Node-24 actions, build on Node 22).
+
 ## Next steps / backlog
 
-- ~~Replace the dev-fixture `budget.json` with the real 2026 extraction.~~ Done
-  — committed `budget.json` is the reconciled FY2026 extraction.
-- Build the sponsor surface.
-- **Ingest prior-year PDFs (2023–2025) to populate `history`.** The plumbing is
-  done (extractor multi-PDF arg + `history` block + the dormant "Over time"
-  department chart). Remaining work is purely data: download the 2023/2024/2025
-  "Adopted Budget" PDFs by hand and re-run the extractor with them as trailing
-  args. Watch for older-layout parser breaks (loud, not silent) per the data-
-  pipeline note.
-- Add the City of Wausau as a second entity (verify its PDF format first; the
-  extractor's section-marker approach may need entity-specific markers).
-- Possible later: capital improvement plan (CIP); link relevant Marathon
-  Meetings coverage inline.
+- Build the **sponsor surface** (still unbuilt — search `sponsor slot` in App.jsx;
+  masthead kicker row; "Presented by" title + optional per-section sponsor).
+- **County prior-year history:** only 2025 is ingested. 2021–2024 use an OLDER
+  county book format with NO Appendix E/F tables, so they are NOT extractable
+  (loud failure). Don't retry unless newer-format PDFs surface. (City is single-
+  year; its multi-year data — levy 10-yr, personnel 11-yr — comes from within the
+  2026 book.)
+- Possible enhancements floated but not built: per-capita / per-household toggle;
+  auto "what changed this year"; County money-flow Sankey; City personnel beyond
+  the chart; chart annotations; treemap. (Recharts 2.x→3.x migration is optional,
+  nothing broken.)
+
+## Gotchas for the next session
+
+- **Extractors are SLOW** (60–120s+; they re-scan the whole PDF). When iterating,
+  cache page text to a temp JSON and develop parsers against that.
+- **City book quirks:** mixed-case decorative headers (`find_page` is
+  case-insensitive); long names shortened for the Sankey (`SANKEY_SHORT`); some
+  pages reverse-render decorative text — target the clean data lines.
+- **Switching entities** must gate on `data.id === activeId` (App) or a body
+  briefly gets the other entity's schema and crashes — already handled, keep it.
+- **recharts Sankey** link tooltip data is nested at `payload[0].payload.payload`
+  (source/target are resolved node objects there).
+- One CSS file, injected as a string — search the `CSS` template literal.
