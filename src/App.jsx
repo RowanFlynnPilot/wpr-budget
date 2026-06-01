@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceDot,
   ComposedChart, BarChart, Bar, Area,
@@ -153,6 +153,8 @@ function CityLedger({ b, chrome }) {
   const [wfDept, setWfDept] = useState(
     () => [...b.personnel.rows].sort((a, c) => c.fte[0] - a.fte[0])[0].department
   );
+  const [taxTip, setTaxTip] = useState(null);
+  const taxbarRef = useRef(null);
 
   const gfRows = gfFlow === "departments" ? b.general_fund.expenditures : b.general_fund.revenues;
   const gfTotal = useMemo(() => gfRows.reduce((s, r) => s + r.proposed, 0), [gfRows]);
@@ -362,16 +364,30 @@ function CityLedger({ b, chrome }) {
           homeowner paid in {ry}, the city kept just ${jrows[0].rates[ry].toFixed(2)} — {cityShare}%. The rest
           funds the school district, the county, and the technical college.
         </SectionHead>
-        <div className="taxbar">
+        <div className="taxbar" ref={taxbarRef} onMouseLeave={() => setTaxTip(null)}>
           {jrows.map((r, i) => {
             const share = (r.rates[ry] / jtotal) * 100;
             return (
               <div className="taxbar-seg" key={r.jurisdiction}
-                style={{ width: share + "%", background: JURIS_COLORS[i % JURIS_COLORS.length] }}>
+                style={{ width: share + "%", background: JURIS_COLORS[i % JURIS_COLORS.length] }}
+                onMouseMove={(e) => {
+                  const rect = taxbarRef.current.getBoundingClientRect();
+                  setTaxTip({ i, x: e.clientX - rect.left, w: rect.width });
+                }}>
                 {share > 9 ? Math.round(share) + "%" : ""}
               </div>
             );
           })}
+          {taxTip && (() => {
+            const r = jrows[taxTip.i];
+            const share = (r.rates[ry] / jtotal) * 100;
+            return (
+              <div className="taxbar-tip" style={{ left: Math.max(90, Math.min(taxTip.x, taxTip.w - 90)) }}>
+                <div className="tip-year">{r.jurisdiction}</div>
+                <div>${r.rates[ry].toFixed(2)} per $1,000 &middot; {share.toFixed(1)}%</div>
+              </div>
+            );
+          })()}
         </div>
         <div className="jrows">
           {jrows.map((r, i) => (
@@ -1106,9 +1122,13 @@ html{scroll-behavior:smooth;}
 .delta{display:inline-flex; align-items:center; gap:1px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap;}
 
 /* tax bill — property-tax-by-jurisdiction split (City body) */
-.taxbar{display:flex; height:46px; margin-top:6px; border:1px solid var(--ink); overflow:hidden;}
-.taxbar-seg{display:flex; align-items:center; justify-content:center; color:#fff; min-width:0;
+.taxbar{display:flex; height:46px; margin-top:6px; border:1px solid var(--ink); position:relative;}
+.taxbar-seg{display:flex; align-items:center; justify-content:center; color:#fff; min-width:0; cursor:default;
   font-size:13px; font-weight:700; font-variant-numeric:tabular-nums; animation:grow .6s both ease-out; transform-origin:left;}
+.taxbar-tip{position:absolute; bottom:calc(100% + 9px); transform:translateX(-50%); z-index:10;
+  background:var(--ink); color:var(--paper); padding:8px 12px; border-radius:3px; white-space:nowrap;
+  font-size:12px; pointer-events:none; box-shadow:0 3px 10px rgba(28,26,22,.22);}
+.taxbar-tip .tip-year{font-family:var(--serif); font-weight:700; font-size:13px; margin-bottom:3px;}
 .jrows{margin-top:20px; border-top:2px solid var(--ink);}
 .jrow{display:grid; grid-template-columns:16px 1fr 72px 52px; align-items:center; gap:12px;
   padding:11px 2px; border-bottom:1px solid var(--rule); font-size:14px; font-variant-numeric:tabular-nums;}
