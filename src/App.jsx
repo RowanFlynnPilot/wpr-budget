@@ -155,6 +155,7 @@ function CityLedger({ b, chrome }) {
   );
   const [taxTip, setTaxTip] = useState(null);
   const taxbarRef = useRef(null);
+  const [homeValue, setHomeValue] = useState(200000);
 
   // Both tabs (departments / revenue) sorted by amount, largest first.
   const gfRows = useMemo(() => {
@@ -361,13 +362,28 @@ function CityLedger({ b, chrome }) {
         </div>
       </section>
 
-      {/* YOUR TAX BILL — jurisdiction split */}
+      {/* YOUR TAX BILL — interactive jurisdiction calculator */}
       <section id="taxbill" className="block">
-        <SectionHead kicker="The Bottom Line" title="Where your property-tax dollar goes">
-          The city is only one line on your tax bill. Of the ${jtotal.toFixed(2)} per $1,000 of value a Wausau
-          homeowner paid in {ry}, the city kept just ${jrows[0].rates[ry].toFixed(2)} — {cityShare}%. The rest
-          funds the school district, the county, and the technical college.
+        <SectionHead kicker="The Bottom Line" title="What it means for your tax bill">
+          The city is only one line on your property-tax bill — {cityShare}% of it. Enter your home&rsquo;s value to
+          see your estimated annual bill and exactly where each dollar goes.
         </SectionHead>
+
+        <div className="calc">
+          <div className="calc-input">
+            <label htmlFor="homeval">Your home&rsquo;s assessed value</label>
+            <div className="calc-field">
+              <span>$</span>
+              <input id="homeval" type="text" inputMode="numeric" value={homeValue.toLocaleString("en-US")}
+                onChange={(e) => setHomeValue(Math.min(parseInt(e.target.value.replace(/[^\d]/g, "")) || 0, 99999999))} />
+            </div>
+          </div>
+          <div className="calc-out">
+            <span className="calc-out-label">Estimated annual property tax</span>
+            <span className="calc-out-val">{usd(Math.round((homeValue / 1000) * jtotal))}</span>
+          </div>
+        </div>
+
         <div className="taxbar" ref={taxbarRef} onMouseLeave={() => setTaxTip(null)}>
           {jrows.map((r, i) => {
             const share = (r.rates[ry] / jtotal) * 100;
@@ -388,7 +404,7 @@ function CityLedger({ b, chrome }) {
             return (
               <div className="taxbar-tip" style={{ left: Math.max(90, Math.min(taxTip.x, taxTip.w - 90)) }}>
                 <div className="tip-year">{r.jurisdiction}</div>
-                <div>${r.rates[ry].toFixed(2)} per $1,000 &middot; {share.toFixed(1)}%</div>
+                <div>{usd(Math.round((homeValue / 1000) * r.rates[ry]))} &middot; {share.toFixed(1)}% &middot; ${r.rates[ry].toFixed(2)}/$1k</div>
               </div>
             );
           })()}
@@ -398,20 +414,21 @@ function CityLedger({ b, chrome }) {
             <div className="jrow" key={r.jurisdiction}>
               <span className="jrow-sw" style={{ background: JURIS_COLORS[i % JURIS_COLORS.length] }} />
               <span className="jrow-name">{r.jurisdiction}</span>
-              <span className="jrow-rate">${r.rates[ry].toFixed(2)}</span>
+              <span className="jrow-amt">{usd(Math.round((homeValue / 1000) * r.rates[ry]))}</span>
               <span className="jrow-share">{((r.rates[ry] / jtotal) * 100).toFixed(0)}%</span>
             </div>
           ))}
           <div className="jrow total">
             <span className="jrow-sw" />
-            <span className="jrow-name">Total tax rate</span>
-            <span className="jrow-rate">${jtotal.toFixed(2)}</span>
+            <span className="jrow-name">Your total bill</span>
+            <span className="jrow-amt">{usd(Math.round((homeValue / 1000) * jtotal))}</span>
             <span className="jrow-share">100%</span>
           </div>
         </div>
         <p className="note">
-          Rate per $1,000 of equalized value, {ry} (the most recent year all jurisdictions have set). The City
-          of Wausau collects the bill on behalf of all four.
+          Estimated from the {ry} combined rate of ${jtotal.toFixed(2)} per $1,000 of equalized value — the most
+          recent year all four jurisdictions have set. Your actual bill varies with credits and exemptions (the
+          lottery and first-dollar credits alone are worth a few hundred dollars).
         </p>
       </section>
 
@@ -494,6 +511,7 @@ function Ledger({ b, chrome }) {
   const [open, setOpen] = useState(null);
   const [active, setActive] = useState("where");
   const [deptView, setDeptView] = useState("amount");
+  const [homeValue, setHomeValue] = useState(200000);
 
   const gfRows = b.general_fund[flow];
   const gfTotal = useMemo(() => gfRows.reduce((s, r) => s + r.proposed_next, 0), [gfRows]);
@@ -820,8 +838,24 @@ function Ledger({ b, chrome }) {
       <section id="bill" className="block">
         <SectionHead kicker="The Bottom Line" title="What it means for your tax bill">
           The county&rsquo;s mill rate has fallen nearly every year since 2017. But because home values climbed
-          faster, the bill on a typical home kept rising anyway.
+          faster, the bill on a typical home kept rising anyway. Enter your home&rsquo;s value to see your
+          county tax.
         </SectionHead>
+
+        <div className="calc">
+          <div className="calc-input">
+            <label htmlFor="homeval-c">Your home&rsquo;s assessed value</label>
+            <div className="calc-field">
+              <span>$</span>
+              <input id="homeval-c" type="text" inputMode="numeric" value={homeValue.toLocaleString("en-US")}
+                onChange={(e) => setHomeValue(Math.min(parseInt(e.target.value.replace(/[^\d]/g, "")) || 0, 99999999))} />
+            </div>
+          </div>
+          <div className="calc-out">
+            <span className="calc-out-label">Your {b.meta.budget_year} county property tax</span>
+            <span className="calc-out-val">{usd(Math.round((homeValue / 1000) * b.meta.tax_rate))}</span>
+          </div>
+        </div>
 
         <div className="chart-wrap">
           <div className="chart-legend">
@@ -1134,12 +1168,26 @@ html{scroll-behavior:smooth;}
   font-size:12px; pointer-events:none; box-shadow:0 3px 10px rgba(28,26,22,.22);}
 .taxbar-tip .tip-year{font-family:var(--serif); font-weight:700; font-size:13px; margin-bottom:3px;}
 .jrows{margin-top:20px; border-top:2px solid var(--ink);}
-.jrow{display:grid; grid-template-columns:16px 1fr 72px 52px; align-items:center; gap:12px;
+.jrow{display:grid; grid-template-columns:16px 1fr 96px 50px; align-items:center; gap:12px;
   padding:11px 2px; border-bottom:1px solid var(--rule); font-size:14px; font-variant-numeric:tabular-nums;}
 .jrow-sw{width:12px; height:12px; border-radius:2px;}
 .jrow-name{font-weight:500;}
-.jrow-rate,.jrow-share{text-align:right;}
+.jrow-amt,.jrow-share{text-align:right;}
+.jrow-amt{font-weight:600;}
 .jrow.total{font-weight:700; border-bottom:none; border-top:1px solid var(--ink); margin-top:2px;}
+
+/* tax-bill calculator */
+.calc{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:18px;
+  margin:0 0 24px; padding:20px 22px; background:var(--paper-2); border:1px solid var(--rule);}
+.calc-input{display:flex; flex-direction:column; gap:7px;}
+.calc-input label{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); font-weight:700;}
+.calc-field{display:flex; align-items:center; gap:4px; background:var(--paper); border:1px solid var(--ink); padding:6px 12px;}
+.calc-field span{font-family:var(--serif); font-size:24px; font-weight:600; color:var(--ink-soft);}
+.calc-field input{font-family:var(--serif); font-size:28px; font-weight:600; color:var(--ink); background:transparent;
+  border:none; outline:none; width:7ch; letter-spacing:-0.01em; font-variant-numeric:tabular-nums;}
+.calc-out{display:flex; flex-direction:column; gap:5px; text-align:right;}
+.calc-out-label{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); font-weight:700;}
+.calc-out-val{font-family:var(--serif); font-size:clamp(34px,4.5vw,46px); font-weight:600; line-height:1; color:var(--accent); letter-spacing:-0.02em;}
 
 /* callout (e.g. the levy-ceiling note) */
 .callout{margin-top:26px; padding:18px 22px; background:var(--paper-2); border-left:3px solid var(--neg);}
