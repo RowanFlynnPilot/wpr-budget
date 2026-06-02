@@ -1708,7 +1708,7 @@ html{scroll-behavior:smooth;}
 .chrome-bar__divider{width:1px; height:18px; background:rgba(255,255,255,.35);}
 .chrome-bar__section{font-weight:600; font-size:12px; letter-spacing:.04em;
   text-transform:uppercase; opacity:.9; white-space:nowrap;}
-.chrome-bar__switch{display:inline-flex; align-items:center; gap:6px;}
+.chrome-bar__switch{display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap;}
 .chrome-bar__ent{display:inline-flex; align-items:center; gap:7px; cursor:pointer;
   background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.28); color:#fff;
   font-family:var(--sans); font-weight:600; font-size:12px; letter-spacing:.02em; line-height:1;
@@ -1731,9 +1731,11 @@ html{scroll-behavior:smooth;}
   .chrome-bar{flex-wrap:wrap; padding:8px 24px;}
   .chrome-bar__divider,.chrome-bar__section{display:none;}
   .chrome-bar__left{flex-wrap:wrap; gap:8px 10px;}
-  .chrome-bar__switch{flex:1 1 100%; gap:8px;}
-  .chrome-bar__ent{font-size:11px; padding:3px 10px 3px 3px;}
-  .chrome-bar__ent img{width:20px; height:20px;}
+  /* Stack the entity buttons full-width so three long labels never run off the
+     edge; each is a tappable row with its logo and full name. */
+  .chrome-bar__switch{flex:1 1 100%; gap:6px;}
+  .chrome-bar__ent{flex:1 1 100%; justify-content:flex-start; font-size:12px; padding:6px 12px 6px 5px;}
+  .chrome-bar__ent img{width:22px; height:22px;}
   .chrome-bar__meta{width:100%; padding-top:2px;}
 }
 
