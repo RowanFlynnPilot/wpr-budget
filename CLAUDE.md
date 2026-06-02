@@ -295,15 +295,26 @@ data; separation of concerns. Match the existing editorial aesthetic.
 
 ## Current state (as of last session — read this first)
 
-All THREE entities are built and verified locally (`npm run build` clean). `main`
-is the source of truth; pushing to it auto-deploys. Raw source files (gitignored)
-needed to re-run extractors live in `sources/` and repo root: `2026-Annual-Budget.pdf`
-+ `2025-…` (County), `2026-Wausau-Budget.pdf` (City), and
-`sources/2026-Wausau-School-Budget.pdf` (School).
+Everything below is **built, committed, pushed to `main`, and deployed** (working
+tree clean as of hand-off; `npm run build` clean; last Pages deploy green). `main`
+is the source of truth; pushing auto-deploys. The site has FOUR switcher views
+(Marathon County, City of Wausau, Wausau School District, + the "Your Tax Bill"
+overview) behind a suite **landing page** (the default front door), in **three
+languages** (EN / ES / Hmoob). Raw source files (gitignored, in `sources/` + repo
+root) needed to re-run extractors: `2026-Annual-Budget.pdf` + `2025-…` (County),
+`2026-Wausau-Budget.pdf` (City), `sources/2026-Wausau-School-Budget.pdf` +
+`sources/enrollment_certified_<yr>.zip` ×5 (School).
 
-> The School entity was added but NOT yet committed/pushed at the end of that
-> session — check `git status`. It is Phase 1 (budget book only); Phase 2 (DPI
-> per-student + enrollment + valuation history) is pending a manual DPI download.
+> **Next session — start here.** No half-finished code; the open items are
+> WPR/editorial actions, not bugs: (1) a **fluent-speaker review of the Hmong** (it's
+> AI-drafted, shipped behind a beta banner — corrections go in the `HMN` table of
+> `src/i18n.jsx`); (2) **verify the chart-annotation seeds** (`src/annotations.json` —
+> the School enrollment "consolidation" marker is DRAFT: confirm the year, add source
+> URLs to both seeds); (3) the **sponsor surface** is built but hidden — flip
+> `src/sponsors.json` `enabled:true` to go live. The only remaining un-built *idea*
+> from the backlog is the **per-capita / per-household toggle**. Live at
+> https://rowanflynnpilot.github.io/wpr-budget/ — verify the WordPress iframe embed
+> still points where intended (the bare URL now opens the landing, not the County).
 
 Done and shipped:
 - ✅ County entity (FY2026) + 2025 history (department trend + total-budget delta).
@@ -383,10 +394,14 @@ Done and shipped:
   The Students section already shows Wausau's own per-student figure ($15,463 GF /
   student) with a placeholder line for the state comparison. (Phase 2a valuation
   overlay + Phase 2b enrollment trend are DONE and shipped.)
-- Possible enhancements floated but not built: per-capita / per-household toggle;
-  auto "what changed this year"; County money-flow Sankey; City personnel beyond
-  the chart; chart annotations; treemap. (Recharts 2.x→3.x migration is optional,
-  nothing broken.)
+- **Editorial follow-ups (not code/bugs):** human review of the Hmong (`HMN` table in
+  `src/i18n.jsx`); verify chart-annotation seeds + add source URLs (`src/annotations.json`);
+  decide whether to enable the sponsor surface (`src/sponsors.json`).
+- Enhancements floated but NOT built: **per-capita / per-household toggle** (the main
+  remaining one); County money-flow Sankey; City personnel beyond the chart; treemap.
+  (Recharts 2.x→3.x migration is optional, nothing broken.) DONE since first floated:
+  "what changed this year", chart annotations, multilingual, landing page, sponsor
+  surface, tax-bill unifier, share/social, analytics.
 
 ## Gotchas for the next session
 
