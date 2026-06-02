@@ -1032,14 +1032,11 @@ function SchoolLedger({ b, chrome }) {
           )}
         </div>
         <h1>Follow the Money</h1>
-        <p className="dek">
-          Every dollar in the {b.meta.entity}&rsquo;s {b.meta.fiscal_label} budget — where it comes from, where it
-          goes, and what it means for your tax bill. Adopted by the Board of Education.
-        </p>
+        <p className="dek">{t("s.dek", b.meta.entity)}</p>
         <div className="stat-strip">
-          <Stat icon="💰" label="Total budget" value={compact(b.meta.net_expenditures)} sub="all funds, net" />
-          <Stat icon="🏛️" label="School tax levy" value={usd(b.meta.total_levy)} sub={<Delta value={levyPct} />} />
-          <Stat icon="🏠" label="Mill rate" value={b.meta.mill_rate.toFixed(2)} sub={<Delta value={millPct} invertColor />} />
+          <Stat icon="💰" label={t("stat.totalBudget")} value={compact(b.meta.net_expenditures)} sub={t("s.stat.allFundsNet")} />
+          <Stat icon="🏛️" label={t("s.stat.schoolLevy")} value={usd(b.meta.total_levy)} sub={<Delta value={levyPct} />} />
+          <Stat icon="🏠" label={t("stat.millRate")} value={b.meta.mill_rate.toFixed(2)} sub={<Delta value={millPct} invertColor />} />
         </div>
       </header>
 
@@ -1053,14 +1050,12 @@ function SchoolLedger({ b, chrome }) {
 
       {/* WHERE IT GOES — General Fund by object / by source */}
       <section id="where" className="block">
-        <SectionHead kicker="The General Fund" title="Where every dollar goes">
-          The general fund — {compact(b.meta.gf_expenditures)} — pays for the district&rsquo;s day-to-day
-          operations. Schools don&rsquo;t budget salaries building-by-building, so the honest view is by
-          object: toggle between what the money buys and where it comes from.
+        <SectionHead kicker={t("kick.generalFund")} title={t("title.whereDollarGoes")}>
+          {t("s.where.dek", compact(b.meta.gf_expenditures))}
         </SectionHead>
         <div className="toggle" role="group" aria-label="General fund view">
-          <button aria-pressed={gfFlow === "expenditures"} className={gfFlow === "expenditures" ? "on" : ""} onClick={() => setGfFlow("expenditures")}>Spending</button>
-          <button aria-pressed={gfFlow === "revenues"} className={gfFlow === "revenues" ? "on" : ""} onClick={() => setGfFlow("revenues")}>Revenue</button>
+          <button aria-pressed={gfFlow === "expenditures"} className={gfFlow === "expenditures" ? "on" : ""} onClick={() => setGfFlow("expenditures")}>{t("btn.spending")}</button>
+          <button aria-pressed={gfFlow === "revenues"} className={gfFlow === "revenues" ? "on" : ""} onClick={() => setGfFlow("revenues")}>{t("btn.revenue")}</button>
         </div>
         <div className="bars">
           {gfRows.map((r, i) => (
@@ -1077,7 +1072,7 @@ function SchoolLedger({ b, chrome }) {
           <>
             <div className="toggle" role="group" aria-label="Salary and benefit detail" style={{ marginTop: 14 }}>
               <button aria-pressed={showPeople} className={showPeople ? "on" : ""} onClick={() => setShowPeople((v) => !v)}>
-                {showPeople ? "Hide" : "Show"} what salaries &amp; benefits buy
+                {t("s.where.showPeople", showPeople)}
               </button>
             </div>
             {showPeople && (
@@ -1094,17 +1089,14 @@ function SchoolLedger({ b, chrome }) {
           </>
         )}
         <p className="note">
-          {gfFlow === "expenditures"
-            ? `Change shown vs. the prior-year budget. People — salaries and benefits — are ${peopleShare}% of the general fund; teacher salaries alone are its single largest cost.`
-            : "Change shown vs. the prior-year budget. State equalization aid, not the local levy, is the district's largest revenue source."}
+          {gfFlow === "expenditures" ? t("s.where.noteSpend", peopleShare) : t("s.where.noteRev")}
         </p>
       </section>
 
       {/* MONEY FLOW — General Fund Sankey */}
       <section id="flow" className="block">
-        <SectionHead kicker="Follow the Money" title="How the general fund flows">
-          Every general-fund dollar, traced from where it comes from, through the fund, to what it pays for.
-          Hover any ribbon to follow the money.
+        <SectionHead kicker={t("kick.followMoney")} title={t("title.howGfFlows")}>
+          {t("s.flow.dek")}
         </SectionHead>
         <div className="chart-wrap">
           <div className="sankey-scroll">
@@ -1129,19 +1121,14 @@ function SchoolLedger({ b, chrome }) {
               </ResponsiveContainer>
             </div>
           </div>
-          <p className="note">
-            General Fund revenue sources (left) into the fund (center) and out to spending by object (right).
-            Hover a flow for its amount.
-          </p>
+          <p className="note">{t("s.flow.note")}</p>
         </div>
       </section>
 
       {/* ALL FUNDS */}
       <section id="allfunds" className="block">
-        <SectionHead kicker="The Whole Picture" title="All funds, by purpose">
-          Beyond the general fund, the district&rsquo;s {compact(b.meta.gross_expenditures)} all-funds budget covers
-          special education, debt service, food service, capital projects and community programs — each a separate
-          legal fund.
+        <SectionHead kicker={t("kick.wholePicture")} title={t("s.allfunds.title")}>
+          {t("s.allfunds.dek", compact(b.meta.gross_expenditures))}
         </SectionHead>
         <div className="bars">
           {funds.map((f, i) => (
@@ -1154,18 +1141,14 @@ function SchoolLedger({ b, chrome }) {
             </div>
           ))}
         </div>
-        <p className="note">Spending by fund, change shown vs. the prior-year budget. Interfund transfers mean fund totals overlap; the all-funds figure above is net of them.</p>
+        <p className="note">{t("s.allfunds.note")}</p>
       </section>
 
       {/* STUDENTS — enrollment trend + spending per student */}
       {enr && (
       <section id="students" className="block">
-        <SectionHead kicker="The Students" title="Enrollment &amp; spending per student">
-          The district enrolls <b>{enrNow.toLocaleString()}</b> students in {enr.labels[enr.labels.length - 1]}
-          {enrChange < 0
-            ? `, down ${Math.abs(enrChange).toLocaleString()} from ${enrThen.toLocaleString()} five years ago`
-            : enrChange > 0 ? `, up ${enrChange.toLocaleString()} over five years` : ", flat over five years"}.
-          That works out to about <b>{usd(perStudentGF)}</b> of general-fund spending per student.
+        <SectionHead kicker={t("s.students.kick")} title={t("s.students.title")}>
+          {t("s.students.dek", enrNow.toLocaleString(), enr.labels[enr.labels.length - 1], enrChange, enrThen.toLocaleString(), usd(perStudentGF))}
         </SectionHead>
         <div className="chart-wrap">
           <ResponsiveContainer width="100%" height={280}>
@@ -1175,33 +1158,26 @@ function SchoolLedger({ b, chrome }) {
               <YAxis domain={["dataMin - 200", "dataMax + 200"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={44} tickFormatter={(v) => v.toLocaleString()} />
               <Tooltip content={({ active, payload, label }) => {
                 if (!active || !payload || !payload.length) return null;
-                return (<div className="tip"><div className="tip-year">{label}</div><div><i className="sw" style={{ background: "var(--accent)" }} /> {payload[0].value.toLocaleString()} students</div></div>);
+                return (<div className="tip"><div className="tip-year">{label}</div><div><i className="sw" style={{ background: "var(--accent)" }} /> {payload[0].value.toLocaleString()} {t("s.students.studentsLabel")}</div></div>);
               }} cursor={{ stroke: "var(--rule)" }} />
               <Area type="monotone" dataKey="count" name="Enrollment" stroke="var(--accent)" strokeWidth={2.5}
                 fill="var(--accent)" fillOpacity={0.12} dot={{ r: 3, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
             </ComposedChart>
           </ResponsiveContainer>
-          <p className="note">
-            Districtwide certified enrollment (headcount), {enr.labels[0]}&ndash;{enr.labels[enr.labels.length - 1]}.
-            Source: Wisconsin DPI WISEdash. Per-student figures use this enrollment: {usd(perStudentGF)} from the
-            general fund, or {usd(perStudentAll)} counting all funds (net of transfers). A statewide comparison will
-            be added when DPI&rsquo;s per-member finance data is available.
-          </p>
+          <p className="note">{t("s.students.note", enr.labels[0], enr.labels[enr.labels.length - 1], usd(perStudentGF), usd(perStudentAll))}</p>
         </div>
       </section>
       )}
 
       {/* OVER TIME — the mill rate across a half-century */}
       <section id="overtime" className="block">
-        <SectionHead kicker="Shifting Priorities" title="The mill rate over half a century">
-          The school tax rate has fallen from a peak of ${ratePeak.toFixed(2)} per $1,000 to ${b.meta.mill_rate.toFixed(2)}{" "}
-          today — even as the levy itself has grown — because the district&rsquo;s equalized property base has grown
-          far faster: roughly {valGrowth}× since {valFirst.year}, to {compact(valLast.value)} in {valLast.year}.
+        <SectionHead kicker={t("kick.shiftingPriorities")} title={t("s.overtime.title")}>
+          {t("s.overtime.dek", ratePeak.toFixed(2), b.meta.mill_rate.toFixed(2), valGrowth, valFirst.year, compact(valLast.value), valLast.year)}
         </SectionHead>
         <div className="chart-wrap">
           <div className="chart-legend">
-            <span><i className="sw" style={{ background: "var(--accent)" }} /> Mill rate (left)</span>
-            <span><i className="sw" style={{ background: "var(--gold)" }} /> Equalized value (right)</span>
+            <span><i className="sw" style={{ background: "var(--accent)" }} /> {t("s.overtime.legendRate")}</span>
+            <span><i className="sw" style={{ background: "var(--gold)" }} /> {t("s.overtime.legendVal")}</span>
           </div>
           <ResponsiveContainer width="100%" height={320}>
             <ComposedChart data={overTime} margin={{ top: 8, right: 14, bottom: 4, left: 6 }}>
@@ -1216,8 +1192,8 @@ function SchoolLedger({ b, chrome }) {
                 return (
                   <div className="tip">
                     <div className="tip-year">{label}</div>
-                    {r && <div><i className="sw" style={{ background: "var(--accent)" }} /> Mill rate ${r.value.toFixed(2)}</div>}
-                    {v && v.value != null && <div><i className="sw" style={{ background: "var(--gold)" }} /> Equalized value {compact(v.value)}</div>}
+                    {r && <div><i className="sw" style={{ background: "var(--accent)" }} /> {t("s.overtime.tipRate")} ${r.value.toFixed(2)}</div>}
+                    {v && v.value != null && <div><i className="sw" style={{ background: "var(--gold)" }} /> {t("s.overtime.tipVal")} {compact(v.value)}</div>}
                   </div>
                 );
               }} cursor={{ stroke: "var(--rule)" }} />
@@ -1227,15 +1203,11 @@ function SchoolLedger({ b, chrome }) {
                 dot={false} activeDot={{ r: 5 }} />
             </ComposedChart>
           </ResponsiveContainer>
-          <p className="note">
-            Equalized school mill rate ({rate[0].label}&ndash;{rate[rate.length - 1].label}) against the district&rsquo;s
-            equalized property value ({valFirst.year}&ndash;{valLast.year}). As the tax base climbs, the same levy
-            needs a smaller rate.
-          </p>
+          <p className="note">{t("s.overtime.note", rate[0].label, rate[rate.length - 1].label, valFirst.year, valLast.year)}</p>
         </div>
 
         <div className="callout">
-          <div className="callout-title">Why the rate fell {Math.round((bridge.base_rate - bridge.result_rate) * 100)}¢ this year</div>
+          <div className="callout-title">{t("s.overtime.calloutTitle", Math.round((bridge.base_rate - bridge.result_rate) * 100))}</div>
           <div className="bridge">
             <div className="bridge-row"><span>{bridge.base_label}</span><b>${bridge.base_rate.toFixed(2)}</b></div>
             {bridge.factors.map((f) => (
@@ -1253,14 +1225,13 @@ function SchoolLedger({ b, chrome }) {
 
       {/* YOUR TAX BILL — school portion, split by fund */}
       <section id="taxbill" className="block">
-        <SectionHead kicker="The Bottom Line" title="What it means for your tax bill">
-          The school district is one line on your property-tax bill, at ${jtotal.toFixed(2)} per $1,000 of value.
-          Enter your home&rsquo;s value to see your estimated school taxes and which district fund each dollar supports.
+        <SectionHead kicker={t("kick.bottomLine")} title={t("title.taxbillMeaning")}>
+          {t("s.taxbill.dek", jtotal.toFixed(2))}
         </SectionHead>
 
         <div className="calc">
           <div className="calc-input">
-            <label htmlFor="homeval-s">Your home&rsquo;s equalized value</label>
+            <label htmlFor="homeval-s">{t("s.taxbill.homeLabel")}</label>
             <div className="calc-field">
               <span>$</span>
               <input id="homeval-s" type="text" inputMode="numeric" value={homeValue.toLocaleString("en-US")}
@@ -1268,7 +1239,7 @@ function SchoolLedger({ b, chrome }) {
             </div>
           </div>
           <div className="calc-out">
-            <span className="calc-out-label">Estimated annual school tax</span>
+            <span className="calc-out-label">{t("s.taxbill.estOut")}</span>
             <span className="calc-out-val">{usd(Math.round((homeValue / 1000) * jtotal))}</span>
           </div>
         </div>
@@ -1309,29 +1280,23 @@ function SchoolLedger({ b, chrome }) {
           ))}
           <div className="jrow total">
             <span className="jrow-sw" />
-            <span className="jrow-name">Your school taxes</span>
+            <span className="jrow-name">{t("s.taxbill.totalRow")}</span>
             <span className="jrow-amt">{usd(Math.round((homeValue / 1000) * jtotal))}</span>
             <span className="jrow-share">100%</span>
           </div>
         </div>
-        <p className="note">
-          Estimated from the {b.meta.fiscal_label} school mill rate of ${jtotal.toFixed(2)} per $1,000 of equalized
-          value. This is only the school district&rsquo;s share — your full bill also includes the county, your
-          municipality, and the technical college. Actual bills vary with credits and exemptions.
-        </p>
+        <p className="note">{t("s.taxbill.note", b.meta.fiscal_label, jtotal.toFixed(2))}</p>
       </section>
 
       {/* DEBT */}
       <section id="debt" className="block">
-        <SectionHead kicker="What the District Owes" title="Outstanding debt">
-          The district carries <b>{compact(debt.outstanding_principal)}</b> in outstanding principal — largely the
-          voter-approved 2022 referendum — with {compact(debt.total_interest_remaining)} in interest still to come.
-          Here is how it is scheduled to be paid down.
+        <SectionHead kicker={t("s.debt.kick")} title={t("title.outstandingDebt")}>
+          {t("s.debt.dek", compact(debt.outstanding_principal), compact(debt.total_interest_remaining))}
         </SectionHead>
         <div className="chart-wrap">
           <div className="chart-legend">
-            <span><i className="sw sw-new" /> Principal</span>
-            <span><i className="sw sw-old" /> Interest</span>
+            <span><i className="sw sw-new" /> {t("lbl.principal")}</span>
+            <span><i className="sw sw-old" /> {t("lbl.interest")}</span>
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={debt.retirement} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
@@ -1339,27 +1304,19 @@ function SchoolLedger({ b, chrome }) {
               <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
               <YAxis tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
               <Tooltip content={<BarTip />} cursor={{ fill: "var(--paper-2)" }} />
-              <Bar dataKey="principal" stackId="d" fill="var(--accent)" name="Principal" maxBarSize={26} />
-              <Bar dataKey="interest" stackId="d" fill="var(--gold)" fillOpacity={0.82} name="Interest" maxBarSize={26} />
+              <Bar dataKey="principal" stackId="d" fill="var(--accent)" name={t("lbl.principal")} maxBarSize={26} />
+              <Bar dataKey="interest" stackId="d" fill="var(--gold)" fillOpacity={0.82} name={t("lbl.interest")} maxBarSize={26} />
             </BarChart>
           </ResponsiveContainer>
-          <p className="note">
-            Annual principal + interest on existing debt. The {debt.retirement[0].year} payment is{" "}
-            {compact(debt.retirement[0].total)}; the schedule runs through {debt.retirement[debt.retirement.length - 1].year}.
-          </p>
+          <p className="note">{t("s.debt.note", debt.retirement[0].year, compact(debt.retirement[0].total), debt.retirement[debt.retirement.length - 1].year)}</p>
         </div>
       </section>
 
       <Methodology b={b} chrome={chrome} />
 
       <footer className="foot">
-        <p>
-          <b>Source:</b> {b.meta.entity} {b.meta.fiscal_label} Annual Budget. Figures are as adopted and may be
-          amended during the year.
-        </p>
-        <p className="muted">Built and maintained by Wausau Pilot &amp; Review; fund, levy, mill-rate and debt
-          figures extracted directly from the district&rsquo;s published budget document and reconciled against its
-          printed totals.</p>
+        <p><b>{t("foot.sourceLabel")}</b> {t("s.foot.source", b.meta.entity, b.meta.fiscal_label)} {t("foot.amended")}</p>
+        <p className="muted">{t("s.foot.builtBy")}</p>
       </footer>
     </div>
   );
