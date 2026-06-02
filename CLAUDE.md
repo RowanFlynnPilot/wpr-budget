@@ -315,19 +315,21 @@ Done and shipped:
   (1200×630 editorial card). Switcher labels shortened ("…Budget" dropped).
 - ✅ "What changed this year" lead band (`Highlights`) on all three governments, and a
   cross-link to the Central Wisconsin Meeting Tracker in each Methodology section.
-- 🔶 Multilingual (EN / ES / Hmoob) — i18n layer in `src/i18n.jsx` (`LangProvider`,
+- ✅ Multilingual (EN / ES / Hmoob) — i18n layer in `src/i18n.jsx` (`LangProvider`,
   `useStrings()` t-function with English fallback, localStorage persistence, sets
   `<html lang>`). Language `<select>` + Hmong **beta banner** in `ChromeBar`. Spanish
   is a real translation; **Hmong is AI-drafted, shipped in beta pending community
-  review** (per the user's call). **v1 TRANSLATED:** chrome, the entity switcher's
-  "Your Tax Bill" label, section **nav**, the **what-changed** band (head + labels +
-  notes), **Methodology**, the suite cross-link, footers' shared bits, and the beta
-  banner. **STILL ENGLISH (phase 2):** per-section masthead deks, stat labels, section
-  kicker/titles + standfirst paragraphs, toggle buttons, calculator labels, small
-  `.note` footnotes, and `TaxBillOverview` body. Add keys to `src/i18n.jsx` and wire
-  each body via `const t = useStrings()`. NOTE: i18n.jsx must be `.jsx` (it contains
-  JSX); a `.js` extension breaks esbuild. Restart the dev server after renaming files
-  — a stale vite process on the port serves a broken module graph (blank page).
+  review** (per the user's call). **FULLY TRANSLATED:** all chrome, nav, the
+  what-changed band, and every body — County (`Ledger`), City (`CityLedger`), School
+  (`SchoolLedger`), and `TaxBillOverview` — including masthead deks, stat labels,
+  section kickers/titles/standfirsts, toggles, chart legends/tooltips, calculator,
+  notes, and footers. Official department/fund/category names + numbers stay as
+  published (not translated). Keys live in `src/i18n.jsx` (grouped: shared, `s.*`
+  School, `c.*` City, `co.*` County, `tb.*` tax bill, `bal.*` balance, `wc.*`, etc.);
+  each body does `const t = useStrings()` and calls `t("key", ...args)`. NOTES: i18n
+  MUST be `.jsx` (contains JSX) — `.js` breaks esbuild; restart the dev server after
+  renaming files (a stale vite process on the port serves a blank page). Adding an
+  entity/section means adding its keys in all three language tables.
 - ✅ Cloudflare Web Analytics beacon live in `index.html` (token is the shared
   `rowanflynnpilot.github.io` site, also used by the Meeting Tracker). Privacy-first,
   no cookie banner; CF groups by hostname, so filter the dashboard by page path

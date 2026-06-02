@@ -302,6 +302,7 @@ function billEntityFor(name) {
 }
 
 function TaxBillOverview({ b, chrome }) {
+  const t = useStrings();
   const [homeValue, setHomeValue] = useState(200000);
   const [taxTip, setTaxTip] = useState(null);
   const taxbarRef = useRef(null);
@@ -323,33 +324,28 @@ function TaxBillOverview({ b, chrome }) {
       <header className="masthead">
         <div className="masthead-head">
           <div className="kicker-row">
-            <span className="pub">The Public Ledger</span>
+            <span className="pub">{t("common.publicLedger")}</span>
             <span className="dot">·</span>
-            <span>Your Tax Bill</span>
+            <span>{t("common.yourTaxBill")}</span>
           </div>
         </div>
-        <h1>Where your tax bill goes</h1>
-        <p className="dek">
-          Four local governments tax the same Wausau home. For a home in the City of Wausau, this is your full
-          local property-tax bill — and exactly which government gets each dollar. Enter your home&rsquo;s value,
-          then follow any line to see where that money goes.
-        </p>
+        <h1>{t("tb.h1")}</h1>
+        <p className="dek">{t("tb.dek")}</p>
         <div className="stat-strip">
-          <Stat icon="🧾" label="Combined tax rate" value={"$" + jtotal.toFixed(2)} sub={"per $1,000 · " + ry} />
-          <Stat icon="🏛️" label="Governments on your bill" value={String(jrows.length)} sub="county · city · school · college" />
-          <Stat icon="🏠" label="Largest share" value={Math.round((top.rates[ry] / jtotal) * 100) + "%"} sub={top.jurisdiction.replace(/\s*\(net\)/i, "")} />
+          <Stat icon="🧾" label={t("tb.stat.combinedRate")} value={"$" + jtotal.toFixed(2)} sub={t("tb.stat.combinedRateSub", ry)} />
+          <Stat icon="🏛️" label={t("tb.stat.govts")} value={String(jrows.length)} sub={t("tb.stat.govtsSub")} />
+          <Stat icon="🏠" label={t("tb.stat.largest")} value={Math.round((top.rates[ry] / jtotal) * 100) + "%"} sub={top.jurisdiction.replace(/\s*\(net\)/i, "")} />
         </div>
       </header>
 
       <section id="bill" className="block">
-        <SectionHead kicker="The Bottom Line" title="Your complete property-tax bill">
-          The county, the city, the school district and the technical college all tax the same home. Enter your
-          value to see the split — then click any line to explore where that government spends it.
+        <SectionHead kicker={t("kick.bottomLine")} title={t("tb.sec.title")}>
+          {t("tb.sec.dek")}
         </SectionHead>
 
         <div className="calc">
           <div className="calc-input">
-            <label htmlFor="homeval-all">Your home&rsquo;s equalized value</label>
+            <label htmlFor="homeval-all">{t("tb.homeLabel")}</label>
             <div className="calc-field">
               <span>$</span>
               <input id="homeval-all" type="text" inputMode="numeric" value={homeValue.toLocaleString("en-US")}
@@ -357,7 +353,7 @@ function TaxBillOverview({ b, chrome }) {
             </div>
           </div>
           <div className="calc-out">
-            <span className="calc-out-label">Your total annual property tax</span>
+            <span className="calc-out-label">{t("tb.estOut")}</span>
             <span className="calc-out-val">{usd(bill)}</span>
           </div>
         </div>
@@ -401,7 +397,7 @@ function TaxBillOverview({ b, chrome }) {
                 <span className="jrow-sw" style={{ background: JURIS_COLORS[i % JURIS_COLORS.length] }} />
                 <span className="jrow-name">
                   {r.jurisdiction}
-                  {go && <span className="jrow-go">Explore <ArrowUpRight size={12} strokeWidth={2.5} /></span>}
+                  {go && <span className="jrow-go">{t("tb.explore")} <ArrowUpRight size={12} strokeWidth={2.5} /></span>}
                 </span>
                 <span className="jrow-amt">{usd(Math.round((homeValue / 1000) * r.rates[ry]))}</span>
                 <span className="jrow-share">{((r.rates[ry] / jtotal) * 100).toFixed(0)}%</span>
@@ -410,28 +406,17 @@ function TaxBillOverview({ b, chrome }) {
           })}
           <div className="jrow total">
             <span className="jrow-sw" />
-            <span className="jrow-name">Your total bill</span>
+            <span className="jrow-name">{t("tb.totalRow")}</span>
             <span className="jrow-amt">{usd(bill)}</span>
             <span className="jrow-share">100%</span>
           </div>
         </div>
-        <p className="note">
-          Based on the {ry} combined equalized rate of ${jtotal.toFixed(2)} per $1,000 — the most recent year all
-          four jurisdictions have set — for a home in the City of Wausau. Your actual bill varies with credits and
-          exemptions (the lottery and first-dollar credits alone are worth a few hundred dollars), and with where in
-          the county you live. The county, city and school district each have their own detailed breakdown in this
-          tool; the technical college does not.
-        </p>
+        <p className="note">{t("tb.note", ry, jtotal.toFixed(2))}</p>
       </section>
 
       <footer className="foot">
-        <p>
-          <b>Source:</b> the City of Wausau&rsquo;s published property-tax allocation by taxing jurisdiction.
-          Figures are equalized rates as certified for {ry}.
-        </p>
-        <p className="muted">Built and maintained by Wausau Pilot &amp; Review as part of its &ldquo;Follow the
-          Money&rdquo; civic-transparency suite; rates are taken directly from the published budget document and
-          reconciled against its printed totals.</p>
+        <p><b>{t("foot.sourceLabel")}</b> {t("tb.foot.source", ry)}</p>
+        <p className="muted">{t("tb.foot.builtBy")}</p>
       </footer>
     </div>
   );
@@ -1426,16 +1411,12 @@ function Ledger({ b, chrome }) {
           )}
         </div>
         <h1>Follow the Money</h1>
-        <p className="dek">
-          Every dollar in {b.meta.entity}&rsquo;s {b.meta.budget_year} budget — where it comes from, where it
-          goes, and what it means for your tax bill. Adopted by the County Board on{" "}
-          {new Date(b.meta.adopted + "T00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}.
-        </p>
+        <p className="dek">{t("co.dek", b.meta.entity, new Date(b.meta.adopted + "T00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }))}</p>
 
         <div className="stat-strip">
-          <Stat icon="💰" label="Total budget" value={compact(b.meta.total_expenditures)} sub={budgetPctChange != null ? <Delta value={budgetPctChange} /> : null} />
-          <Stat icon="🏛️" label="County tax levy" value={usd(b.meta.tax_levy)} sub={<Delta value={levyPctChange} />} />
-          <Stat icon="🏠" label="Mill rate" value={"$" + b.meta.tax_rate.toFixed(2)} sub={<Delta value={ratePctChange} />} />
+          <Stat icon="💰" label={t("stat.totalBudget")} value={compact(b.meta.total_expenditures)} sub={budgetPctChange != null ? <Delta value={budgetPctChange} /> : null} />
+          <Stat icon="🏛️" label={t("co.stat.countyLevy")} value={usd(b.meta.tax_levy)} sub={<Delta value={levyPctChange} />} />
+          <Stat icon="🏠" label={t("stat.millRate")} value={"$" + b.meta.tax_rate.toFixed(2)} sub={<Delta value={ratePctChange} />} />
         </div>
       </header>
 
@@ -1449,14 +1430,13 @@ function Ledger({ b, chrome }) {
 
       {/* WHERE IT GOES */}
       <section id="where" className="block">
-        <SectionHead kicker="The General Fund" title="Where every dollar goes">
-          The county&rsquo;s general fund pays for day-to-day government. Toggle to see what it spends — and
-          where the money comes from before the property-tax levy fills the gap.
+        <SectionHead kicker={t("kick.generalFund")} title={t("title.whereDollarGoes")}>
+          {t("co.where.dek")}
         </SectionHead>
 
         <div className="toggle" role="group" aria-label="General fund view">
-          <button aria-pressed={flow === "expenditures"} className={flow === "expenditures" ? "on" : ""} onClick={() => setFlow("expenditures")}>Spending</button>
-          <button aria-pressed={flow === "revenues"} className={flow === "revenues" ? "on" : ""} onClick={() => setFlow("revenues")}>Revenue</button>
+          <button aria-pressed={flow === "expenditures"} className={flow === "expenditures" ? "on" : ""} onClick={() => setFlow("expenditures")}>{t("btn.spending")}</button>
+          <button aria-pressed={flow === "revenues"} className={flow === "revenues" ? "on" : ""} onClick={() => setFlow("revenues")}>{t("btn.revenue")}</button>
         </div>
 
         <div className="bars">
@@ -1475,28 +1455,22 @@ function Ledger({ b, chrome }) {
             </div>
           ))}
         </div>
-        <p className="note">
-          {flow === "expenditures"
-            ? "Change shown vs. the 2025 adopted budget. Public safety alone is roughly two-fifths of general-fund spending."
-            : "Change shown vs. the 2025 adopted budget. Whatever these sources don't cover is made up by the property-tax levy."}
-          {" "}The mini-trend traces each row from 2024 (actual) through 2025 (budget) to 2026 (adopted).
-        </p>
+        <p className="note">{t("co.where.note", flow)}</p>
       </section>
 
       {/* DEPARTMENTS */}
       <section id="departments" className="block">
-        <SectionHead kicker="The Drill-Down" title="Department by department">
-          Twenty-one departments and agencies. Each one&rsquo;s total spending equals the tax levy that supports
-          it plus the revenue it raises on its own. Click any row to open the books.
+        <SectionHead kicker={t("co.dept.kick")} title={t("co.dept.title")}>
+          {t("co.dept.dek")}
         </SectionHead>
 
         <div className="ledger">
           <div className="ledger-head">
-            <button className={sortKey === "department" ? "sorted" : ""} onClick={() => setSort("department")}>Department</button>
-            <button className={sortKey === "spend" ? "sorted" : ""} onClick={() => setSort("spend")}>Total spending</button>
-            <button className={"hide-sm " + (sortKey === "personnel" ? "sorted" : "")} onClick={() => setSort("personnel")}>Personnel</button>
-            <button className={sortKey === "levy" ? "sorted" : ""} onClick={() => setSort("levy")}>Tax levy</button>
-            <button className={"hide-sm " + (sortKey === "change" ? "sorted" : "")} onClick={() => setSort("change")}>vs &rsquo;25</button>
+            <button className={sortKey === "department" ? "sorted" : ""} onClick={() => setSort("department")}>{t("co.dept.colDepartment")}</button>
+            <button className={sortKey === "spend" ? "sorted" : ""} onClick={() => setSort("spend")}>{t("co.dept.colSpend")}</button>
+            <button className={"hide-sm " + (sortKey === "personnel" ? "sorted" : "")} onClick={() => setSort("personnel")}>{t("co.dept.colPersonnel")}</button>
+            <button className={sortKey === "levy" ? "sorted" : ""} onClick={() => setSort("levy")}>{t("co.dept.colLevy")}</button>
+            <button className={"hide-sm " + (sortKey === "change" ? "sorted" : "")} onClick={() => setSort("change")}>{t("co.dept.colVs")}</button>
             <span className="chev-col" />
           </div>
 
@@ -1519,21 +1493,22 @@ function Ledger({ b, chrome }) {
                 {isOpen && (
                   <div className="detail">
                     <div className="detail-grid">
-                      <Balance title="Where it goes" rows={[
-                        ["Operating expenditures", d.operating_expenditures],
-                        ["Personnel", d.personnel_expenditures],
-                      ]} total={["Total spending", spend]} />
-                      <Balance title="Where it comes from" rows={[
-                        ["Revenue raised", d.operating_revenues],
-                        ["County tax levy", d.tax_levy],
-                      ]} total={["Total funding", d.operating_revenues + d.tax_levy]} />
+                      <Balance title={t("bal.whereGoes")} rows={[
+                        [t("bal.operatingExp"), d.operating_expenditures],
+                        [t("bal.personnel"), d.personnel_expenditures],
+                      ]} total={[t("bal.totalSpending"), spend]} />
+                      <Balance title={t("bal.whereFrom")} rows={[
+                        [t("bal.revenueRaised"), d.operating_revenues],
+                        [t("bal.countyLevy"), d.tax_levy],
+                      ]} total={[t("bal.totalFunding"), d.operating_revenues + d.tax_levy]} />
                     </div>
                     <p className="detail-note">
-                      The levy supporting {d.department.replace(/&rsquo;/g, "'")} {d.levy_difference === null ? "is unchanged from 2025." :
+                      {t("co.dept.detailLevy", d.department.replace(/&rsquo;/g, "'"))}{" "}
+                      {d.levy_difference === null ? t("co.dept.unchanged") :
                         d.levy_difference >= 0
-                          ? `rose ${usd(d.levy_difference)} from 2025.`
-                          : `fell ${usd(Math.abs(d.levy_difference))} from 2025.`}
-                      {d.tax_levy < 0 && " It returns more revenue to the county than it costs to run."}
+                          ? t("co.dept.rose", usd(d.levy_difference))
+                          : t("co.dept.fell", usd(Math.abs(d.levy_difference)))}
+                      {d.tax_levy < 0 && " " + t("co.dept.returns")}
                     </p>
                   </div>
                 )}
@@ -1545,16 +1520,14 @@ function Ledger({ b, chrome }) {
 
       {/* OVER TIME */}
       <section id="trends" className="block">
-        <SectionHead kicker="Shifting Priorities" title="How the budget has changed over time">
-          The total tax levy — every dollar the county raises from property taxes — has risen by more
-          than a quarter since 2017, even as the mill rate has fallen. Property values simply grew faster
-          than the rate came down.
+        <SectionHead kicker={t("kick.shiftingPriorities")} title={t("co.trends.title")}>
+          {t("co.trends.dek")}
         </SectionHead>
 
         <div className="chart-wrap">
           <div className="chart-legend">
-            <span><i className="sw sw-levy" /> Total county tax levy</span>
-            <span><i className="sw sw-rate" /> Mill rate (per $1,000 of value)</span>
+            <span><i className="sw sw-levy" /> {t("co.trends.legendLevy")}</span>
+            <span><i className="sw sw-rate" /> {t("co.trends.legendRate")}</span>
           </div>
           <ResponsiveContainer width="100%" height={320}>
             <ComposedChart data={levyTrend} margin={{ top: 8, right: 12, bottom: 4, left: 10 }}>
@@ -1567,26 +1540,22 @@ function Ledger({ b, chrome }) {
               <Line yAxisId="rate" type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
             </ComposedChart>
           </ResponsiveContainer>
-          <p className="note">
-            The levy rose from {usd(levyFirst.levy)} in {levyFirst.year} to {usd(levyLast.levy)} in{" "}
-            {levyLast.year} — up {(((levyLast.levy / levyFirst.levy) - 1) * 100).toFixed(0)}% — while the mill
-            rate fell from ${levyFirst.rate.toFixed(2)} to ${levyLast.rate.toFixed(2)} per $1,000 of value.
-          </p>
+          <p className="note">{t("co.trends.note", usd(levyFirst.levy), levyFirst.year, usd(levyLast.levy), levyLast.year, (((levyLast.levy / levyFirst.levy) - 1) * 100).toFixed(0), levyFirst.rate.toFixed(2), levyLast.rate.toFixed(2))}</p>
         </div>
 
         {deptCompare && (
           <div className="chart-wrap" style={{ marginTop: 44 }}>
-            <h3 className="subhead">Department by department, {deptCompare.first} vs {deptCompare.last}</h3>
+            <h3 className="subhead">{t("co.trends.subhead", deptCompare.first, deptCompare.last)}</h3>
             <div className="toggle" role="group" aria-label="Department comparison view">
-              <button aria-pressed={deptView === "amount"} className={deptView === "amount" ? "on" : ""} onClick={() => setDeptView("amount")}>Amounts</button>
-              <button aria-pressed={deptView === "change"} className={deptView === "change" ? "on" : ""} onClick={() => setDeptView("change")}>Change</button>
+              <button aria-pressed={deptView === "amount"} className={deptView === "amount" ? "on" : ""} onClick={() => setDeptView("amount")}>{t("co.trends.amounts")}</button>
+              <button aria-pressed={deptView === "change"} className={deptView === "change" ? "on" : ""} onClick={() => setDeptView("change")}>{t("co.trends.change")}</button>
             </div>
 
             {deptView === "amount" ? (
               <>
                 <div className="chart-legend">
-                  <span><i className="sw sw-old" /> {deptCompare.first} levy</span>
-                  <span><i className="sw sw-new" /> {deptCompare.last} levy</span>
+                  <span><i className="sw sw-old" /> {t("co.trends.legendYr", deptCompare.first)}</span>
+                  <span><i className="sw sw-new" /> {t("co.trends.legendYr", deptCompare.last)}</span>
                 </div>
                 <div className="cmp">
                   {[...deptCompare.rows].sort((a, c) => c.last - a.last).map((d) => (
@@ -1627,26 +1596,20 @@ function Ledger({ b, chrome }) {
               </div>
             )}
 
-            <p className="note">
-              Adopted county tax levy by department, {deptCompare.first}&ndash;{deptCompare.last}. Each year is taken
-              from that year&rsquo;s own adopted budget book. Revenue-returning offices (e.g.&nbsp;the County
-              Treasurer), whose levy is negative, are omitted. In a tax context an increase is shown in red.
-            </p>
+            <p className="note">{t("co.trends.cmpNote", deptCompare.first, deptCompare.last)}</p>
           </div>
         )}
       </section>
 
       {/* TAX BILL */}
       <section id="bill" className="block">
-        <SectionHead kicker="The Bottom Line" title="What it means for your tax bill">
-          The county&rsquo;s mill rate has fallen nearly every year since 2017. But because home values climbed
-          faster, the bill on a typical home kept rising anyway. Enter your home&rsquo;s value to see your
-          county tax.
+        <SectionHead kicker={t("kick.bottomLine")} title={t("title.taxbillMeaning")}>
+          {t("co.bill.dek")}
         </SectionHead>
 
         <div className="calc">
           <div className="calc-input">
-            <label htmlFor="homeval-c">Your home&rsquo;s assessed value</label>
+            <label htmlFor="homeval-c">{t("co.bill.homeLabel")}</label>
             <div className="calc-field">
               <span>$</span>
               <input id="homeval-c" type="text" inputMode="numeric" value={homeValue.toLocaleString("en-US")}
@@ -1654,15 +1617,15 @@ function Ledger({ b, chrome }) {
             </div>
           </div>
           <div className="calc-out">
-            <span className="calc-out-label">Your {b.meta.budget_year} county property tax</span>
+            <span className="calc-out-label">{t("co.bill.estOut", b.meta.budget_year)}</span>
             <span className="calc-out-val">{usd(Math.round((homeValue / 1000) * b.meta.tax_rate))}</span>
           </div>
         </div>
 
         <div className="chart-wrap">
           <div className="chart-legend">
-            <span><i className="sw sw-rate" /> Mill rate (per $1,000 of value)</span>
-            <span><i className="sw sw-bill" /> Avg. bill on a typical home</span>
+            <span><i className="sw sw-rate" /> {t("co.bill.legendRate")}</span>
+            <span><i className="sw sw-bill" /> {t("co.bill.legendBill")}</span>
           </div>
           <ResponsiveContainer width="100%" height={320}>
             <LineChart data={trend} margin={{ top: 8, right: 16, bottom: 4, left: 4 }}>
@@ -1676,27 +1639,23 @@ function Ledger({ b, chrome }) {
               <ReferenceDot yAxisId="bill" x={lastTrend.year} y={lastTrend.bill} r={4} fill="var(--gold)" stroke="none" />
             </LineChart>
           </ResponsiveContainer>
-          <p className="note">
-            A typical home went from about {usd(b.homeowner_impact[0].avg_value)} in {b.homeowner_impact[0].year} to{" "}
-            {usd(b.homeowner_impact[b.homeowner_impact.length - 1].avg_value)} in {lastTrend.year}, while the mill
-            rate dropped from ${b.homeowner_impact[0].tax_rate.toFixed(2)} to ${lastTrend.rate.toFixed(2)}.
-          </p>
+          <p className="note">{t("co.bill.note", usd(b.homeowner_impact[0].avg_value), b.homeowner_impact[0].year, usd(b.homeowner_impact[b.homeowner_impact.length - 1].avg_value), lastTrend.year, b.homeowner_impact[0].tax_rate.toFixed(2), lastTrend.rate.toFixed(2))}</p>
         </div>
       </section>
 
       {/* FUNDS */}
       <section id="funds" className="block">
-        <SectionHead kicker="Beyond the General Fund" title="The county&rsquo;s other funds">
-          Highways, the landfill, debt service and employee benefits run on their own dedicated funds.
+        <SectionHead kicker={t("co.funds.kick")} title={t("co.funds.title")}>
+          {t("co.funds.dek")}
         </SectionHead>
         <div className="fund-table">
           <div className="fund-head">
-            <span>Fund</span><span>Levy support</span><span className="hide-sm">Revenue</span><span>Spending</span>
+            <span>{t("co.funds.colFund")}</span><span>{t("co.funds.colLevy")}</span><span className="hide-sm">{t("co.funds.colRevenue")}</span><span>{t("co.funds.colSpending")}</span>
           </div>
           {b.funds.map((f) => (
             <div className="fund-row" key={f.fund_no}>
               <span className="f-name"><b>{f.name}</b><em>#{f.fund_no}</em></span>
-              <span>{f.tax_levy ? usd(f.tax_levy) : <span className="muted">none</span>}</span>
+              <span>{f.tax_levy ? usd(f.tax_levy) : <span className="muted">{t("co.funds.none")}</span>}</span>
               <span className="hide-sm">{usd(f.operating_revenues)}</span>
               <span>{usd(f.operating_expenditures + f.personnel_expenditures)}</span>
             </div>
@@ -1706,8 +1665,8 @@ function Ledger({ b, chrome }) {
 
       {/* DEBT */}
       <section id="debt" className="block">
-        <SectionHead kicker="What the County Owes" title="Outstanding debt">
-          {b.debt.length} bond and note series, totaling <b>{usd(debtTotal)}</b> in long-term obligations.
+        <SectionHead kicker={t("co.debt.kick")} title={t("title.outstandingDebt")}>
+          {t("co.debt.dek", b.debt.length, usd(debtTotal))}
         </SectionHead>
         <div className="debt-list">
           {b.debt.map((d) => (
@@ -1723,21 +1682,9 @@ function Ledger({ b, chrome }) {
       <Methodology b={b} chrome={chrome} />
 
       <footer className="foot">
-        <p>
-          <b>Source:</b> {b.meta.entity} Adopted {b.meta.budget_year} Annual Budget. Figures are as adopted and
-          may be amended during the year.
-        </p>
-        <p className="muted">
-          Built and maintained by Wausau Pilot &amp; Review. Department and fund detail extracted directly from the
-          county&rsquo;s published budget document; column totals reconciled against the county&rsquo;s own figures.
-        </p>
-        <p className="muted">
-          <b>A note on the levy total:</b> the county&rsquo;s budget-summary page reports a 2026 levy of $61.4
-          million, a 5.99% increase. Its own detailed fund and department tables — which this tool uses, and which
-          the 10-year levy history matches — total $61.2 million, a 5.6% increase. The $200,000 gap traces to the
-          Debt Service Fund ($4.71M on the summary page vs. $4.51M in the detail). We show the self-consistent
-          detail figure throughout.
-        </p>
+        <p><b>{t("foot.sourceLabel")}</b> {t("co.foot.source", b.meta.entity, b.meta.budget_year)} {t("foot.amended")}</p>
+        <p className="muted">{t("co.foot.builtBy")}</p>
+        <p className="muted"><b>{t("co.foot.levyLabel")}</b> {t("co.foot.levyBody")}</p>
       </footer>
     </div>
   );
