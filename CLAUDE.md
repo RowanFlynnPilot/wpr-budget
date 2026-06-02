@@ -214,7 +214,13 @@ for 2025-26) for a per-student denominator.
   string (no Tailwind / CSS files). `App` loads `entities.json` + the active
   entity's data (see Architecture) and routes to a body by kind: `Ledger`
   (County), `CityLedger` (City), `SchoolLedger` (School), or `TaxBillOverview`
-  (the cross-entity Your-Tax-Bill view). `ChromeBar` is shared — a **two-tier** bar
+  (the cross-entity Your-Tax-Bill view). **When no entity hash is set (bare URL /
+  `#home` / unknown), `activeId` is null and App renders `Landing`** — the suite front
+  door (hero + a "your whole tax bill ≈ $X" hook + a card per entity with its headline
+  figure + the open-data/Meeting-Tracker strip). Landing fetches every entity's data
+  file itself (deduped) for the card stats; cards call `onSelect(id)` to drill in, and
+  the `ChromeBar` Home button (`onSelect(null)`) returns to it. Direct deep links like
+  `#marathon-county` still skip the landing. `ChromeBar` is shared — a **two-tier** bar
   (brand + Share/FY on top, the entity switcher as its own full-width row beneath, so
   it scales past three entities), with a `navigator.share`-or-clipboard **Share**
   button that emits a canonical `#<activeId>` deep link (no personal data in the URL).
@@ -330,6 +336,12 @@ Done and shipped:
   MUST be `.jsx` (contains JSX) — `.js` breaks esbuild; restart the dev server after
   renaming files (a stale vite process on the port serves a blank page). Adding an
   entity/section means adding its keys in all three language tables.
+- ✅ Suite landing page (`Landing`) — the default front door (renders when `activeId`
+  is null). Hero + combined-tax-bill hook + entity cards (logo, headline figure from
+  live data, blurb) + open-data/Meeting-Tracker strip; fully translated (`lp.*` keys).
+  Chrome gains a Home button. **Behavior change:** the bare Pages URL now shows the
+  landing, not Marathon County — embeds wanting a fixed view should point at a hash
+  (e.g. `…/wpr-budget/#marathon-county`).
 - ✅ Cloudflare Web Analytics beacon live in `index.html` (token is the shared
   `rowanflynnpilot.github.io` site, also used by the Meeting Tracker). Privacy-first,
   no cookie banner; CF groups by hostname, so filter the dashboard by page path

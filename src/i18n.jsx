@@ -266,6 +266,21 @@ const EN = {
   "tb.note": (ry, total) => `Based on the ${ry} combined equalized rate of $${total} per $1,000 — the most recent year all four jurisdictions have set — for a home in the City of Wausau. Your actual bill varies with credits and exemptions (the lottery and first-dollar credits alone are worth a few hundred dollars), and with where in the county you live. The county, city and school district each have their own detailed breakdown in this tool; the technical college does not.`,
   "tb.foot.source": (ry) => `the City of Wausau's published property-tax allocation by taxing jurisdiction. Figures are equalized rates as certified for ${ry}.`,
   "tb.foot.builtBy": "Built and maintained by Wausau Pilot & Review as part of its “Follow the Money” civic-transparency suite; rates are taken directly from the published budget document and reconciled against its printed totals.",
+
+  // Landing page
+  "lp.home": "Overview",
+  "lp.heroDek": "See where every local tax dollar in the Wausau area goes — across your county, your city, and your school district — and what it means for your property-tax bill.",
+  "lp.combined": (bill) => `On a $200,000 Wausau home, your total local property tax is about ${bill} — split across four governments.`,
+  "lp.seeBreakdown": "See the breakdown",
+  "lp.explore": "Explore",
+  "lp.card.budget": "annual budget",
+  "lp.card.typicalBill": "on a $200k home",
+  "lp.desc.county": "21 departments, the tax levy, the mill rate, and the county's other funds.",
+  "lp.desc.city": "General-fund departments, the money-flow, an 11-year workforce, and the property-tax split.",
+  "lp.desc.school": "Spending by object, enrollment, half a century of mill rates, and school debt.",
+  "lp.desc.taxbill": "Your whole local property-tax bill — county, city, school and college — in one place.",
+  "lp.credibility": "Every figure comes straight from each government's adopted budget and is reconciled against its own printed totals — open data, free to reuse, refreshed each year.",
+  "lp.footer": "A civic-transparency project of Wausau Pilot & Review.",
 };
 
 const ES = {
@@ -508,6 +523,20 @@ const ES = {
   "tb.note": (ry, total) => `Basado en la tasa combinada igualada de ${ry} de $${total} por $1,000 — el año más reciente en que las cuatro jurisdicciones la han fijado — para una casa en la Ciudad de Wausau. Su factura real varía según créditos y exenciones (solo los créditos de lotería y de primer dólar valen unos cientos de dólares), y según dónde viva en el condado. El condado, la ciudad y el distrito escolar tienen cada uno su propio desglose detallado en esta herramienta; el colegio técnico no.`,
   "tb.foot.source": (ry) => `la asignación del impuesto a la propiedad por jurisdicción publicada por la Ciudad de Wausau. Las cifras son tasas igualadas certificadas para ${ry}.`,
   "tb.foot.builtBy": "Creado y mantenido por Wausau Pilot & Review como parte de su conjunto de transparencia cívica “Follow the Money”; las tasas se toman directamente del documento presupuestario publicado y se cotejan con sus totales impresos.",
+
+  "lp.home": "Inicio",
+  "lp.heroDek": "Vea a dónde va cada dólar de impuestos locales en el área de Wausau — en su condado, su ciudad y su distrito escolar — y qué significa para su factura de impuestos a la propiedad.",
+  "lp.combined": (bill) => `En una casa de $200,000 en Wausau, su impuesto local total a la propiedad es de unos ${bill} — repartido entre cuatro gobiernos.`,
+  "lp.seeBreakdown": "Ver el desglose",
+  "lp.explore": "Explorar",
+  "lp.card.budget": "presupuesto anual",
+  "lp.card.typicalBill": "en una casa de $200k",
+  "lp.desc.county": "21 departamentos, el impuesto, la tasa por milaje y los otros fondos del condado.",
+  "lp.desc.city": "Departamentos del fondo general, el flujo del dinero, 11 años de personal y el reparto del impuesto.",
+  "lp.desc.school": "Gasto por objeto, matrícula, medio siglo de tasas y deuda escolar.",
+  "lp.desc.taxbill": "Toda su factura local de impuestos — condado, ciudad, escuela y colegio — en un solo lugar.",
+  "lp.credibility": "Cada cifra proviene directamente del presupuesto adoptado de cada gobierno y se coteja con sus propios totales impresos — datos abiertos, de libre reutilización, actualizados cada año.",
+  "lp.footer": "Un proyecto de transparencia cívica de Wausau Pilot & Review.",
 };
 
 // Hmong (Hmoob Dawb / RPA). BETA — AI-drafted, pending community review.
@@ -751,6 +780,20 @@ const HMN = {
   "tb.note": (ry, total) => `Raws li ${ry} tus nqi sib xyaw equalized $${total} rau ib $1,000 — xyoo tseem tshiab uas plaub lub jurisdiction tau teem — rau ib lub tsev hauv lub Zos Wausau. Koj daim nqi tiag tiag hloov raws cov credit thiab exemption (cov credit lottery thiab first-dollar nkaus xwb muaj nqis ob peb puas duas las), thiab raws koj nyob qhov twg hauv lub nroog. Lub nroog, lub zos thiab lub tsev kawm muaj lawv tus kheej cov ntsiab hauv qhov cuab yeej no; lub technical college tsis muaj.`,
   "tb.foot.source": (ry) => `lub Zos Wausau cov se vaj tse faib raws jurisdiction uas tshaj tawm. Cov lej yog cov nqi equalized raug pom zoo rau ${ry}.`,
   "tb.foot.builtBy": "Tsim thiab saib xyuas los ntawm Wausau Pilot & Review ua ib feem ntawm nws “Follow the Money” pawg nthuav qhia pej xeem; cov nqi muab ncaj qha los ntawm daim ntawv nyiaj txiag tshaj tawm thiab kuaj nrog nws cov lej luam tawm.",
+
+  "lp.home": "Tsev",
+  "lp.heroDek": "Saib txhua nyuas nyiaj se hauv zos hauv cheeb tsam Wausau mus qhov twg — hauv koj lub nroog, koj lub zos, thiab koj lub tsev kawm ntawv — thiab txhais li cas rau koj daim nqi se vaj tse.",
+  "lp.combined": (bill) => `Rau ib lub tsev $200,000 hauv Wausau, koj cov se vaj tse hauv zos tag nrho yog li ${bill} — faib rau plaub lub koom haum kav.`,
+  "lp.seeBreakdown": "Saib qhov faib",
+  "lp.explore": "Tshawb",
+  "lp.card.budget": "nyiaj txiag txhua xyoo",
+  "lp.card.typicalBill": "rau ib lub tsev $200k",
+  "lp.desc.county": "21 lub chaw haujlwm, tus se, tus nqi se, thiab lub nroog lwm cov nyiaj.",
+  "lp.desc.city": "Cov chaw haujlwm general fund, nyiaj ntws, 11 xyoo cov neeg ua haujlwm, thiab se faib.",
+  "lp.desc.school": "Kev siv raws hom, cov tub ntxhais kawm, ib nrab caum xyoo tus nqi se, thiab nuj nqis tsev kawm.",
+  "lp.desc.taxbill": "Koj daim nqi se hauv zos tag nrho — nroog, zos, tsev kawm thiab college — ua ke hauv ib qho chaw.",
+  "lp.credibility": "Txhua tus lej los ncaj qha ntawm txhua lub koom haum daim nyiaj txiag pom zoo thiab raug kuaj nrog lawv cov lej luam tawm — cov ntaub ntawv qhib, pub dawb siv dua, hloov tshiab txhua xyoo.",
+  "lp.footer": "Ib qho haujlwm nthuav qhia pej xeem los ntawm Wausau Pilot & Review.",
 };
 
 const TABLES = { en: EN, es: ES, hmn: HMN };

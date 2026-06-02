@@ -3,7 +3,7 @@ import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceDot,
   ComposedChart, BarChart, Bar, Area, Sankey, Layer,
 } from "recharts";
-import { ChevronDown, ArrowUpRight, ArrowDownRight, Receipt, Share2, Check } from "lucide-react";
+import { ChevronDown, ArrowUpRight, ArrowDownRight, Receipt, Share2, Check, Home } from "lucide-react";
 import { LANGS, LangProvider, useLang, useStrings } from "./i18n";
 import logoUrl from "./assets/logo-32.png";
 import marathonLogo from "./assets/marathon-county.jpg";
@@ -149,6 +149,97 @@ function Methodology({ b, chrome }) {
   );
 }
 
+// Suite landing page — the front door. Fetches every entity's data once, shows a
+// hero, the combined "your whole tax bill" hook, a card per entity (logo, headline
+// figure, blurb), and the open-data/credibility strip. Picking a card drills into
+// that body; the chrome's Home button returns here. Rendered when no entity hash is
+// set (bare URL / "#home"), so direct links like #marathon-county still skip it.
+function Landing({ entities, chrome }) {
+  const t = useStrings();
+  const [byFile, setByFile] = useState(null);
+  const [err, setErr] = useState(null);
+
+  useEffect(() => {
+    const files = [...new Set(entities.map((e) => e.data))];
+    Promise.all(files.map((f) =>
+      fetch(import.meta.env.BASE_URL + f)
+        .then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+        .then((j) => [f, j])))
+      .then((pairs) => setByFile(Object.fromEntries(pairs)))
+      .catch((e) => setErr(String(e.message || e)));
+  }, [entities]);
+
+  if (err) return (<div className="ftm load"><style>{CSS}</style><p>Could not load budget data &mdash; {err}</p></div>);
+  if (!byFile) return (<div className="ftm load"><style>{CSS}</style><p>Loading the ledger&hellip;</p></div>);
+
+  const year = byFile[entities[0].data].meta.budget_year;
+  // Headline figure per card, straight from each entity's reconciled data.
+  const headline = (e) => {
+    const p = byFile[e.data];
+    if (e.kind === "school") return { value: compact(p.meta.net_expenditures), label: t("lp.card.budget") };
+    if (e.kind === "taxbill") {
+      const ry = p.tax_by_jurisdiction.rate_years[0];
+      return { value: usd(Math.round(200 * p.tax_by_jurisdiction.total[ry])), label: t("lp.card.typicalBill") };
+    }
+    return { value: compact(p.meta.total_expenditures), label: t("lp.card.budget") };
+  };
+  const cityP = entities.find((e) => e.kind === "city");
+  const cj = cityP && byFile[cityP.data].tax_by_jurisdiction;
+  const combinedBill = cj ? usd(Math.round(200 * cj.total[cj.rate_years[0]])) : null;
+
+  return (
+    <div className="ftm">
+      <style>{CSS}</style>
+      <ChromeBar {...chrome} year={year} />
+
+      <header className="masthead lp-hero">
+        <div className="kicker-row"><span className="pub">{t("common.publicLedger")}</span></div>
+        <h1>Follow the Money</h1>
+        <p className="dek">{t("lp.heroDek")}</p>
+      </header>
+
+      {combinedBill && (
+        <button type="button" className="lp-hook" onClick={() => chrome.onSelect("your-tax-bill")}>
+          <span>{t("lp.combined", combinedBill)}</span>
+          <span className="lp-hook-cta">{t("lp.seeBreakdown")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
+        </button>
+      )}
+
+      <div className="lp-cards">
+        {entities.map((e) => {
+          const h = headline(e);
+          return (
+            <button type="button" className="lp-card" key={e.id} onClick={() => chrome.onSelect(e.id)}>
+              <div className="lp-card-mark">
+                {e.kind === "taxbill"
+                  ? <Receipt size={26} strokeWidth={1.75} aria-hidden="true" />
+                  : <img src={ENTITY_LOGOS[e.id]} alt="" />}
+              </div>
+              <div className="lp-card-name">{e.kind === "taxbill" ? t("common.yourTaxBill") : e.name}</div>
+              <div className="lp-card-stat"><b>{h.value}</b> <span>{h.label}</span></div>
+              <p className="lp-card-desc">{t("lp.desc." + e.kind)}</p>
+              <span className="lp-card-cta">{t("lp.explore")} <ArrowUpRight size={14} strokeWidth={2.5} /></span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="lp-credibility">
+        <p className="note">{t("lp.credibility")}</p>
+        <a className="suite-link" href={MEETING_TRACKER_URL} target="_blank" rel="noopener noreferrer">
+          <span className="suite-link__icon" aria-hidden="true">📋</span>
+          <span><b>{t("suite.linkLead")}</b> {t("suite.linkBody")}</span>
+          <ArrowUpRight size={16} strokeWidth={2.5} className="suite-link__arrow" />
+        </a>
+      </div>
+
+      <footer className="foot">
+        <p className="muted">{t("lp.footer")}</p>
+      </footer>
+    </div>
+  );
+}
+
 /* ---------- main ---------- */
 // "Follow the Money" is a multi-entity suite. App loads the entity manifest,
 // picks the active entity (from the URL hash, else the first), fetches its data
@@ -165,8 +256,10 @@ export default function App() {
       .then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
       .then((list) => {
         setEntities(list);
+        // A specific entity hash deep-links to that body; anything else (bare URL,
+        // "#home", unknown) lands on the suite overview (activeId === null).
         const fromHash = list.find((e) => e.id === window.location.hash.slice(1));
-        setActiveId((fromHash || list[0]).id);
+        setActiveId(fromHash ? fromHash.id : null);
       })
       .catch((e) => setErr(String(e.message || e)));
   }, []);
@@ -180,16 +273,22 @@ export default function App() {
       .catch((e) => setErr(String(e.message || e)));
   }, [entities, activeId]);
 
-  const onSelect = (id) => { window.location.hash = id; setActiveId(id); };
+  // null id => the suite overview (the landing page).
+  const onSelect = (id) => { window.location.hash = id || "home"; setActiveId(id || null); };
 
   if (err) return (<div className="ftm load"><style>{CSS}</style><p>Could not load budget data &mdash; {err}</p></div>);
+  if (!entities) return (<div className="ftm load"><style>{CSS}</style><p>Loading the ledger&hellip;</p></div>);
+
+  const chrome = { entities, activeId, onSelect };
+  // No entity selected → the suite landing page.
+  if (!activeId) return <LangProvider><Landing entities={entities} chrome={chrome} /></LangProvider>;
+
   // Gate on data.id === activeId so we never render a body with the previous
   // entity's data during a switch (the bodies assume their own entity's schema).
-  if (!entities || !activeId || !data || data.id !== activeId)
+  if (!data || data.id !== activeId)
     return (<div className="ftm load"><style>{CSS}</style><p>Loading the ledger&hellip;</p></div>);
 
   const ent = entities.find((e) => e.id === activeId);
-  const chrome = { entities, activeId, onSelect };
   const Body = ent.kind === "city" ? CityLedger
     : ent.kind === "school" ? SchoolLedger
     : ent.kind === "taxbill" ? TaxBillOverview
@@ -209,8 +308,8 @@ function ChromeBar({ entities, activeId, onSelect, year }) {
   // than location.href so it stays valid no matter what the in-page scroll has
   // done to the hash. No personal data (e.g. the tax-bill home value) is included.
   const onShare = async () => {
-    const url = `${window.location.origin}${window.location.pathname}#${activeId}`;
-    const title = `Follow the Money — ${active ? active.name : "Wausau Pilot & Review"}`;
+    const url = `${window.location.origin}${window.location.pathname}#${activeId || "home"}`;
+    const title = `Follow the Money${active ? " — " + active.name : ""}`;
     try {
       if (navigator.share) {
         await navigator.share({ title, url });
@@ -231,11 +330,11 @@ function ChromeBar({ entities, activeId, onSelect, year }) {
             <img className="chrome-bar__logo-img" src={logoUrl} alt="Wausau Pilot &amp; Review" />
             <span className="chrome-bar__wordmark">Wausau Pilot &amp; Review</span>
           </a>
-          {entities.length <= 1 && (
-            <>
-              <span className="chrome-bar__divider" />
-              <span className="chrome-bar__section">{active.short}</span>
-            </>
+          {activeId && (
+            <button type="button" className="chrome-bar__home" onClick={() => onSelect(null)}>
+              <Home size={14} strokeWidth={2.5} aria-hidden="true" />
+              <span>{t("lp.home")}</span>
+            </button>
           )}
         </div>
         <div className="chrome-bar__right">
@@ -248,7 +347,7 @@ function ChromeBar({ entities, activeId, onSelect, year }) {
             {shared ? <Check size={14} strokeWidth={2.5} /> : <Share2 size={14} strokeWidth={2.5} />}
             <span>{shared ? t("chrome.copied") : t("chrome.share")}</span>
           </button>
-          <span className="chrome-bar__meta">{t("chrome.fyMeta", year)}</span>
+          {year && <span className="chrome-bar__meta">{t("chrome.fyMeta", year)}</span>}
         </div>
         {entities.length > 1 && (
           <span className="chrome-bar__switch" role="tablist" aria-label={t("chrome.chooseBudget")}>
@@ -1860,6 +1959,10 @@ html{scroll-behavior:smooth;}
   padding:6px 12px; border-radius:18px; white-space:nowrap;
   transition:background .15s ease, border-color .15s ease;}
 .chrome-bar__share:hover{background:rgba(255,255,255,.2);}
+.chrome-bar__home{display:inline-flex; align-items:center; gap:6px; cursor:pointer; color:#fff;
+  background:transparent; border:none; font-family:var(--sans); font-weight:600; font-size:12.5px;
+  letter-spacing:.02em; padding:4px 4px; opacity:.9;}
+.chrome-bar__home:hover{opacity:1; text-decoration:underline; text-underline-offset:3px;}
 .chrome-bar__lang{appearance:none; -webkit-appearance:none; background:rgba(255,255,255,.10);
   border:1px solid rgba(255,255,255,.32); color:#fff; font-family:var(--sans); font-weight:600;
   font-size:12px; padding:6px 10px; border-radius:18px; cursor:pointer; line-height:1;}
@@ -2069,6 +2172,33 @@ html{scroll-behavior:smooth;}
 .suite-link span{font-size:14px; line-height:1.5;}
 .suite-link span b{color:var(--accent);}
 .suite-link__arrow{flex-shrink:0; color:var(--accent); margin-left:auto;}
+
+/* ---------- suite landing page ---------- */
+.lp-hero{padding-bottom:24px;}
+.lp-hook{display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%;
+  margin:22px 0 0; padding:16px 22px; text-align:left; cursor:pointer; font-family:var(--serif);
+  font-size:clamp(16px,2vw,20px); line-height:1.4; color:var(--ink);
+  background:var(--paper-2); border:1px solid var(--rule); border-left:3px solid var(--accent);
+  transition:background .15s ease;}
+.lp-hook:hover{background:rgba(22,88,74,.07);}
+.lp-hook-cta{display:inline-flex; align-items:center; gap:5px; flex-shrink:0; font-family:var(--sans);
+  font-size:13px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; color:var(--accent);}
+.lp-cards{display:grid; grid-template-columns:repeat(auto-fit, minmax(232px, 1fr)); gap:16px; margin-top:34px;}
+.lp-card{display:flex; flex-direction:column; align-items:flex-start; gap:9px; text-align:left;
+  padding:22px 22px 20px; background:var(--paper); border:1px solid var(--ink); cursor:pointer;
+  transition:transform .12s ease, box-shadow .15s ease;}
+.lp-card:hover{transform:translateY(-3px); box-shadow:0 8px 22px rgba(28,26,22,.12);}
+.lp-card-mark{width:48px; height:48px; display:flex; align-items:center; justify-content:center; color:var(--accent);}
+.lp-card-mark img{width:48px; height:48px; object-fit:contain;}
+.lp-card-name{font-family:var(--serif); font-size:21px; font-weight:600; letter-spacing:-0.01em; line-height:1.15;}
+.lp-card-stat{font-variant-numeric:tabular-nums;}
+.lp-card-stat b{font-family:var(--serif); font-size:26px; font-weight:600; color:var(--accent); letter-spacing:-0.02em;}
+.lp-card-stat span{font-size:12px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft); font-weight:700;}
+.lp-card-desc{font-size:14px; color:#3a362d; line-height:1.5; margin:2px 0 0; flex:1;}
+.lp-card-cta{display:inline-flex; align-items:center; gap:5px; margin-top:6px; font-family:var(--sans);
+  font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--accent);}
+.lp-credibility{margin-top:40px; padding-top:6px; border-top:2px solid var(--ink);}
+.lp-credibility .note{margin-top:16px; font-style:normal; font-size:14px; color:#3a362d; max-width:72ch;}
 
 /* accessibility: visible focus + respect reduced-motion */
 .ftm a:focus-visible, .ftm button:focus-visible, .ftm input:focus-visible, .ftm select:focus-visible{
