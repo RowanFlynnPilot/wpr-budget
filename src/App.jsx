@@ -729,10 +729,23 @@ function SchoolLedger({ b, chrome }) {
 
   const debt = b.debt;
 
+  // Enrollment & per-student (Phase 2b — present when the WISEdash enrollment files
+  // were folded in). Headcount trend + general-fund spending per student.
+  const enr = b.enrollment;
+  const enrSeries = useMemo(
+    () => enr ? enr.labels.map((label, i) => ({ label, count: enr.counts[i] })) : [],
+    [enr]);
+  const enrNow = enr ? enr.counts[enr.counts.length - 1] : 0;
+  const enrThen = enr ? enr.counts[0] : 0;
+  const enrChange = enrNow - enrThen;
+  const perStudentGF = enr ? Math.round(b.gf_expenditures.total / enrNow) : 0;
+  const perStudentAll = enr ? Math.round(b.meta.net_expenditures / enrNow) : 0;
+
   const sections = [
     ["where", "Where It Goes"],
     ["flow", "Money Flow"],
     ["allfunds", "All Funds"],
+    ...(enr ? [["students", "Students"]] : []),
     ["overtime", "Over Time"],
     ["taxbill", "Your Tax Bill"],
     ["debt", "Debt"],
@@ -888,6 +901,40 @@ function SchoolLedger({ b, chrome }) {
         </div>
         <p className="note">Spending by fund, change shown vs. the prior-year budget. Interfund transfers mean fund totals overlap; the all-funds figure above is net of them.</p>
       </section>
+
+      {/* STUDENTS — enrollment trend + spending per student */}
+      {enr && (
+      <section id="students" className="block">
+        <SectionHead kicker="The Students" title="Enrollment &amp; spending per student">
+          The district enrolls <b>{enrNow.toLocaleString()}</b> students in {enr.labels[enr.labels.length - 1]}
+          {enrChange < 0
+            ? `, down ${Math.abs(enrChange).toLocaleString()} from ${enrThen.toLocaleString()} five years ago`
+            : enrChange > 0 ? `, up ${enrChange.toLocaleString()} over five years` : ", flat over five years"}.
+          That works out to about <b>{usd(perStudentGF)}</b> of general-fund spending per student.
+        </SectionHead>
+        <div className="chart-wrap">
+          <ResponsiveContainer width="100%" height={280}>
+            <ComposedChart data={enrSeries} margin={{ top: 8, right: 12, bottom: 4, left: 6 }}>
+              <CartesianGrid stroke="var(--rule)" vertical={false} />
+              <XAxis dataKey="label" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+              <YAxis domain={["dataMin - 200", "dataMax + 200"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={44} tickFormatter={(v) => v.toLocaleString()} />
+              <Tooltip content={({ active, payload, label }) => {
+                if (!active || !payload || !payload.length) return null;
+                return (<div className="tip"><div className="tip-year">{label}</div><div><i className="sw" style={{ background: "var(--accent)" }} /> {payload[0].value.toLocaleString()} students</div></div>);
+              }} cursor={{ stroke: "var(--rule)" }} />
+              <Area type="monotone" dataKey="count" name="Enrollment" stroke="var(--accent)" strokeWidth={2.5}
+                fill="var(--accent)" fillOpacity={0.12} dot={{ r: 3, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
+            </ComposedChart>
+          </ResponsiveContainer>
+          <p className="note">
+            Districtwide certified enrollment (headcount), {enr.labels[0]}&ndash;{enr.labels[enr.labels.length - 1]}.
+            Source: Wisconsin DPI WISEdash. Per-student figures use this enrollment: {usd(perStudentGF)} from the
+            general fund, or {usd(perStudentAll)} counting all funds (net of transfers). A statewide comparison will
+            be added when DPI&rsquo;s per-member finance data is available.
+          </p>
+        </div>
+      </section>
+      )}
 
       {/* OVER TIME — the mill rate across a half-century */}
       <section id="overtime" className="block">

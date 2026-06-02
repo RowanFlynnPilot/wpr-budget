@@ -966,5 +966,29 @@
         "total": 5515288
       }
     ]
+  },
+  "enrollment": {
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025,
+      2026
+    ],
+    "labels": [
+      "2021-22",
+      "2022-23",
+      "2023-24",
+      "2024-25",
+      "2025-26"
+    ],
+    "counts": [
+      7989,
+      7899,
+      7783,
+      7738,
+      7590
+    ],
+    "source": "WISEdash certified enrollment (districtwide headcount)"
   }
 }

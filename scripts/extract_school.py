@@ -26,7 +26,10 @@ Usage:
 """
 import sys
 import re
+import io
+import csv
 import json
+import zipfile
 import pdfplumber
 
 
@@ -387,8 +390,37 @@ def parse_debt(text):
     }
 
 
+def parse_enrollment(zip_paths):
+    """Districtwide certified enrollment (headcount) per year, from WISEdash
+    `enrollment_certified_<yr>.zip` files passed as trailing args. Each zip holds a
+    statewide CSV; we take Wausau's one districtwide all-students/all-grades row.
+    (This is a third-Friday headcount — distinct from the book's FTE membership,
+    which weights summer school and 4K — so the two figures legitimately differ.)"""
+    out = []
+    for zp in zip_paths:
+        with zipfile.ZipFile(zp) as zf:
+            name = [n for n in zf.namelist() if n.endswith(".csv") and "layout" not in n]
+            if len(name) != 1:
+                raise ValueError(f"{zp}: expected one data CSV, found {name}")
+            with zf.open(name[0]) as f:
+                hits = [r for r in csv.DictReader(io.TextIOWrapper(f, encoding="utf-8-sig"))
+                        if r["DISTRICT_NAME"] == "Wausau" and r["SCHOOL_CODE"] == ""
+                        and r["GRADE_GROUP"] == "[All]" and r["GROUP_BY"] == "All Students"]
+        if len(hits) != 1:
+            raise ValueError(f"{zp}: expected one Wausau districtwide row, found {len(hits)}")
+        label = hits[0]["SCHOOL_YEAR"]
+        out.append({"year": fy_end(label), "label": label, "count": int(hits[0]["STUDENT_COUNT"])})
+    out.sort(key=lambda r: r["year"])
+    return {
+        "years": [r["year"] for r in out],
+        "labels": [r["label"] for r in out],
+        "counts": [r["count"] for r in out],
+        "source": "WISEdash certified enrollment (districtwide headcount)",
+    }
+
+
 # ---------- assembly ----------
-def extract(pdf_path):
+def extract(pdf_path, enrollment_zips=()):
     pdf = pdfplumber.open(pdf_path)
     texts = page_texts(pdf)
 
@@ -440,7 +472,7 @@ def extract(pdf_path):
         "gf_revenues": gf["revenues"],
     }
 
-    return {
+    out = {
         "meta": meta,
         "funds": funds,
         "gf_revenues": gf_revenues,
@@ -452,12 +484,16 @@ def extract(pdf_path):
         "valuation_history": valuation_history,
         "debt": debt,
     }
+    if enrollment_zips:
+        out["enrollment"] = parse_enrollment(enrollment_zips)
+    return out
 
 
 def main():
-    if len(sys.argv) != 3:
-        sys.exit("usage: python extract_school.py <school-budget.pdf> <out.json>")
-    data = extract(sys.argv[1])
+    if len(sys.argv) < 3:
+        sys.exit("usage: python extract_school.py <school-budget.pdf> <out.json> "
+                 "[enrollment_certified_<yr>.zip ...]")
+    data = extract(sys.argv[1], sys.argv[3:])
     with open(sys.argv[2], "w") as f:
         json.dump(data, f, indent=2)
     m = data["meta"]
@@ -470,7 +506,9 @@ def main():
           f"{len(data['levy_by_fund'])} levy funds | {len(data['mill_bridge']['factors'])} bridge factors | "
           f"{len(data['rate_history'])} rate-history yrs ({data['rate_history'][0]['label']}-{data['rate_history'][-1]['label']}) | "
           f"{len(data['valuation_history'])} valuation yrs (latest ${data['valuation_history'][-1]['value']:,}) | "
-          f"debt ${data['debt']['outstanding_principal']:,} principal, {len(data['debt']['retirement'])} retirement yrs")
+          f"debt ${data['debt']['outstanding_principal']:,} principal, {len(data['debt']['retirement'])} retirement yrs"
+          + (f" | enrollment {data['enrollment']['counts'][-1]:,} ({data['enrollment']['labels'][0]}-{data['enrollment']['labels'][-1]}, {len(data['enrollment']['years'])} yrs)"
+             if "enrollment" in data else ""))
 
 
 if __name__ == "__main__":

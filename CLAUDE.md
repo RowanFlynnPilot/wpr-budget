@@ -80,6 +80,13 @@ python scripts/extract_wausau.py "2026-Wausau-Budget.pdf" public/wausau-city.jso
 # psd401 is *Peninsula SD in Washington*, a search-collision trap. Raw source files
 # live in the gitignored sources/ folder:
 python scripts/extract_school.py sources/2026-Wausau-School-Budget.pdf public/wausau-school.json
+# Optional trailing args = WISEdash `enrollment_certified_<yr>.zip` files (one per
+# year); the extractor reads Wausau's districtwide headcount from each and emits the
+# `enrollment` block. The committed file is built with five years (2021-22 → 2025-26):
+python scripts/extract_school.py sources/2026-Wausau-School-Budget.pdf public/wausau-school.json \
+       sources/enrollment_certified_2021-22.zip sources/enrollment_certified_2022-23.zip \
+       sources/enrollment_certified_2023-24.zip sources/enrollment_certified_2024-25.zip \
+       sources/enrollment_certified_2025-26.zip
 ```
 
 **Prior-year format limitation.** Only the **2025 and 2026** books use the
@@ -176,6 +183,9 @@ valuation_history[]: { year, value }          # equalized property value, 1975 �
                 # latest cross-checked against the levy page's "New Valuation"
 debt:           { outstanding_principal, total_interest_remaining, total_principal_interest,
                   retirement[] }              # retirement: {year, principal, interest, total}
+enrollment:     { years[], labels[], counts[], source }   # WISEdash districtwide headcount (Phase 2b)
+                # present ONLY when enrollment_certified_<yr>.zip files are passed to the extractor;
+                # SchoolLedger renders the Students section + per-student figures only if it exists
 ```
 
 A Wisconsin school district is a THIRD kind of government: fund-accounted, levied
@@ -220,8 +230,10 @@ for 2025-26) for a per-student denominator.
   sources → GF → spending objects) · All Funds (by fund) · Over Time (dual-axis: the
   equalized mill rate ~58 yrs vs. the rising equalized property value ~51 yrs — the
   "growing base, falling rate" story — + a `.bridge` callout walking this year's
-  rate change) · Your Tax Bill (calculator + the school portion split across funds,
-  same `taxbar` pattern as the City) · Debt · Methodology.
+  rate change) · Students (5-yr WISEdash enrollment trend + general-fund spending per
+  student; rendered only when the `enrollment` block is present) · Your Tax Bill
+  (calculator + the school portion split across funds, same `taxbar` pattern as the
+  City) · Debt · Methodology.
 - **Shared features:** the "Your Tax Bill" calculator (`homeValue` state →
   estimated bill); the `Methodology` component (JSON via link + CSV via
   `downloadCSV`); accessibility (`:focus-visible`, `prefers-reduced-motion`,
@@ -271,11 +283,11 @@ Done and shipped:
 - ✅ County entity (FY2026) + 2025 history (department trend + total-budget delta).
 - ✅ City of Wausau entity — full build (extractor `extract_wausau.py`, schema,
   `CityLedger` with all sections above).
-- ✅ Wausau School District entity (Phase 1 + 2a) — extractor `extract_school.py`,
+- ✅ Wausau School District entity (Phase 1 + 2a + 2b) — extractor `extract_school.py`,
   schema, `SchoolLedger` (where-it-goes by object, Sankey, all funds, dual-axis
-  mill-rate-vs-equalized-valuation over ~half a century + rate-change bridge,
-  school-portion tax bill, debt). Placeholder SVG logo
-  (`src/assets/wausau-school.svg`) — swap in the district's official mark.
+  mill-rate-vs-equalized-valuation over ~half a century + rate-change bridge, 5-yr
+  enrollment trend + per-student spending, school-portion tax bill, debt). Placeholder
+  SVG logo (`src/assets/wausau-school.svg`) — swap in the district's official mark.
 - ✅ WPR brand chrome bar + logo-button entity switcher + per-entity masthead logos.
 - ✅ Grant-pitch features: interactive tax-bill calculator (all), money-flow
   Sankey (City + School), Methodology + open-data (JSON/CSV) + accessibility pass.
@@ -290,14 +302,15 @@ Done and shipped:
   (loud failure). Don't retry unless newer-format PDFs surface. (City is single-
   year; its multi-year data — levy 10-yr, personnel 11-yr — comes from within the
   2026 book.)
-- **School Phase 2:** layer in DPI per-student-vs-state spending benchmarks (the
-  distinctive "is my district efficient?" section County/City can't do) and a
-  multi-year enrollment trend. Needs the WISEdash bulk **Finance** + **Enrollment**
-  CSVs downloaded by hand (DPI 403s datacenter IPs; the interactive Comparative-per-
-  Member tool is a dead end — only mill rate + tax levy populated for Wausau, code
-  6223). Wausau's own per-student figure can use the book's 7,882 FTE as the
-  denominator even before the state benchmark lands. (Phase 2a — the equalized-
-  valuation history overlay — is DONE, shipped from the budget book.)
+- **School Phase 2c (only piece left):** the per-student-vs-**state-average** spending
+  comparison (the distinctive "is my district efficient?" framing). Needs a statewide
+  per-member finance file — NOT in WISEdash's topic downloads (that's enrollment/
+  assessment/etc.); it lives in SFS: https://dpi.wi.gov/sfs/statistical/cost-revenue/comparative
+  ("Comparative Cost Per Member" spreadsheet). May be limited — the interactive
+  Comparative-per-Member tool only had mill rate + tax levy for Wausau (code 6223).
+  The Students section already shows Wausau's own per-student figure ($15,463 GF /
+  student) with a placeholder line for the state comparison. (Phase 2a valuation
+  overlay + Phase 2b enrollment trend are DONE and shipped.)
 - Possible enhancements floated but not built: per-capita / per-household toggle;
   auto "what changed this year"; County money-flow Sankey; City personnel beyond
   the chart; chart annotations; treemap. (Recharts 2.x→3.x migration is optional,
