@@ -91,6 +91,7 @@ const EN = {
   // shared section building blocks
   "btn.spending": "Spending",
   "btn.revenue": "Revenue",
+  "btn.byDepartment": "By department",
   "lbl.principal": "Principal",
   "lbl.interest": "Interest",
   "kick.generalFund": "The General Fund",
@@ -144,6 +145,47 @@ const EN = {
   "s.debt.note": (y0, total0, yN) => `Annual principal + interest on existing debt. The ${y0} payment is ${total0}; the schedule runs through ${yN}.`,
   "s.foot.source": (entity, fiscal) => `${entity} ${fiscal} Annual Budget.`,
   "s.foot.builtBy": "Built and maintained by Wausau Pilot & Review; fund, levy, mill-rate and debt figures extracted directly from the district's published budget document and reconciled against its printed totals.",
+
+  // City body
+  "c.dek": (entity) => `Every dollar in the ${entity}'s budget — where it comes from, where it goes, and what it means for your tax bill. Adopted by the Common Council.`,
+  "c.stat.allFunds": "all funds",
+  "c.stat.cityLevy": "City tax levy",
+  "c.stat.cityShare": "City share of tax bill",
+  "c.stat.cityShareSub": (total) => `of $${total} total rate`,
+  "c.where.dek": (gf) => `The general fund — ${gf} — pays for day-to-day city services. Toggle to see what it spends by department, and where that money comes from.`,
+  "c.where.noteDept": "Change shown vs. the 2025 adopted budget. Police and Fire together are the largest share of city spending.",
+  "c.where.noteRev": "Change shown vs. the 2025 adopted budget. Property taxes are the city's single largest revenue source.",
+  "c.flow.dek": "Every general-fund dollar, traced from where it comes from, through the fund, to what it pays for. Hover any ribbon to follow the money.",
+  "c.flow.note": "General Fund revenue sources (left) into the fund (center) and out to departments (right). The largest five of each are named; the rest are grouped. Hover a flow for its amount.",
+  "c.allfunds.title": "All funds, by category",
+  "c.allfunds.dek": (total) => `Beyond the general fund, the city's ${total} all-funds budget covers capital projects, debt service, enterprise and special-revenue funds. Here it is by type of spending.`,
+  "c.allfunds.note": "Change shown vs. the 2025 adopted budget, all funds.",
+  "c.overtime.title": "The levy over time",
+  "c.overtime.dek": (first, firstYr, last, lastYr, pct) => `The city's property-tax levy has risen from ${first} in ${firstYr} to ${last} in ${lastYr} — up ${pct}%.`,
+  "c.overtime.note": (y0, y1) => `Actual property-tax levy as adopted, ${y0}–${y1}.`,
+  "c.overtime.calloutTitle": "The city is at its levy ceiling",
+  "c.overtime.calloutBody": (exception, year) => `For the eleventh year running, Wausau's levy sits above the basic state limit — ${exception} over in ${year}, allowed only through the debt-service exemption. And in 2027, the federal ARPA and SAFER grants that pay for 15 first-responder positions expire, leaving an estimated $1.5 million for the levy to absorb — the structural gap the mayor's budget message calls a "ticking time bomb."`,
+  "c.workforce.kick": "The People",
+  "c.workforce.title": "The city's workforce over time",
+  "c.workforce.dek": (now, then, year) => `The city budgets ${now} full-time-equivalent positions in ${year}, up from ${then} a decade ago. Pick a department to see how its staffing has changed.`,
+  "c.workforce.note": (dept, now, year, change, sinceYear) =>
+    `${dept}: ${now} budgeted FTE in ${year}` +
+    (change === 0 ? ", unchanged" : change > 0 ? `, up ${change.toFixed(2).replace(/\.?0+$/, "")}` : `, down ${Math.abs(change).toFixed(2).replace(/\.?0+$/, "")}`) +
+    (change !== 0 ? ` since ${sinceYear}` : "") +
+    ". Elected alderpersons are excluded from the workforce total.",
+  "c.taxbill.dek": (share) => `The city is only one line on your property-tax bill — ${share}% of it. Enter your home's value to see your estimated annual bill and exactly where each dollar goes.`,
+  "c.taxbill.homeLabel": "Your home's assessed value",
+  "c.taxbill.totalRow": "Your total bill",
+  "c.taxbill.note": (ry, total) => `Estimated from the ${ry} combined rate of $${total} per $1,000 of equalized value — the most recent year all four jurisdictions have set. Your actual bill varies with credits and exemptions (the lottery and first-dollar credits alone are worth a few hundred dollars).`,
+  "c.dev.kick": "Betting on Growth",
+  "c.dev.title": "Tax increment districts",
+  "c.dev.dek": (count) => `The city runs ${count} active tax increment districts (TIDs) — areas where the growth in property value is captured to repay public investment in development. Here is how much each district's value grew last year.`,
+  "c.dev.note": (decrease) => `Valuation growth, 2025. The budget also includes the developer incentive payments above. A net TID levy decrease of ${decrease} this year reflects the closure of District 6.`,
+  "c.debt.kick": "What the City Owes",
+  "c.debt.dek": (outstanding, pct) => `The city carries ${outstanding} in general-obligation debt — ${pct}% of its legal borrowing limit. Here is how it is scheduled to be paid down.`,
+  "c.debt.note": (y0, total0, yN) => `Annual principal + interest on existing general-obligation debt. The ${y0} payment is ${total0}; the schedule runs through ${yN}.`,
+  "c.foot.source": (entity, year) => `${entity} Adopted ${year} Budget.`,
+  "c.foot.builtBy": "Built and maintained by Wausau Pilot & Review; department, fund, levy, tax-rate and debt figures extracted directly from the city's published budget document and reconciled against its printed totals.",
 };
 
 const ES = {
@@ -216,6 +258,7 @@ const ES = {
 
   "btn.spending": "Gastos",
   "btn.revenue": "Ingresos",
+  "btn.byDepartment": "Por departamento",
   "lbl.principal": "Capital",
   "lbl.interest": "Interés",
   "kick.generalFund": "El Fondo General",
@@ -268,6 +311,46 @@ const ES = {
   "s.debt.note": (y0, total0, yN) => `Capital + intereses anuales sobre la deuda existente. El pago de ${y0} es ${total0}; el calendario llega hasta ${yN}.`,
   "s.foot.source": (entity, fiscal) => `Presupuesto Anual ${fiscal} de ${entity}.`,
   "s.foot.builtBy": "Creado y mantenido por Wausau Pilot & Review; las cifras de fondos, impuestos, tasa por milaje y deuda se extraen directamente del documento presupuestario publicado por el distrito y se cotejan con sus totales impresos.",
+
+  "c.dek": (entity) => `Cada dólar del presupuesto de ${entity}: de dónde viene, a dónde va y qué significa para su factura de impuestos. Adoptado por el Concejo Municipal.`,
+  "c.stat.allFunds": "todos los fondos",
+  "c.stat.cityLevy": "Impuesto de la ciudad",
+  "c.stat.cityShare": "Parte de la ciudad en su factura",
+  "c.stat.cityShareSub": (total) => `de $${total} de tasa total`,
+  "c.where.dek": (gf) => `El fondo general — ${gf} — paga los servicios diarios de la ciudad. Alterne para ver lo que gasta por departamento y de dónde viene ese dinero.`,
+  "c.where.noteDept": "Cambio mostrado respecto al presupuesto adoptado de 2025. La policía y los bomberos juntos son la mayor parte del gasto municipal.",
+  "c.where.noteRev": "Cambio mostrado respecto al presupuesto adoptado de 2025. El impuesto a la propiedad es la mayor fuente de ingresos de la ciudad.",
+  "c.flow.dek": "Cada dólar del fondo general, rastreado desde su origen, a través del fondo, hasta lo que paga. Pase el cursor por cualquier cinta para seguir el dinero.",
+  "c.flow.note": "Fuentes de ingreso del fondo general (izquierda) hacia el fondo (centro) y hacia los departamentos (derecha). Se nombran los cinco mayores de cada lado; el resto se agrupa. Pase el cursor por un flujo para ver su monto.",
+  "c.allfunds.title": "Todos los fondos, por categoría",
+  "c.allfunds.dek": (total) => `Más allá del fondo general, el presupuesto de todos los fondos de ${total} de la ciudad cubre proyectos de capital, servicio de deuda, fondos empresariales y de ingresos especiales. Aquí está por tipo de gasto.`,
+  "c.allfunds.note": "Cambio mostrado respecto al presupuesto adoptado de 2025, todos los fondos.",
+  "c.overtime.title": "El impuesto con el tiempo",
+  "c.overtime.dek": (first, firstYr, last, lastYr, pct) => `El impuesto a la propiedad de la ciudad ha subido de ${first} en ${firstYr} a ${last} en ${lastYr} — un ${pct}% más.`,
+  "c.overtime.note": (y0, y1) => `Impuesto a la propiedad real, tal como se adoptó, ${y0}–${y1}.`,
+  "c.overtime.calloutTitle": "La ciudad está en su tope de impuesto",
+  "c.overtime.calloutBody": (exception, year) => `Por undécimo año consecutivo, el impuesto de Wausau supera el límite estatal básico — ${exception} por encima en ${year}, permitido solo por la exención del servicio de deuda. Y en 2027, las subvenciones federales ARPA y SAFER que pagan 15 puestos de primeros auxilios expiran, dejando unos $1.5 millones que el impuesto deberá absorber — la brecha estructural que el mensaje presupuestario del alcalde llama una "bomba de tiempo".`,
+  "c.workforce.kick": "El personal",
+  "c.workforce.title": "El personal de la ciudad con el tiempo",
+  "c.workforce.dek": (now, then, year) => `La ciudad presupuesta ${now} puestos equivalentes a tiempo completo en ${year}, frente a ${then} hace una década. Elija un departamento para ver cómo ha cambiado su personal.`,
+  "c.workforce.note": (dept, now, year, change, sinceYear) =>
+    `${dept}: ${now} FTE presupuestados en ${year}` +
+    (change === 0 ? ", sin cambios" : change > 0 ? `, ${change.toFixed(2).replace(/\.?0+$/, "")} más` : `, ${Math.abs(change).toFixed(2).replace(/\.?0+$/, "")} menos`) +
+    (change !== 0 ? ` desde ${sinceYear}` : "") +
+    ". Los concejales electos se excluyen del total de personal.",
+  "c.taxbill.dek": (share) => `La ciudad es solo una línea de su factura de impuestos — el ${share}% de ella. Ingrese el valor de su casa para ver su factura anual estimada y exactamente a dónde va cada dólar.`,
+  "c.taxbill.homeLabel": "El valor tasado de su casa",
+  "c.taxbill.totalRow": "Su factura total",
+  "c.taxbill.note": (ry, total) => `Estimado a partir de la tasa combinada de ${ry} de $${total} por $1,000 de valor igualado — el año más reciente en que las cuatro jurisdicciones la han fijado. Su factura real varía según créditos y exenciones (solo los créditos de lotería y de primer dólar valen unos cientos de dólares).`,
+  "c.dev.kick": "Apostando al crecimiento",
+  "c.dev.title": "Distritos de incremento de impuestos",
+  "c.dev.dek": (count) => `La ciudad opera ${count} distritos activos de incremento de impuestos (TID) — áreas donde el aumento del valor de la propiedad se capta para reembolsar la inversión pública en desarrollo. Esto es cuánto creció el valor de cada distrito el año pasado.`,
+  "c.dev.note": (decrease) => `Crecimiento de valuación, 2025. El presupuesto también incluye los pagos de incentivos a desarrolladores anteriores. Una disminución neta del impuesto TID de ${decrease} este año refleja el cierre del Distrito 6.`,
+  "c.debt.kick": "Lo que debe la ciudad",
+  "c.debt.dek": (outstanding, pct) => `La ciudad tiene ${outstanding} en deuda de obligación general — el ${pct}% de su límite legal de endeudamiento. Así está programado su pago.`,
+  "c.debt.note": (y0, total0, yN) => `Capital + intereses anuales sobre la deuda de obligación general existente. El pago de ${y0} es ${total0}; el calendario llega hasta ${yN}.`,
+  "c.foot.source": (entity, year) => `Presupuesto ${year} adoptado de ${entity}.`,
+  "c.foot.builtBy": "Creado y mantenido por Wausau Pilot & Review; las cifras de departamentos, fondos, impuestos, tasa y deuda se extraen directamente del documento presupuestario publicado por la ciudad y se cotejan con sus totales impresos.",
 };
 
 // Hmong (Hmoob Dawb / RPA). BETA — AI-drafted, pending community review.
@@ -341,6 +424,7 @@ const HMN = {
 
   "btn.spending": "Kev Siv",
   "btn.revenue": "Nyiaj Tau Los",
+  "btn.byDepartment": "Raws Chaw Haujlwm",
   "lbl.principal": "Tus Nqi Qiv",
   "lbl.interest": "Paj",
   "kick.generalFund": "Lub Nyiaj General Fund",
@@ -393,6 +477,46 @@ const HMN = {
   "s.debt.note": (y0, total0, yN) => `Tus nqi qiv + paj txhua xyoo rau cov nuj nqis tam sim no. Qhov them xyoo ${y0} yog ${total0}; lub sij hawm them mus txog ${yN}.`,
   "s.foot.source": (entity, fiscal) => `${entity} ${fiscal} Daim Nyiaj Txiag Txhua Xyoo.`,
   "s.foot.builtBy": "Tsim thiab saib xyuas los ntawm Wausau Pilot & Review; cov lej nyiaj, se, mill-rate thiab nuj nqis muab ncaj qha los ntawm lub koog tsev kawm daim ntawv nyiaj txiag tshaj tawm thiab kuaj nrog nws cov lej luam tawm.",
+
+  "c.dek": (entity) => `Txhua nyuas nyiaj hauv ${entity} daim nyiaj txiag — los qhov twg los, mus qhov twg, thiab txhais li cas rau koj daim nqi se. Pom zoo los ntawm Pawg Sab Laj Nroog (Common Council).`,
+  "c.stat.allFunds": "txhua nyiaj",
+  "c.stat.cityLevy": "Se hauv lub zos",
+  "c.stat.cityShare": "Lub zos feem ntawm koj daim nqi",
+  "c.stat.cityShareSub": (total) => `ntawm $${total} tus nqi tag nrho`,
+  "c.where.dek": (gf) => `Lub general fund — ${gf} — them rau cov kev pab cuam niaj hnub hauv lub zos. Hloov los saib nws siv li cas raws chaw haujlwm, thiab cov nyiaj ntawd los qhov twg los.`,
+  "c.where.noteDept": "Qhov hloov piv rau xyoo 2025 daim nyiaj txiag pom zoo. Tub ceev xwm thiab tub tua hluav taws ua ke yog feem loj tshaj ntawm kev siv nyiaj hauv lub zos.",
+  "c.where.noteRev": "Qhov hloov piv rau xyoo 2025 daim nyiaj txiag pom zoo. Se vaj tse yog qhov nyiaj tau los loj tshaj ntawm lub zos.",
+  "c.flow.dek": "Txhua nyuas nyiaj general fund, taug qab los qhov twg los, hla lub nyiaj, mus rau qhov nws them. Coj nas saib ib txoj kab los taug qab cov nyiaj.",
+  "c.flow.note": "Cov nyiaj tau los rau general fund (sab laug) mus rau lub nyiaj (nruab nrab) thiab tawm mus rau cov chaw haujlwm (sab xis). Tsib qhov loj tshaj ntawm ob sab raug muab npe; lwm cov raug muab sib sau. Coj nas saib ib qho ntws kom pom nws tus nqi.",
+  "c.allfunds.title": "Txhua lub nyiaj, raws pawg",
+  "c.allfunds.dek": (total) => `Dhau lub general fund, lub zos daim nyiaj txiag txhua nyiaj ${total} them rau cov project loj, them nuj nqis, enterprise thiab special-revenue funds. Ntawm no yog raws hom kev siv.`,
+  "c.allfunds.note": "Qhov hloov piv rau xyoo 2025 daim nyiaj txiag pom zoo, txhua nyiaj.",
+  "c.overtime.title": "Tus se raws sij hawm",
+  "c.overtime.dek": (first, firstYr, last, lastYr, pct) => `Lub zos tus se vaj tse tau nce ntawm ${first} xyoo ${firstYr} mus rau ${last} xyoo ${lastYr} — nce ${pct}%.`,
+  "c.overtime.note": (y0, y1) => `Tus se vaj tse tiag raws li pom zoo, ${y0}–${y1}.`,
+  "c.overtime.calloutTitle": "Lub zos nyob ntawm nws qhov se siab tshaj",
+  "c.overtime.calloutBody": (exception, year) => `Tau kaum ib xyoo lawm, Wausau tus se nyob siab dua xeev qhov pib — ${exception} dhau xyoo ${year}, tso cai tsuas yog los ntawm debt-service exemption. Thiab xyoo 2027, cov nyiaj pab ARPA thiab SAFER uas them 15 txoj haujlwm pab thawj zaug yuav xaus, tseg kwv yees $1.5 lab rau tus se yuav tsum ris — qhov sib txawv uas tus tswv zos daim ntawv nyiaj txiag hu ua "lub foob pob teem caij".`,
+  "c.workforce.kick": "Cov Neeg",
+  "c.workforce.title": "Lub zos cov neeg ua haujlwm raws sij hawm",
+  "c.workforce.dek": (now, then, year) => `Lub zos npaj nyiaj rau ${now} txoj haujlwm full-time-equivalent xyoo ${year}, nce ntawm ${then} kaum xyoo dhau los. Xaiv ib lub chaw haujlwm los saib nws cov neeg hloov li cas.`,
+  "c.workforce.note": (dept, now, year, change, sinceYear) =>
+    `${dept}: ${now} FTE npaj nyiaj xyoo ${year}` +
+    (change === 0 ? ", tsis hloov" : change > 0 ? `, nce ${change.toFixed(2).replace(/\.?0+$/, "")}` : `, poob ${Math.abs(change).toFixed(2).replace(/\.?0+$/, "")}`) +
+    (change !== 0 ? ` txij ${sinceYear}` : "") +
+    ". Cov nom tswv xaiv tsa raug rho tawm ntawm cov neeg ua haujlwm tag nrho.",
+  "c.taxbill.dek": (share) => `Lub zos yog tsuas yog ib kab ntawm koj daim nqi se vaj tse — ${share}% ntawm nws. Sau koj lub tsev tus nqi los saib koj daim nqi txhua xyoo kwv yees thiab txhua nyiaj mus qhov twg.`,
+  "c.taxbill.homeLabel": "Koj lub tsev tus nqi ntsuas (assessed)",
+  "c.taxbill.totalRow": "Koj daim nqi tag nrho",
+  "c.taxbill.note": (ry, total) => `Kwv yees los ntawm ${ry} tus nqi sib xyaw $${total} rau ib $1,000 tus nqi equalized — xyoo tseem tshiab uas plaub lub jurisdiction tau teem. Koj daim nqi tiag tiag hloov raws cov credit thiab exemption (cov credit lottery thiab first-dollar nkaus xwb muaj nqis ob peb puas duas las).`,
+  "c.dev.kick": "Twv Rau Kev Loj Hlob",
+  "c.dev.title": "Tax increment districts",
+  "c.dev.dek": (count) => `Lub zos khiav ${count} lub tax increment districts (TIDs) — cheeb tsam uas kev nce ntawm tus nqi vaj tse raug khaws los them rov qab kev nqis peev pej xeem rau kev loj hlob. Ntawm no yog txhua lub district tus nqi nce npaum li cas xyoo dhau los.`,
+  "c.dev.note": (decrease) => `Kev nce ntawm tus nqi, 2025. Daim nyiaj txiag kuj suav cov nyiaj them developer saum toj. Ib qho TID se poob net ${decrease} xyoo no qhia txog kev kaw District 6.`,
+  "c.debt.kick": "Yam Lub Zos Tshuav Nuj",
+  "c.debt.dek": (outstanding, pct) => `Lub zos tshuav ${outstanding} hauv general-obligation debt — ${pct}% ntawm nws qhov txwv qiv nyiaj raws txoj cai. Ntawm no yog nws tau teem caij them.`,
+  "c.debt.note": (y0, total0, yN) => `Tus nqi qiv + paj txhua xyoo rau general-obligation debt tam sim no. Qhov them xyoo ${y0} yog ${total0}; lub sij hawm them mus txog ${yN}.`,
+  "c.foot.source": (entity, year) => `${entity} Daim Nyiaj Txiag ${year} Pom Zoo.`,
+  "c.foot.builtBy": "Tsim thiab saib xyuas los ntawm Wausau Pilot & Review; cov lej chaw haujlwm, nyiaj, se, tus nqi se thiab nuj nqis muab ncaj qha los ntawm lub zos daim ntawv nyiaj txiag tshaj tawm thiab kuaj nrog nws cov lej luam tawm.",
 };
 
 const TABLES = { en: EN, es: ES, hmn: HMN };

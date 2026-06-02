@@ -569,14 +569,11 @@ function CityLedger({ b, chrome }) {
           )}
         </div>
         <h1>Follow the Money</h1>
-        <p className="dek">
-          Every dollar in the {b.meta.entity}&rsquo;s {b.meta.budget_year} budget — where it comes from, where it
-          goes, and what it means for your tax bill. Adopted by the Common Council.
-        </p>
+        <p className="dek">{t("c.dek", b.meta.entity)}</p>
         <div className="stat-strip">
-          <Stat icon="💰" label="Total budget" value={compact(b.meta.total_expenditures)} sub="all funds" />
-          <Stat icon="🏛️" label="City tax levy" value={usd(b.meta.tax_levy)} sub={<Delta value={levyPct} />} />
-          <Stat icon="🏠" label="City share of tax bill" value={cityShare + "%"} sub={"of $" + jtotal.toFixed(2) + " total rate"} />
+          <Stat icon="💰" label={t("stat.totalBudget")} value={compact(b.meta.total_expenditures)} sub={t("c.stat.allFunds")} />
+          <Stat icon="🏛️" label={t("c.stat.cityLevy")} value={usd(b.meta.tax_levy)} sub={<Delta value={levyPct} />} />
+          <Stat icon="🏠" label={t("c.stat.cityShare")} value={cityShare + "%"} sub={t("c.stat.cityShareSub", jtotal.toFixed(2))} />
         </div>
       </header>
 
@@ -590,13 +587,12 @@ function CityLedger({ b, chrome }) {
 
       {/* WHERE IT GOES — General Fund */}
       <section id="where" className="block">
-        <SectionHead kicker="The General Fund" title="Where every dollar goes">
-          The general fund — {compact(b.meta.gf_expenditures)} — pays for day-to-day city services. Toggle to
-          see what it spends by department, and where that money comes from.
+        <SectionHead kicker={t("kick.generalFund")} title={t("title.whereDollarGoes")}>
+          {t("c.where.dek", compact(b.meta.gf_expenditures))}
         </SectionHead>
         <div className="toggle" role="group" aria-label="General fund view">
-          <button aria-pressed={gfFlow === "departments"} className={gfFlow === "departments" ? "on" : ""} onClick={() => setGfFlow("departments")}>By department</button>
-          <button aria-pressed={gfFlow === "revenues"} className={gfFlow === "revenues" ? "on" : ""} onClick={() => setGfFlow("revenues")}>Revenue</button>
+          <button aria-pressed={gfFlow === "departments"} className={gfFlow === "departments" ? "on" : ""} onClick={() => setGfFlow("departments")}>{t("btn.byDepartment")}</button>
+          <button aria-pressed={gfFlow === "revenues"} className={gfFlow === "revenues" ? "on" : ""} onClick={() => setGfFlow("revenues")}>{t("btn.revenue")}</button>
         </div>
         <div className="bars">
           {gfRows.map((r, i) => (
@@ -609,18 +605,13 @@ function CityLedger({ b, chrome }) {
             </div>
           ))}
         </div>
-        <p className="note">
-          {gfFlow === "departments"
-            ? "Change shown vs. the 2025 adopted budget. Police and Fire together are the largest share of city spending."
-            : "Change shown vs. the 2025 adopted budget. Property taxes are the city's single largest revenue source."}
-        </p>
+        <p className="note">{gfFlow === "departments" ? t("c.where.noteDept") : t("c.where.noteRev")}</p>
       </section>
 
       {/* MONEY FLOW — General Fund Sankey */}
       <section id="flow" className="block">
-        <SectionHead kicker="Follow the Money" title="How the general fund flows">
-          Every general-fund dollar, traced from where it comes from, through the fund, to what it pays for.
-          Hover any ribbon to follow the money.
+        <SectionHead kicker={t("kick.followMoney")} title={t("title.howGfFlows")}>
+          {t("c.flow.dek")}
         </SectionHead>
         <div className="chart-wrap">
           <div className="sankey-scroll">
@@ -645,18 +636,14 @@ function CityLedger({ b, chrome }) {
               </ResponsiveContainer>
             </div>
           </div>
-          <p className="note">
-            General Fund revenue sources (left) into the fund (center) and out to departments (right). The
-            largest five of each are named; the rest are grouped. Hover a flow for its amount.
-          </p>
+          <p className="note">{t("c.flow.note")}</p>
         </div>
       </section>
 
       {/* ALL FUNDS — by category */}
       <section id="allfunds" className="block">
-        <SectionHead kicker="The Whole Picture" title="All funds, by category">
-          Beyond the general fund, the city&rsquo;s {compact(b.meta.total_expenditures)} all-funds budget covers
-          capital projects, debt service, enterprise and special-revenue funds. Here it is by type of spending.
+        <SectionHead kicker={t("kick.wholePicture")} title={t("c.allfunds.title")}>
+          {t("c.allfunds.dek", compact(b.meta.total_expenditures))}
         </SectionHead>
         <div className="bars">
           {cats.map((c, i) => (
@@ -669,14 +656,13 @@ function CityLedger({ b, chrome }) {
             </div>
           ))}
         </div>
-        <p className="note">Change shown vs. the 2025 adopted budget, all funds.</p>
+        <p className="note">{t("c.allfunds.note")}</p>
       </section>
 
       {/* OVER TIME — levy */}
       <section id="overtime" className="block">
-        <SectionHead kicker="Shifting Priorities" title="The levy over time">
-          The city&rsquo;s property-tax levy has risen from {usd(levyFirst.levy)} in {levyFirst.year} to{" "}
-          {usd(levyLast.levy)} in {levyLast.year} — up {(((levyLast.levy / levyFirst.levy) - 1) * 100).toFixed(0)}%.
+        <SectionHead kicker={t("kick.shiftingPriorities")} title={t("c.overtime.title")}>
+          {t("c.overtime.dek", usd(levyFirst.levy), levyFirst.year, usd(levyLast.levy), levyLast.year, (((levyLast.levy / levyFirst.levy) - 1) * 100).toFixed(0))}
         </SectionHead>
         <div className="chart-wrap">
           <ResponsiveContainer width="100%" height={300}>
@@ -688,25 +674,19 @@ function CityLedger({ b, chrome }) {
               <Bar dataKey="levy" fill="var(--gold)" fillOpacity={0.82} radius={[2, 2, 0, 0]} maxBarSize={38} />
             </ComposedChart>
           </ResponsiveContainer>
-          <p className="note">Actual property-tax levy as adopted, {levyFirst.year}&ndash;{levyLast.year}.</p>
+          <p className="note">{t("c.overtime.note", levyFirst.year, levyLast.year)}</p>
         </div>
 
         <div className="callout">
-          <div className="callout-title">The city is at its levy ceiling</div>
-          <p>
-            For the eleventh year running, Wausau&rsquo;s levy sits above the basic state limit — {usd(levyLast.exception)}{" "}
-            over in {levyLast.year}, allowed only through the debt-service exemption. And in 2027, the federal ARPA and
-            SAFER grants that pay for 15 first-responder positions expire, leaving an estimated $1.5 million for the
-            levy to absorb — the structural gap the mayor&rsquo;s budget message calls a &ldquo;ticking time bomb.&rdquo;
-          </p>
+          <div className="callout-title">{t("c.overtime.calloutTitle")}</div>
+          <p>{t("c.overtime.calloutBody", usd(levyLast.exception), levyLast.year)}</p>
         </div>
       </section>
 
       {/* WORKFORCE — FTE over time, one department at a time */}
       <section id="workforce" className="block">
-        <SectionHead kicker="The People" title="The city&rsquo;s workforce over time">
-          The city budgets {wf.total[0]} full-time-equivalent positions in {b.meta.budget_year}, up from {wf.total[wf.total.length - 1]}{" "}
-          a decade ago. Pick a department to see how its staffing has changed.
+        <SectionHead kicker={t("c.workforce.kick")} title={t("c.workforce.title")}>
+          {t("c.workforce.dek", wf.total[0], wf.total[wf.total.length - 1], b.meta.budget_year)}
         </SectionHead>
         <div className="wf-pick" role="group" aria-label="Choose a department">
           {wfDepts.map((d) => (
@@ -726,24 +706,19 @@ function CityLedger({ b, chrome }) {
                 fill="var(--accent)" fillOpacity={0.12} dot={{ r: 2.5, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
             </ComposedChart>
           </ResponsiveContainer>
-          <p className="note">
-            <b>{wfDept}</b>: {wfNow} budgeted FTE in {b.meta.budget_year}
-            {wfChange === 0 ? ", unchanged" : wfChange > 0 ? `, up ${wfChange.toFixed(2).replace(/\.?0+$/, "")}` : `, down ${Math.abs(wfChange).toFixed(2).replace(/\.?0+$/, "")}`}
-            {wfChange !== 0 ? ` since ${wf.years[wf.years.length - 1]}` : ""}. Elected alderpersons are excluded from the workforce total.
-          </p>
+          <p className="note">{t("c.workforce.note", wfDept, wfNow, b.meta.budget_year, wfChange, wf.years[wf.years.length - 1])}</p>
         </div>
       </section>
 
       {/* YOUR TAX BILL — interactive jurisdiction calculator */}
       <section id="taxbill" className="block">
-        <SectionHead kicker="The Bottom Line" title="What it means for your tax bill">
-          The city is only one line on your property-tax bill — {cityShare}% of it. Enter your home&rsquo;s value to
-          see your estimated annual bill and exactly where each dollar goes.
+        <SectionHead kicker={t("kick.bottomLine")} title={t("title.taxbillMeaning")}>
+          {t("c.taxbill.dek", cityShare)}
         </SectionHead>
 
         <div className="calc">
           <div className="calc-input">
-            <label htmlFor="homeval">Your home&rsquo;s assessed value</label>
+            <label htmlFor="homeval">{t("c.taxbill.homeLabel")}</label>
             <div className="calc-field">
               <span>$</span>
               <input id="homeval" type="text" inputMode="numeric" value={homeValue.toLocaleString("en-US")}
@@ -751,7 +726,7 @@ function CityLedger({ b, chrome }) {
             </div>
           </div>
           <div className="calc-out">
-            <span className="calc-out-label">Estimated annual property tax</span>
+            <span className="calc-out-label">{t("calc.estProperty")}</span>
             <span className="calc-out-val">{usd(Math.round((homeValue / 1000) * jtotal))}</span>
           </div>
         </div>
@@ -792,24 +767,18 @@ function CityLedger({ b, chrome }) {
           ))}
           <div className="jrow total">
             <span className="jrow-sw" />
-            <span className="jrow-name">Your total bill</span>
+            <span className="jrow-name">{t("c.taxbill.totalRow")}</span>
             <span className="jrow-amt">{usd(Math.round((homeValue / 1000) * jtotal))}</span>
             <span className="jrow-share">100%</span>
           </div>
         </div>
-        <p className="note">
-          Estimated from the {ry} combined rate of ${jtotal.toFixed(2)} per $1,000 of equalized value — the most
-          recent year all four jurisdictions have set. Your actual bill varies with credits and exemptions (the
-          lottery and first-dollar credits alone are worth a few hundred dollars).
-        </p>
+        <p className="note">{t("c.taxbill.note", ry, jtotal.toFixed(2))}</p>
       </section>
 
       {/* DEVELOPMENT — tax increment districts */}
       <section id="development" className="block">
-        <SectionHead kicker="Betting on Growth" title="Tax increment districts">
-          The city runs {tifGrowth.length} active tax increment districts (TIDs) — areas where the growth in property
-          value is captured to repay public investment in development. Here is how much each district&rsquo;s value
-          grew last year.
+        <SectionHead kicker={t("c.dev.kick")} title={t("c.dev.title")}>
+          {t("c.dev.dek", tifGrowth.length)}
         </SectionHead>
         <div className="gbars">
           {tifGrowth.map((g) => (
@@ -830,21 +799,19 @@ function CityLedger({ b, chrome }) {
           </div>
         )}
         <p className="note">
-          Valuation growth, 2025. The budget also includes the developer incentive payments above. A net TID levy
-          decrease of {usd(tif.levy_decrease)} this year reflects the closure of District 6.
+          {t("c.dev.note", usd(tif.levy_decrease))}
         </p>
       </section>
 
       {/* DEBT */}
       <section id="debt" className="block">
-        <SectionHead kicker="What the City Owes" title="Outstanding debt">
-          The city carries <b>{compact(debt.outstanding)}</b> in general-obligation debt — {debt.pct_of_limit}% of
-          its legal borrowing limit. Here is how it is scheduled to be paid down.
+        <SectionHead kicker={t("c.debt.kick")} title={t("title.outstandingDebt")}>
+          {t("c.debt.dek", compact(debt.outstanding), debt.pct_of_limit)}
         </SectionHead>
         <div className="chart-wrap">
           <div className="chart-legend">
-            <span><i className="sw sw-new" /> Principal</span>
-            <span><i className="sw sw-old" /> Interest</span>
+            <span><i className="sw sw-new" /> {t("lbl.principal")}</span>
+            <span><i className="sw sw-old" /> {t("lbl.interest")}</span>
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={debt.retirement} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
@@ -852,27 +819,19 @@ function CityLedger({ b, chrome }) {
               <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
               <YAxis tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
               <Tooltip content={<BarTip />} cursor={{ fill: "var(--paper-2)" }} />
-              <Bar dataKey="principal" stackId="d" fill="var(--accent)" name="Principal" maxBarSize={26} />
-              <Bar dataKey="interest" stackId="d" fill="var(--gold)" fillOpacity={0.82} name="Interest" maxBarSize={26} />
+              <Bar dataKey="principal" stackId="d" fill="var(--accent)" name={t("lbl.principal")} maxBarSize={26} />
+              <Bar dataKey="interest" stackId="d" fill="var(--gold)" fillOpacity={0.82} name={t("lbl.interest")} maxBarSize={26} />
             </BarChart>
           </ResponsiveContainer>
-          <p className="note">
-            Annual principal + interest on existing general-obligation debt. The {debt.retirement[0].year} payment
-            is {compact(debt.retirement[0].total)}; the schedule runs through {debt.retirement[debt.retirement.length - 1].year}.
-          </p>
+          <p className="note">{t("c.debt.note", debt.retirement[0].year, compact(debt.retirement[0].total), debt.retirement[debt.retirement.length - 1].year)}</p>
         </div>
       </section>
 
       <Methodology b={b} chrome={chrome} />
 
       <footer className="foot">
-        <p>
-          <b>Source:</b> {b.meta.entity} Adopted {b.meta.budget_year} Budget. Figures are as adopted and may be
-          amended during the year.
-        </p>
-        <p className="muted">Built and maintained by Wausau Pilot &amp; Review; department, fund, levy, tax-rate
-          and debt figures extracted directly from the city&rsquo;s published budget document and reconciled
-          against its printed totals.</p>
+        <p><b>{t("foot.sourceLabel")}</b> {t("c.foot.source", b.meta.entity, b.meta.budget_year)} {t("foot.amended")}</p>
+        <p className="muted">{t("c.foot.builtBy")}</p>
       </footer>
     </div>
   );
