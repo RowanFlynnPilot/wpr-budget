@@ -315,9 +315,10 @@ Done and shipped:
   (1200×630 editorial card). Switcher labels shortened ("…Budget" dropped).
 - ✅ "What changed this year" lead band (`Highlights`) on all three governments, and a
   cross-link to the Central Wisconsin Meeting Tracker in each Methodology section.
-- ⏳ Cloudflare Web Analytics snippet is in `index.html` but COMMENTED OUT pending the
-  site token — replace `CLOUDFLARE_TOKEN` and uncomment once the user creates the
-  Web Analytics site for the Pages URL. Privacy-first, no cookie banner.
+- ✅ Cloudflare Web Analytics beacon live in `index.html` (token is the shared
+  `rowanflynnpilot.github.io` site, also used by the Meeting Tracker). Privacy-first,
+  no cookie banner; CF groups by hostname, so filter the dashboard by page path
+  (`/wpr-budget/`) to isolate this tool from the other suite projects.
 
 ## Next steps / backlog
 
