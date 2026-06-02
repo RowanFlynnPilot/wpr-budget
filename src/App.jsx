@@ -7,12 +7,12 @@ import { ChevronDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import logoUrl from "./assets/logo-32.png";
 import marathonLogo from "./assets/marathon-county.jpg";
 import wausauLogo from "./assets/wausau-city.jpg";
-import schoolLogo from "./assets/wausau-school.svg";
+import schoolLogo from "./assets/wausau-school.jpg";
 
 // Per-entity logos, keyed by manifest id (used in the chrome-bar switcher and
 // the masthead). Square-format marks — shown whole (object-fit:contain), not
-// circle-cropped. wausau-school is an on-brand placeholder monogram; swap in the
-// district's official mark when available.
+// circle-cropped. The three avatars are the same marks used in the Central
+// Wisconsin Meeting Tracker, kept consistent across the WPR civic suite.
 const ENTITY_LOGOS = {
   "marathon-county": marathonLogo,
   "wausau-city": wausauLogo,

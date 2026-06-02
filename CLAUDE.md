@@ -286,8 +286,9 @@ Done and shipped:
 - ✅ Wausau School District entity (Phase 1 + 2a + 2b) — extractor `extract_school.py`,
   schema, `SchoolLedger` (where-it-goes by object, Sankey, all funds, dual-axis
   mill-rate-vs-equalized-valuation over ~half a century + rate-change bridge, 5-yr
-  enrollment trend + per-student spending, school-portion tax bill, debt). Placeholder
-  SVG logo (`src/assets/wausau-school.svg`) — swap in the district's official mark.
+  enrollment trend + per-student spending, school-portion tax bill, debt). Logo
+  `src/assets/wausau-school.jpg` — the district seal, the same avatar used in the
+  Central Wisconsin Meeting Tracker (county/city/school avatars kept consistent).
 - ✅ WPR brand chrome bar + logo-button entity switcher + per-entity masthead logos.
 - ✅ Grant-pitch features: interactive tax-bill calculator (all), money-flow
   Sankey (City + School), Methodology + open-data (JSON/CSV) + accessibility pass.
