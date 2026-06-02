@@ -4,6 +4,7 @@ import {
   ComposedChart, BarChart, Bar, Area, Sankey, Layer,
 } from "recharts";
 import { ChevronDown, ArrowUpRight, ArrowDownRight, Receipt, Share2, Check } from "lucide-react";
+import { LANGS, LangProvider, useLang, useStrings } from "./i18n";
 import logoUrl from "./assets/logo-32.png";
 import marathonLogo from "./assets/marathon-county.jpg";
 import wausauLogo from "./assets/wausau-city.jpg";
@@ -87,11 +88,12 @@ const MEETING_TRACKER_URL = "https://rowanflynnpilot.github.io/marathon-meetings
 // the masthead and the section nav. Each body passes its own data-appropriate items:
 // { label, value, delta?, invert?, money?, exact?, note? }. delta uses <Delta>.
 function Highlights({ items }) {
+  const t = useStrings();
   const shown = (items || []).filter(Boolean);
   if (!shown.length) return null;
   return (
     <div className="whatchanged">
-      <div className="wc-head">What changed this year</div>
+      <div className="wc-head">{t("wc.head")}</div>
       <div className="wc-grid">
         {shown.map((it, i) => (
           <div className="wc-item" key={i}>
@@ -111,9 +113,10 @@ function Highlights({ items }) {
 // Shared methodology + open-data section, rendered by both entity bodies. The
 // reconcile-against-printed-totals point is the core trust signal.
 function Methodology({ b, chrome }) {
+  const t = useStrings();
   const ent = chrome.entities.find((e) => e.id === chrome.activeId);
   const jsonUrl = import.meta.env.BASE_URL + ent.data;
-  const kindNoun = { county: "county", city: "city", school: "district" }[ent.kind];
+  const kindNoun = t("method.kind." + ent.kind);
   const csvRows = ent.kind === "city"
     ? b.general_fund.expenditures.map((r) => ({ department: r.category, fund: "General Fund", budget_2025: r.prior, budget_2026: r.proposed }))
     : ent.kind === "school"
@@ -121,33 +124,25 @@ function Methodology({ b, chrome }) {
     : b.departments.map((d) => ({ department: d.department, tax_levy: d.tax_levy, operating_revenues: d.operating_revenues, operating_expenditures: d.operating_expenditures, personnel_expenditures: d.personnel_expenditures }));
   return (
     <section id="methodology" className="block">
-      <SectionHead kicker="How We Built This" title="Methodology &amp; open data">
-        Every figure on this page is pulled straight from {b.meta.entity}&rsquo;s official adopted {b.meta.budget_year}{" "}
-        budget — the same document the {kindNoun} publishes — and checked against the budget&rsquo;s own printed
-        totals. Nothing here is hand-typed or estimated.
+      <SectionHead kicker={t("method.kicker")} title={t("method.title")}>
+        {t("method.intro", b.meta.entity, b.meta.budget_year, kindNoun)}
       </SectionHead>
       <ol className="method">
-        <li><b>Source.</b> The official Adopted {b.meta.budget_year} Annual Budget (PDF), published by {b.meta.entity}.</li>
-        <li><b>Extraction.</b> An open-source script reads the budget&rsquo;s tables directly from the PDF — no manual transcription.</li>
-        <li><b>Verification.</b> Each table is reconciled line-by-line against the budget&rsquo;s printed totals. If a number doesn&rsquo;t add up, the process stops rather than publish a wrong figure.</li>
-        <li><b>Updates.</b> Refreshed once a year, when a new budget is adopted.</li>
+        <li><b>{t("method.step.sourceLabel")}</b> {t("method.step.source", b.meta.budget_year, b.meta.entity)}</li>
+        <li><b>{t("method.step.extractionLabel")}</b> {t("method.step.extraction")}</li>
+        <li><b>{t("method.step.verificationLabel")}</b> {t("method.step.verification")}</li>
+        <li><b>{t("method.step.updatesLabel")}</b> {t("method.step.updates")}</li>
       </ol>
       <div className="downloads">
-        <a className="dl-btn" href={jsonUrl} download>Download the full data (JSON)</a>
+        <a className="dl-btn" href={jsonUrl} download>{t("method.dlJson")}</a>
         <button type="button" className="dl-btn" onClick={() => downloadCSV(`${ent.id}-${b.meta.budget_year}-spending.csv`, csvRows)}>
-          Download spending (CSV)
+          {t("method.dlCsv")}
         </button>
       </div>
-      <p className="note">
-        This data is free to reuse. Built and maintained by Wausau Pilot &amp; Review as part of its civic
-        transparency work.
-      </p>
+      <p className="note">{t("method.reuse")}</p>
       <a className="suite-link" href={MEETING_TRACKER_URL} target="_blank" rel="noopener noreferrer">
         <span className="suite-link__icon" aria-hidden="true">📋</span>
-        <span>
-          <b>See the decisions behind the budget.</b> This budget was debated and adopted in public meetings —
-          follow them in WPR&rsquo;s Central Wisconsin Meeting Tracker.
-        </span>
+        <span><b>{t("suite.linkLead")}</b> {t("suite.linkBody")}</span>
         <ArrowUpRight size={16} strokeWidth={2.5} className="suite-link__arrow" />
       </a>
     </section>
@@ -199,7 +194,7 @@ export default function App() {
     : ent.kind === "school" ? SchoolLedger
     : ent.kind === "taxbill" ? TaxBillOverview
     : Ledger;
-  return <Body key={activeId} b={data.payload} chrome={chrome} />;
+  return <LangProvider><Body key={activeId} b={data.payload} chrome={chrome} /></LangProvider>;
 }
 
 // Shared WPR brand chrome bar, with the entity switcher (rendered only when the
@@ -207,6 +202,8 @@ export default function App() {
 function ChromeBar({ entities, activeId, onSelect, year }) {
   const active = entities.find((e) => e.id === activeId);
   const [shared, setShared] = useState(false);
+  const t = useStrings();
+  const { lang, setLang } = useLang();
 
   // Share a canonical deep-link to the ACTIVE entity, built from activeId rather
   // than location.href so it stays valid no matter what the in-page scroll has
@@ -226,43 +223,54 @@ function ChromeBar({ entities, activeId, onSelect, year }) {
   };
 
   return (
-    <div className="chrome-bar">
-      <div className="chrome-bar__left">
-        <a className="chrome-bar__brand" href="https://wausaupilotandreview.com"
-           target="_blank" rel="noopener noreferrer">
-          <img className="chrome-bar__logo-img" src={logoUrl} alt="Wausau Pilot &amp; Review" />
-          <span className="chrome-bar__wordmark">Wausau Pilot &amp; Review</span>
-        </a>
-        {entities.length <= 1 && (
-          <>
-            <span className="chrome-bar__divider" />
-            <span className="chrome-bar__section">{active.short}</span>
-          </>
+    <>
+      <div className="chrome-bar">
+        <div className="chrome-bar__left">
+          <a className="chrome-bar__brand" href="https://wausaupilotandreview.com"
+             target="_blank" rel="noopener noreferrer">
+            <img className="chrome-bar__logo-img" src={logoUrl} alt="Wausau Pilot &amp; Review" />
+            <span className="chrome-bar__wordmark">Wausau Pilot &amp; Review</span>
+          </a>
+          {entities.length <= 1 && (
+            <>
+              <span className="chrome-bar__divider" />
+              <span className="chrome-bar__section">{active.short}</span>
+            </>
+          )}
+        </div>
+        <div className="chrome-bar__right">
+          <select className="chrome-bar__lang" value={lang} aria-label={t("chrome.language")}
+            onChange={(e) => setLang(e.target.value)}>
+            {LANGS.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+          </select>
+          <button type="button" className="chrome-bar__share" onClick={onShare}
+            aria-label={shared ? t("chrome.copiedAria") : t("chrome.shareAria")}>
+            {shared ? <Check size={14} strokeWidth={2.5} /> : <Share2 size={14} strokeWidth={2.5} />}
+            <span>{shared ? t("chrome.copied") : t("chrome.share")}</span>
+          </button>
+          <span className="chrome-bar__meta">{t("chrome.fyMeta", year)}</span>
+        </div>
+        {entities.length > 1 && (
+          <span className="chrome-bar__switch" role="tablist" aria-label={t("chrome.chooseBudget")}>
+            {entities.map((e) => (
+              <button key={e.id} type="button" role="tab" aria-selected={e.id === activeId}
+                className={"chrome-bar__ent" + (e.id === activeId ? " on" : "")}
+                onClick={() => onSelect(e.id)}>
+                {e.kind === "taxbill"
+                  ? <Receipt className="chrome-bar__ent-icon" size={18} strokeWidth={2} aria-hidden="true" />
+                  : <img src={ENTITY_LOGOS[e.id]} alt="" />}
+                <span>{e.kind === "taxbill" ? t("common.yourTaxBill") : e.short}</span>
+              </button>
+            ))}
+          </span>
         )}
       </div>
-      <div className="chrome-bar__right">
-        <button type="button" className="chrome-bar__share" onClick={onShare}
-          aria-label={shared ? "Link copied" : "Share this page"}>
-          {shared ? <Check size={14} strokeWidth={2.5} /> : <Share2 size={14} strokeWidth={2.5} />}
-          <span>{shared ? "Copied" : "Share"}</span>
-        </button>
-        <span className="chrome-bar__meta">FY{year} Adopted Budget</span>
-      </div>
-      {entities.length > 1 && (
-        <span className="chrome-bar__switch" role="tablist" aria-label="Choose budget">
-          {entities.map((e) => (
-            <button key={e.id} type="button" role="tab" aria-selected={e.id === activeId}
-              className={"chrome-bar__ent" + (e.id === activeId ? " on" : "")}
-              onClick={() => onSelect(e.id)}>
-              {e.kind === "taxbill"
-                ? <Receipt className="chrome-bar__ent-icon" size={18} strokeWidth={2} aria-hidden="true" />
-                : <img src={ENTITY_LOGOS[e.id]} alt="" />}
-              <span>{e.short}</span>
-            </button>
-          ))}
-        </span>
+      {lang === "hmn" && (
+        <div className="beta-banner" role="note">
+          <b>{t("beta.title")}</b> <span>{t("beta.body")}</span>
+        </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -434,6 +442,7 @@ function TaxBillOverview({ b, chrome }) {
 // all-funds category, the levy over time, the property-tax-by-jurisdiction
 // split, and debt — all from the City's own validated schema.
 function CityLedger({ b, chrome }) {
+  const t = useStrings();
   const [gfFlow, setGfFlow] = useState("departments");
   const [active, setActive] = useState("where");
   const [wfDept, setWfDept] = useState(
@@ -515,11 +524,11 @@ function CityLedger({ b, chrome }) {
     const prior = b.expenditure_categories.reduce((s, c) => s + c.prior, 0);
     const mover = [...b.expenditure_categories].sort((a, c) => (c.current - c.prior) - (a.current - a.prior))[0];
     return [
-      { label: "City tax levy", value: usd(b.meta.tax_levy), delta: levyPct },
-      { label: "Total budget · all funds", value: compact(b.meta.total_expenditures), delta: (cur / prior - 1) * 100 },
-      { label: "Fastest-growing category", value: mover.category, note: "+" + compact(mover.current - mover.prior) },
+      { label: t("wc.cityLevy"), value: usd(b.meta.tax_levy), delta: levyPct },
+      { label: t("wc.totalBudgetAllFunds"), value: compact(b.meta.total_expenditures), delta: (cur / prior - 1) * 100 },
+      { label: t("wc.fastestGrowing"), value: mover.category, note: "+" + compact(mover.current - mover.prior) },
     ];
-  }, [b.expenditure_categories, b.meta, levyPct]);
+  }, [t, b.expenditure_categories, b.meta, levyPct]);
 
   const sections = [
     ["where", "Where It Goes"],
@@ -575,7 +584,7 @@ function CityLedger({ b, chrome }) {
 
       <nav className="subnav">
         {sections.map(([id, label]) => (
-          <a key={id} href={"#" + id} className={active === id ? "active" : ""}>{label}</a>
+          <a key={id} href={"#" + id} className={active === id ? "active" : ""}>{t("nav." + id)}</a>
         ))}
       </nav>
 
@@ -883,6 +892,7 @@ const SCHOOL_SANKEY_SHORT = {
 };
 
 function SchoolLedger({ b, chrome }) {
+  const t = useStrings();
   const [gfFlow, setGfFlow] = useState("expenditures");
   const [showPeople, setShowPeople] = useState(false);
   const [active, setActive] = useState("where");
@@ -976,14 +986,13 @@ function SchoolLedger({ b, chrome }) {
   const perStudentAll = enr ? Math.round(b.meta.net_expenditures / enrNow) : 0;
 
   const changed = useMemo(() => ([
-    { label: "School tax levy", value: usd(b.meta.total_levy), delta: levyPct },
-    { label: "Mill rate", value: "$" + b.meta.mill_rate.toFixed(2), delta: millPct, invert: true },
+    { label: t("wc.schoolLevy"), value: usd(b.meta.total_levy), delta: levyPct },
+    { label: t("wc.millRate"), value: "$" + b.meta.mill_rate.toFixed(2), delta: millPct, invert: true },
     enr && {
-      label: "Enrollment", value: enrNow.toLocaleString(),
-      note: (enrChange < 0 ? "down " : enrChange > 0 ? "up " : "flat, ") +
-        (enrChange ? Math.abs(enrChange).toLocaleString() + " since " + enr.labels[0] : "five years"),
+      label: t("wc.enrollment"), value: enrNow.toLocaleString(),
+      note: t("wc.enrollNote", enrChange, enr.labels[0]),
     },
-  ]), [b.meta, levyPct, millPct, enr, enrNow, enrChange]);
+  ]), [t, b.meta, levyPct, millPct, enr, enrNow, enrChange]);
 
   const sections = [
     ["where", "Where It Goes"],
@@ -1038,7 +1047,7 @@ function SchoolLedger({ b, chrome }) {
 
       <nav className="subnav">
         {sections.map(([id, label]) => (
-          <a key={id} href={"#" + id} className={active === id ? "active" : ""}>{label}</a>
+          <a key={id} href={"#" + id} className={active === id ? "active" : ""}>{t("nav." + id)}</a>
         ))}
       </nav>
 
@@ -1357,6 +1366,7 @@ function SchoolLedger({ b, chrome }) {
 }
 
 function Ledger({ b, chrome }) {
+  const t = useStrings();
   const [flow, setFlow] = useState("expenditures");
   const [sortKey, setSortKey] = useState("spend");
   const [sortDir, setSortDir] = useState("desc");
@@ -1449,14 +1459,14 @@ function Ledger({ b, chrome }) {
   }, [b.departments]);
 
   const changed = useMemo(() => ([
-    { label: "County tax levy", value: usd(b.meta.tax_levy), delta: levyPctChange },
-    { label: "Mill rate", value: "$" + b.meta.tax_rate.toFixed(2), delta: ratePctChange },
+    { label: t("wc.countyLevy"), value: usd(b.meta.tax_levy), delta: levyPctChange },
+    { label: t("wc.millRate"), value: "$" + b.meta.tax_rate.toFixed(2), delta: ratePctChange },
     levyMover && levyMover.levy_difference > 0
-      ? { label: "Biggest levy increase", value: levyMover.department, note: "+" + usd(levyMover.levy_difference) }
+      ? { label: t("wc.biggestLevyIncrease"), value: levyMover.department, note: "+" + usd(levyMover.levy_difference) }
       : (budgetPctChange != null
-        ? { label: "Total budget", value: compact(b.meta.total_expenditures), delta: budgetPctChange }
+        ? { label: t("wc.totalBudget"), value: compact(b.meta.total_expenditures), delta: budgetPctChange }
         : null),
-  ]), [b.meta, levyPctChange, ratePctChange, levyMover, budgetPctChange]);
+  ]), [t, b.meta, levyPctChange, ratePctChange, levyMover, budgetPctChange]);
 
   const sections = [
     ["where", "Where It Goes"],
@@ -1517,7 +1527,7 @@ function Ledger({ b, chrome }) {
 
       <nav className="subnav">
         {sections.map(([id, label]) => (
-          <a key={id} href={"#" + id} className={active === id ? "active" : ""}>{label}</a>
+          <a key={id} href={"#" + id} className={active === id ? "active" : ""}>{t("nav." + id)}</a>
         ))}
       </nav>
 
@@ -1987,6 +1997,15 @@ html{scroll-behavior:smooth;}
   padding:6px 12px; border-radius:18px; white-space:nowrap;
   transition:background .15s ease, border-color .15s ease;}
 .chrome-bar__share:hover{background:rgba(255,255,255,.2);}
+.chrome-bar__lang{appearance:none; -webkit-appearance:none; background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.32); color:#fff; font-family:var(--sans); font-weight:600;
+  font-size:12px; padding:6px 10px; border-radius:18px; cursor:pointer; line-height:1;}
+.chrome-bar__lang option{color:#1c1a16;}
+.chrome-bar__lang:hover{background:rgba(255,255,255,.2);}
+/* Hmong beta notice — full-bleed strip directly under the chrome bar. */
+.beta-banner{margin:0 -24px; padding:9px 24px; background:var(--gold); color:#1c1a16;
+  font-family:var(--sans); font-size:12.5px; line-height:1.45;}
+.beta-banner b{font-weight:700;}
 /* the switcher row */
 .chrome-bar__switch{display:flex; flex-wrap:wrap; align-items:center; gap:8px; flex:1 1 100%;
   padding-top:8px; border-top:1px solid rgba(255,255,255,.18);}
@@ -2006,6 +2025,9 @@ html{scroll-behavior:smooth;}
 .chrome-bar__ent.on .chrome-bar__ent-icon{background:var(--paper-2);}
 @media (max-width:560px){
   .chrome-bar__divider,.chrome-bar__section{display:none;}
+  /* The controls cluster (language · share · FY) gets its own row so the added
+     language selector never pushes past the edge. */
+  .chrome-bar__right{flex:1 1 100%; flex-wrap:wrap; gap:8px 10px;}
   /* Stack the entity buttons full-width so the labels never run off the edge. */
   .chrome-bar__ent{flex:1 1 100%; justify-content:flex-start; font-size:12px; padding:6px 12px 6px 5px;}
   .chrome-bar__ent img, .chrome-bar__ent-icon{width:22px; height:22px;}

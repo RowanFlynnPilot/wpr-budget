@@ -315,6 +315,19 @@ Done and shipped:
   (1200×630 editorial card). Switcher labels shortened ("…Budget" dropped).
 - ✅ "What changed this year" lead band (`Highlights`) on all three governments, and a
   cross-link to the Central Wisconsin Meeting Tracker in each Methodology section.
+- 🔶 Multilingual (EN / ES / Hmoob) — i18n layer in `src/i18n.jsx` (`LangProvider`,
+  `useStrings()` t-function with English fallback, localStorage persistence, sets
+  `<html lang>`). Language `<select>` + Hmong **beta banner** in `ChromeBar`. Spanish
+  is a real translation; **Hmong is AI-drafted, shipped in beta pending community
+  review** (per the user's call). **v1 TRANSLATED:** chrome, the entity switcher's
+  "Your Tax Bill" label, section **nav**, the **what-changed** band (head + labels +
+  notes), **Methodology**, the suite cross-link, footers' shared bits, and the beta
+  banner. **STILL ENGLISH (phase 2):** per-section masthead deks, stat labels, section
+  kicker/titles + standfirst paragraphs, toggle buttons, calculator labels, small
+  `.note` footnotes, and `TaxBillOverview` body. Add keys to `src/i18n.jsx` and wire
+  each body via `const t = useStrings()`. NOTE: i18n.jsx must be `.jsx` (it contains
+  JSX); a `.js` extension breaks esbuild. Restart the dev server after renaming files
+  — a stale vite process on the port serves a broken module graph (blank page).
 - ✅ Cloudflare Web Analytics beacon live in `index.html` (token is the shared
   `rowanflynnpilot.github.io` site, also used by the Meeting Tracker). Privacy-first,
   no cookie banner; CF groups by hostname, so filter the dashboard by page path
