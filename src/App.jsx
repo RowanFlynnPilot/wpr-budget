@@ -6,6 +6,7 @@ import {
 import { ChevronDown, ArrowUpRight, ArrowDownRight, Receipt, Share2, Check, Home } from "lucide-react";
 import { LANGS, LangProvider, useLang, useStrings } from "./i18n";
 import annotations from "./annotations.json";
+import sponsors from "./sponsors.json";
 import logoUrl from "./assets/logo-32.png";
 import marathonLogo from "./assets/marathon-county.jpg";
 import wausauLogo from "./assets/wausau-city.jpg";
@@ -134,6 +135,27 @@ function ChartNotes({ notes }) {
   );
 }
 
+// Sponsor surface — a tasteful "Presented by" line in the masthead kicker row.
+// Driven by src/sponsors.json; renders NOTHING while sponsors.enabled is false (the
+// surface is built but hidden). A per-entity sponsor overrides the suite-wide title
+// sponsor. Clearly labeled and rel="sponsored"; never interleaved with data.
+function SponsorSlot({ entityId }) {
+  const t = useStrings();
+  if (!sponsors.enabled) return null;
+  const s = (entityId && sponsors.byEntity && sponsors.byEntity[entityId]) || sponsors.title;
+  if (!s || !s.name) return null;
+  const logo = s.logo ? (s.logo.startsWith("http") ? s.logo : import.meta.env.BASE_URL + s.logo) : null;
+  const inner = (
+    <>
+      <span className="sponsor-slot__label">{t("sponsor.presentedBy")}</span>
+      {logo ? <img className="sponsor-slot__logo" src={logo} alt={s.name} /> : <span className="sponsor-slot__name">{s.name}</span>}
+    </>
+  );
+  return s.url
+    ? <a className="sponsor-slot" href={s.url} target="_blank" rel="noopener noreferrer sponsored">{inner}</a>
+    : <span className="sponsor-slot">{inner}</span>;
+}
+
 // Shared methodology + open-data section, rendered by both entity bodies. The
 // reconcile-against-printed-totals point is the core trust signal.
 function Methodology({ b, chrome }) {
@@ -217,7 +239,7 @@ function Landing({ entities, chrome }) {
       <ChromeBar {...chrome} year={year} />
 
       <header className="masthead lp-hero">
-        <div className="kicker-row"><span className="pub">{t("common.publicLedger")}</span></div>
+        <div className="kicker-row"><span className="pub">{t("common.publicLedger")}</span><SponsorSlot entityId={null} /></div>
         <h1>Follow the Money</h1>
         <p className="dek">{t("lp.heroDek")}</p>
       </header>
@@ -450,6 +472,7 @@ function TaxBillOverview({ b, chrome }) {
             <span className="pub">{t("common.publicLedger")}</span>
             <span className="dot">·</span>
             <span>{t("common.yourTaxBill")}</span>
+            <SponsorSlot entityId={chrome.activeId} />
           </div>
         </div>
         <h1>{t("tb.h1")}</h1>
@@ -668,9 +691,10 @@ function CityLedger({ b, chrome }) {
       <header className="masthead">
         <div className="masthead-head">
           <div className="kicker-row">
-            <span className="pub">The Public Ledger</span>
+            <span className="pub">{t("common.publicLedger")}</span>
             <span className="dot">·</span>
             <span>{b.meta.entity}</span>
+            <SponsorSlot entityId={chrome.activeId} />
           </div>
           {ENTITY_LOGOS[chrome.activeId] && (
             <img className="masthead-logo" src={ENTITY_LOGOS[chrome.activeId]} alt={b.meta.entity} />
@@ -1093,9 +1117,10 @@ function SchoolLedger({ b, chrome }) {
       <header className="masthead">
         <div className="masthead-head">
           <div className="kicker-row">
-            <span className="pub">The Public Ledger</span>
+            <span className="pub">{t("common.publicLedger")}</span>
             <span className="dot">·</span>
             <span>{b.meta.entity}</span>
+            <SponsorSlot entityId={chrome.activeId} />
           </div>
           {ENTITY_LOGOS[chrome.activeId] && (
             <img className="masthead-logo" src={ENTITY_LOGOS[chrome.activeId]} alt={b.meta.entity} />
@@ -1537,10 +1562,10 @@ function Ledger({ b, chrome }) {
       <header className="masthead">
         <div className="masthead-head">
           <div className="kicker-row">
-            <span className="pub">The Public Ledger</span>
+            <span className="pub">{t("common.publicLedger")}</span>
             <span className="dot">·</span>
             <span>{b.meta.entity}</span>
-            {/* sponsor slot lands here later */}
+            <SponsorSlot entityId={chrome.activeId} />
           </div>
           {ENTITY_LOGOS[chrome.activeId] && (
             <img className="masthead-logo" src={ENTITY_LOGOS[chrome.activeId]} alt={b.meta.entity} />
@@ -2045,6 +2070,13 @@ html{scroll-behavior:smooth;}
   text-transform:uppercase; color:var(--ink-soft); font-weight:600;}
 .kicker-row .pub{color:var(--accent);}
 .kicker-row .dot{opacity:.5;}
+/* sponsor surface — tasteful "Presented by" line, right-aligned in the kicker row
+   (hidden unless src/sponsors.json is enabled) */
+.sponsor-slot{display:inline-flex; align-items:center; gap:8px; margin-left:auto; text-decoration:none;}
+.sponsor-slot__label{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); opacity:.8;}
+.sponsor-slot__name{font-family:var(--serif); font-size:15px; font-weight:600; color:var(--ink); letter-spacing:0; text-transform:none;}
+.sponsor-slot__logo{height:24px; width:auto; max-width:160px; object-fit:contain;}
+@media (max-width:560px){ .sponsor-slot{margin-left:0; flex-basis:100%; padding-top:4px;} }
 .masthead h1{font-size:clamp(44px,8vw,82px); line-height:.98; margin:14px 0 0; font-weight:600;}
 .masthead .dek{font-size:18px; max-width:60ch; color:#3a362d; margin:16px 0 0; line-height:1.55;}
 .stat-strip{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--rule);

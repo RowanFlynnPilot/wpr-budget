@@ -25,6 +25,7 @@ const EN = {
   "chrome.fyMeta": (year) => `FY${year} Adopted Budget`,
   "common.publicLedger": "The Public Ledger",
   "common.yourTaxBill": "Your Tax Bill",
+  "sponsor.presentedBy": "Presented by",
   "beta.title": "Hmong is a community translation, in beta.",
   "beta.body": "Some wording may be rough — tell Wausau Pilot & Review what to fix.",
 
@@ -293,6 +294,7 @@ const ES = {
   "chrome.fyMeta": (year) => `Presupuesto ${year} adoptado`,
   "common.publicLedger": "El Libro Público",
   "common.yourTaxBill": "Su factura de impuestos",
+  "sponsor.presentedBy": "Presentado por",
   "beta.title": "El hmong es una traducción comunitaria, en versión beta.",
   "beta.body": "Algunas frases pueden ser imperfectas — dígale a Wausau Pilot & Review qué corregir.",
 
@@ -550,6 +552,7 @@ const HMN = {
   "chrome.fyMeta": (year) => `Daim Nyiaj Txiag Xyoo ${year} Pom Zoo`,
   "common.publicLedger": "Phau Ntawv Pej Xeem",
   "common.yourTaxBill": "Koj Daim Nqi Se",
+  "sponsor.presentedBy": "Nthuav los ntawm",
   "beta.title": "Lus Hmoob yog ib qho lus txhais los ntawm zej zog (beta).",
   "beta.body": "Tej zaum cov lus tseem tsis tau zoo — qhia rau Wausau Pilot & Review paub yam yuav tsum kho.",
 

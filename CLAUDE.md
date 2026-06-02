@@ -13,7 +13,7 @@ governments, three structurally different budgets, one shared chrome.
 
 This is a grant-anchor project (accountability journalism) that pairs with the
 existing Marathon Meetings tracker as a "civic transparency suite," and is also
-advertiser-ready via a deferred sponsor slot (see below).
+advertiser-ready via a sponsor slot (built; hidden until enabled — see below).
 
 ## Architecture
 
@@ -262,11 +262,16 @@ for 2025-26) for a per-student denominator.
   everywhere EXCEPT the levy chart y-axes ($M); the County dept-ledger levy uses
   compact on mobile via `.lg-only`/`.sm-only`.
 
-### Sponsor surface (deferred — not yet built)
+### Sponsor surface (BUILT — hidden until enabled)
 
-Intended slot is the masthead kicker row (search `sponsor slot` in App.jsx).
-Plan: a "Presented by" title-sponsor logo/line there, optionally a per-section
-sponsor. Keep it tasteful and clearly labeled; do not interleave with data.
+`SponsorSlot` renders a tasteful right-aligned "Presented by" line (name or logo,
+`rel="sponsored"`, translatable via `sponsor.presentedBy`) in every masthead kicker
+row + the landing hero. It is driven by `src/sponsors.json` and renders **nothing**
+while `"enabled": false` (the current/shipped state). **To go live:** set
+`enabled:true` and fill `title` (`name`, optional `url`, optional `logo` — an https
+URL or a `public/`-relative path); `byEntity` can override the title sponsor per page.
+Verified the enabled path renders + translates; the hidden state leaves the bundle and
+UI unchanged. Keep it tasteful and clearly labeled; never interleave with data.
 
 ## Dev / deploy
 
@@ -361,8 +366,9 @@ Done and shipped:
 
 ## Next steps / backlog
 
-- Build the **sponsor surface** (still unbuilt — search `sponsor slot` in App.jsx;
-  masthead kicker row; "Presented by" title + optional per-section sponsor).
+- **Sponsor surface** is BUILT but hidden — flip `src/sponsors.json` `enabled:true`
+  and fill `title` to go live (see the Sponsor surface section above). No build work
+  left unless adding richer per-section placements.
 - **County prior-year history:** only 2025 is ingested. 2021–2024 use an OLDER
   county book format with NO Appendix E/F tables, so they are NOT extractable
   (loud failure). Don't retry unless newer-format PDFs surface. (City is single-

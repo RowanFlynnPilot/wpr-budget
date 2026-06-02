@@ -1,0 +1,6 @@
+{
+  "_README": "Sponsor surface config. While enabled=false NOTHING renders (the surface is built but hidden). To go live: set enabled=true and fill `title` with a sponsor name (+ optional url and logo). `logo` may be an absolute https URL or a path under public/ (served BASE_URL-relative, e.g. \"sponsor-acme.png\"). `byEntity` maps an entity id (marathon-county / wausau-city / wausau-school / your-tax-bill) to a sponsor object to override the suite-wide title sponsor on that page. Keep it tasteful and clearly labeled; never interleave with data.",
+  "enabled": false,
+  "title": { "name": "", "url": "", "logo": "" },
+  "byEntity": {}
+}
