@@ -172,6 +172,8 @@ levy_total:     { levy, mill_rate }
 mill_bridge:    { base_rate, base_label, result_rate, result_label, factors[] }
                 # the year-over-year mill-rate walk; factors: {factor, delta}; base+Σdelta == result
 rate_history[]: { year, label, rate }        # equalized mill rate, 1968-69 → present (~58 yrs)
+valuation_history[]: { year, value }          # equalized property value, 1975 → present (~51 yrs);
+                # latest cross-checked against the levy page's "New Valuation"
 debt:           { outstanding_principal, total_interest_remaining, total_principal_interest,
                   retirement[] }              # retirement: {year, principal, interest, total}
 ```
@@ -181,9 +183,13 @@ district-wide under a state revenue limit, with NO per-department levy (County) 
 NO per-jurisdiction municipal split (City). Its honest "where it goes" is BY OBJECT
 because the book budgets salaries centrally, not per school — per-school dollar lines
 are tiny non-salary allocations and would mislead. Phase 1 (this) is from the budget
-book alone; **Phase 2 (not yet built)** layers in DPI per-student-vs-state benchmarks
-+ enrollment + the equalized-valuation history (needs DPI CSVs downloaded by hand —
-DPI 403s datacenter IPs).
+book alone, plus the equalized-valuation history (also in the book, overlaid on the
+mill rate). **Phase 2 (not yet built)** layers in DPI per-student-vs-state benchmarks
++ a multi-year enrollment trend — needs DPI/WISEdash CSVs downloaded by hand (DPI 403s
+datacenter IPs; the interactive Comparative-per-Member tool only has mill rate + tax
+levy populated for Wausau, which the book already gives, so use the WISEdash bulk
+Finance + Enrollment files instead). The book states current FTE membership (7,882
+for 2025-26) for a per-student denominator.
 
 ## Frontend
 
@@ -211,9 +217,10 @@ DPI 403s datacenter IPs).
 - **School (`SchoolLedger`) sections:** Where It Goes (GF spending-by-object /
   revenue-by-source toggle, plus a "show what salaries & benefits buy" reveal of
   the top salary+benefit line items) · Money Flow (recharts `Sankey`: revenue
-  sources → GF → spending objects) · All Funds (by fund) · Over Time (the equalized
-  mill rate across ~58 years + a `.bridge` callout walking this year's rate change)
-  · Your Tax Bill (calculator + the school portion split across its four levy funds,
+  sources → GF → spending objects) · All Funds (by fund) · Over Time (dual-axis: the
+  equalized mill rate ~58 yrs vs. the rising equalized property value ~51 yrs — the
+  "growing base, falling rate" story — + a `.bridge` callout walking this year's
+  rate change) · Your Tax Bill (calculator + the school portion split across funds,
   same `taxbar` pattern as the City) · Debt · Methodology.
 - **Shared features:** the "Your Tax Bill" calculator (`homeValue` state →
   estimated bill); the `Methodology` component (JSON via link + CSV via
@@ -264,9 +271,10 @@ Done and shipped:
 - ✅ County entity (FY2026) + 2025 history (department trend + total-budget delta).
 - ✅ City of Wausau entity — full build (extractor `extract_wausau.py`, schema,
   `CityLedger` with all sections above).
-- ✅ Wausau School District entity (Phase 1) — extractor `extract_school.py`, schema,
-  `SchoolLedger` (where-it-goes by object, Sankey, all funds, 58-yr mill rate +
-  rate-change bridge, school-portion tax bill, debt). Placeholder SVG logo
+- ✅ Wausau School District entity (Phase 1 + 2a) — extractor `extract_school.py`,
+  schema, `SchoolLedger` (where-it-goes by object, Sankey, all funds, dual-axis
+  mill-rate-vs-equalized-valuation over ~half a century + rate-change bridge,
+  school-portion tax bill, debt). Placeholder SVG logo
   (`src/assets/wausau-school.svg`) — swap in the district's official mark.
 - ✅ WPR brand chrome bar + logo-button entity switcher + per-entity masthead logos.
 - ✅ Grant-pitch features: interactive tax-bill calculator (all), money-flow
@@ -283,11 +291,13 @@ Done and shipped:
   year; its multi-year data — levy 10-yr, personnel 11-yr — comes from within the
   2026 book.)
 - **School Phase 2:** layer in DPI per-student-vs-state spending benchmarks (the
-  distinctive "is my district efficient?" section County/City can't do), enrollment/
-  membership history, and the equalized-valuation history (the budget book has it on
-  the "HISTORY OF EQUALIZED VALUATION" page, p56 — deliberately skipped in Phase 1
-  because pdfplumber splits the leading digit off the big numbers; needs a careful
-  reconstructing parser). Needs DPI CSVs downloaded by hand (DPI 403s datacenter IPs).
+  distinctive "is my district efficient?" section County/City can't do) and a
+  multi-year enrollment trend. Needs the WISEdash bulk **Finance** + **Enrollment**
+  CSVs downloaded by hand (DPI 403s datacenter IPs; the interactive Comparative-per-
+  Member tool is a dead end — only mill rate + tax levy populated for Wausau, code
+  6223). Wausau's own per-student figure can use the book's 7,882 FTE as the
+  denominator even before the state benchmark lands. (Phase 2a — the equalized-
+  valuation history overlay — is DONE, shipped from the budget book.)
 - Possible enhancements floated but not built: per-capita / per-household toggle;
   auto "what changed this year"; County money-flow Sankey; City personnel beyond
   the chart; chart annotations; treemap. (Recharts 2.x→3.x migration is optional,
@@ -309,8 +319,12 @@ Done and shipped:
   GF total; debt principal) reconcile EXACTLY. Salary lines carry a trailing budget
   flag ("Teachers E", "…Teachers R") that gets stripped. The current rate-history
   row has a `***` footnote between year and rate (regex allows it) — miss it and
-  `budget_year` comes out a year low. The summary `print` avoids non-cp1252 chars
-  (Windows console).
+  `budget_year` comes out a year low. The valuation-history page splits the leading
+  digit off every value ("5 24,920,300" = 524,920,300) and lays two columns side by
+  side — the token-walking parser rejoins them and the latest year is cross-checked
+  against the levy page's "New Valuation". `find_page` needles for the rate-history
+  and valuation pages need a second term (e.g. "(DECREASE)") to beat the table-of-
+  contents line. The summary `print` avoids non-cp1252 chars (Windows console).
 - **Switching entities** must gate on `data.id === activeId` (App) or a body
   briefly gets the other entity's schema and crashes — already handled, keep it.
 - **recharts Sankey** link tooltip data is nested at `payload[0].payload.payload`

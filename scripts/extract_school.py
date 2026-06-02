@@ -319,6 +319,40 @@ def parse_rate_history(text):
     return out
 
 
+def parse_valuation_history(text):
+    """Equalized-valuation history (calendar years). pdfplumber splits the leading
+    digit off each value ('5 24,920,300' = 524,920,300; '2 ,594,546,174' =
+    2,594,546,174) and lays two columns side by side, so we walk tokens: a 4-digit
+    year, then a lone leading digit, then the comma-grouped remainder. Keeps the
+    first row per calendar year (a one-off '1977-78' transition row collides with
+    1977 and is dropped)."""
+    out, seen = [], set()
+    for raw in text.split("\n"):
+        toks = raw.split()
+        i = 0
+        while i < len(toks):
+            if re.fullmatch(r"\d{4}(-\d{2})?", toks[i]):
+                year = int(toks[i][:4])
+                nxt = toks[i + 1] if i + 1 < len(toks) else ""
+                if re.fullmatch(r"\d", nxt) and i + 2 < len(toks):       # split leading digit
+                    value, step = money(nxt + toks[i + 2]), 3
+                elif re.fullmatch(r"[\d,]{7,}", nxt):                    # whole comma number
+                    value, step = money(nxt), 2
+                else:
+                    i += 1
+                    continue
+                if value and year not in seen:
+                    seen.add(year)
+                    out.append({"year": year, "value": value})
+                i += step
+            else:
+                i += 1
+    out.sort(key=lambda r: r["year"])
+    if len(out) < 40:
+        raise ValueError(f"valuation history parsed only {len(out)} years")
+    return out
+
+
 def parse_debt(text):
     """Total debt-service requirements: principal + interest + total by calendar
     year, reconciled to the printed 'TOTAL' row. Outstanding principal = the sum of
@@ -378,6 +412,18 @@ def extract(pdf_path):
     # Second needle on each disambiguates the data page from the table-of-contents line.
     rate_history = parse_rate_history(
         texts[find_page(texts, "EQUALIZED TAX RATE HISTORY", "GRAPH OF EQUALIZED MILL RATES")])
+    valuation_history = parse_valuation_history(
+        texts[find_page(texts, "HISTORY OF EQUALIZED VALUATION", "(DECREASE)")])
+    # Cross-check the latest valuation against the "New Valuation" printed on the
+    # levy page — two independent spots in the book must agree.
+    mnv = re.search(r"New Valuation.*?\$\s*([\d,]+)", levy_text)
+    if not mnv:
+        raise ValueError("levy-page 'New Valuation' not found for valuation cross-check")
+    new_val = money(mnv.group(1))
+    if valuation_history[-1]["value"] != new_val:
+        raise ValueError(f"valuation cross-check: history latest {valuation_history[-1]['value']:,} "
+                         f"vs levy-page New Valuation {new_val:,}")
+
     debt = parse_debt(texts[find_page(texts, "Total Debt Service Requirements", "TOTAL 2025-2042")])
 
     budget_year = rate_history[-1]["year"]
@@ -403,6 +449,7 @@ def extract(pdf_path):
         "levy_total": levy_total,
         "mill_bridge": mill_bridge,
         "rate_history": rate_history,
+        "valuation_history": valuation_history,
         "debt": debt,
     }
 
@@ -422,6 +469,7 @@ def main():
           f"{len(data['gf_expenditures']['salary_lines'])} salary + {len(data['gf_expenditures']['benefit_lines'])} benefit lines | "
           f"{len(data['levy_by_fund'])} levy funds | {len(data['mill_bridge']['factors'])} bridge factors | "
           f"{len(data['rate_history'])} rate-history yrs ({data['rate_history'][0]['label']}-{data['rate_history'][-1]['label']}) | "
+          f"{len(data['valuation_history'])} valuation yrs (latest ${data['valuation_history'][-1]['value']:,}) | "
           f"debt ${data['debt']['outstanding_principal']:,} principal, {len(data['debt']['retirement'])} retirement yrs")
 
 

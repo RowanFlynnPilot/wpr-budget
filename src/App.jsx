@@ -697,12 +697,25 @@ function SchoolLedger({ b, chrome }) {
     };
   }, [b.gf_revenues, gfo]);
 
-  // Mill-rate history (1968 -> present), ascending; thin the axis ticks.
+  // Over time: the mill rate (fiscal years, 1968-) joined with the equalized
+  // valuation (calendar years, 1975-) on a common calendar start-year, so the
+  // falling rate and the rising tax base sit on one dual-axis chart.
   const rate = b.rate_history;
-  const rateTicks = useMemo(() => {
-    const step = Math.ceil(rate.length / 8);
-    return rate.filter((_, i) => i % step === 0 || i === rate.length - 1).map((r) => r.label);
-  }, [rate]);
+  const overTime = useMemo(() => {
+    const valByYear = Object.fromEntries(b.valuation_history.map((v) => [v.year, v.value]));
+    return rate.map((r) => {
+      const cy = parseInt(r.label.slice(0, 4), 10);
+      return { year: cy, label: r.label, rate: r.rate, valuation: valByYear[cy] ?? null };
+    });
+  }, [rate, b.valuation_history]);
+  const otTicks = useMemo(() => {
+    const ys = overTime.map((d) => d.year);
+    const step = Math.ceil(ys.length / 8);
+    return ys.filter((_, i) => i % step === 0 || i === ys.length - 1);
+  }, [overTime]);
+  const valFirst = b.valuation_history[0], valLast = b.valuation_history[b.valuation_history.length - 1];
+  const valGrowth = (valLast.value / valFirst.value).toFixed(0);
+  const ratePeak = useMemo(() => Math.max(...rate.map((r) => r.rate)), [rate]);
   const bridge = b.mill_bridge;
 
   // Levy & headline deltas.
@@ -879,25 +892,44 @@ function SchoolLedger({ b, chrome }) {
       {/* OVER TIME — the mill rate across a half-century */}
       <section id="overtime" className="block">
         <SectionHead kicker="Shifting Priorities" title="The mill rate over half a century">
-          The school tax rate has fallen from a peak of ${Math.max(...rate.map((r) => r.rate)).toFixed(2)} per $1,000
-          to ${b.meta.mill_rate.toFixed(2)} today — even as the levy itself has grown, because the district&rsquo;s
-          property base has grown faster.
+          The school tax rate has fallen from a peak of ${ratePeak.toFixed(2)} per $1,000 to ${b.meta.mill_rate.toFixed(2)}{" "}
+          today — even as the levy itself has grown — because the district&rsquo;s equalized property base has grown
+          far faster: roughly {valGrowth}× since {valFirst.year}, to {compact(valLast.value)} in {valLast.year}.
         </SectionHead>
         <div className="chart-wrap">
-          <ResponsiveContainer width="100%" height={300}>
-            <ComposedChart data={rate} margin={{ top: 8, right: 12, bottom: 4, left: 6 }}>
+          <div className="chart-legend">
+            <span><i className="sw" style={{ background: "var(--accent)" }} /> Mill rate (left)</span>
+            <span><i className="sw" style={{ background: "var(--gold)" }} /> Equalized value (right)</span>
+          </div>
+          <ResponsiveContainer width="100%" height={320}>
+            <ComposedChart data={overTime} margin={{ top: 8, right: 14, bottom: 4, left: 6 }}>
               <CartesianGrid stroke="var(--rule)" vertical={false} />
-              <XAxis dataKey="label" ticks={rateTicks} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
-              <YAxis tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={34} tickFormatter={(v) => "$" + v} />
+              <XAxis dataKey="year" ticks={otTicks} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+              <YAxis yAxisId="val" orientation="right" tick={{ fill: "var(--gold)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={42} tickFormatter={(v) => "$" + (v / 1e9).toFixed(0) + "B"} />
+              <YAxis yAxisId="rate" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={34} tickFormatter={(v) => "$" + v} />
               <Tooltip content={({ active, payload, label }) => {
                 if (!active || !payload || !payload.length) return null;
-                return (<div className="tip"><div className="tip-year">{label}</div><div><i className="sw sw-rate" /> Mill rate ${payload[0].value.toFixed(2)}</div></div>);
+                const r = payload.find((p) => p.dataKey === "rate");
+                const v = payload.find((p) => p.dataKey === "valuation");
+                return (
+                  <div className="tip">
+                    <div className="tip-year">{label}</div>
+                    {r && <div><i className="sw" style={{ background: "var(--accent)" }} /> Mill rate ${r.value.toFixed(2)}</div>}
+                    {v && v.value != null && <div><i className="sw" style={{ background: "var(--gold)" }} /> Equalized value {compact(v.value)}</div>}
+                  </div>
+                );
               }} cursor={{ stroke: "var(--rule)" }} />
-              <Area type="monotone" dataKey="rate" name="Mill rate" stroke="var(--accent)" strokeWidth={2.5}
-                fill="var(--accent)" fillOpacity={0.12} dot={false} activeDot={{ r: 5 }} />
+              <Area yAxisId="val" type="monotone" dataKey="valuation" name="Equalized value" stroke="var(--gold)"
+                strokeWidth={1.5} fill="var(--gold)" fillOpacity={0.14} dot={false} connectNulls activeDot={{ r: 4 }} />
+              <Line yAxisId="rate" type="monotone" dataKey="rate" name="Mill rate" stroke="var(--accent)" strokeWidth={2.5}
+                dot={false} activeDot={{ r: 5 }} />
             </ComposedChart>
           </ResponsiveContainer>
-          <p className="note">Equalized school mill rate, {rate[0].label}&ndash;{rate[rate.length - 1].label} ($ per $1,000 of equalized value).</p>
+          <p className="note">
+            Equalized school mill rate ({rate[0].label}&ndash;{rate[rate.length - 1].label}) against the district&rsquo;s
+            equalized property value ({valFirst.year}&ndash;{valLast.year}). As the tax base climbs, the same levy
+            needs a smaller rate.
+          </p>
         </div>
 
         <div className="callout">
