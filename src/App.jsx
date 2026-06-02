@@ -1605,7 +1605,7 @@ function WorkforceTip({ active, payload, label }) {
 function SankeyNode({ x, y, width, height, payload }) {
   const col = payload.col;
   const fill = col === 0 ? "#9a7b2e" : col === 1 ? "#16584a" : "#1c1a16";
-  if (height < 5) return null;
+  if (height <= 0) return null;
   const amt = compact(payload.value);
   if (col === 1) {
     return (
@@ -1617,10 +1617,14 @@ function SankeyNode({ x, y, width, height, payload }) {
     );
   }
   const left = col === 0;
+  // Small revenue/spending lines layout to a near-invisible sliver; floor the bar
+  // so it stays visible and always render the label (nodePadding keeps the stacked
+  // labels from colliding). The label centers on the drawn bar.
+  const barH = Math.max(height, 2.5);
   return (
     <Layer>
-      <rect x={x} y={y} width={width} height={height} fill={fill} fillOpacity={0.9} />
-      <text x={left ? x - 8 : x + width + 8} y={y + height / 2} textAnchor={left ? "end" : "start"}
+      <rect x={x} y={y} width={width} height={barH} fill={fill} fillOpacity={0.9} />
+      <text x={left ? x - 8 : x + width + 8} y={y + barH / 2} textAnchor={left ? "end" : "start"}
         dominantBaseline="middle" fontSize={11.5} fontWeight={600}
         fontFamily="Public Sans, system-ui, sans-serif" fill="#1c1a16">
         {payload.name} <tspan fill="#6b6555" fontWeight={400}>{amt}</tspan>
