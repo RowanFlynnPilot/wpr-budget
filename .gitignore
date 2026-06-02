@@ -6,5 +6,9 @@ dist-ssr
 .vite
 *.pdf
 
+# Raw source data downloaded by hand for the annual ingest (CSVs from DPI, etc.).
+# Like the budget PDFs, only the reconciled public/*.json artifact is committed.
+sources/
+
 # Python
 __pycache__/

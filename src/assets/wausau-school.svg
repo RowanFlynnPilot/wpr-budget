@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Wausau School District">
+  <rect width="100" height="100" rx="14" fill="#16584a"/>
+  <!-- mortarboard mark -->
+  <path d="M50 28 L78 40 L50 52 L22 40 Z" fill="#f3ead8"/>
+  <path d="M38 46 L38 60 C38 66 62 66 62 60 L62 46 L50 51 Z" fill="#f3ead8" opacity="0.78"/>
+  <line x1="78" y1="40" x2="78" y2="58" stroke="#f3ead8" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="78" cy="60" r="3" fill="#9a7b2e"/>
+  <text x="50" y="84" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+        font-size="17" font-weight="700" letter-spacing="1.5" fill="#f3ead8">WSD</text>
+</svg>

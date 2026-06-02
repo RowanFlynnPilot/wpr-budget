@@ -7,11 +7,17 @@ import { ChevronDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import logoUrl from "./assets/logo-32.png";
 import marathonLogo from "./assets/marathon-county.jpg";
 import wausauLogo from "./assets/wausau-city.jpg";
+import schoolLogo from "./assets/wausau-school.svg";
 
 // Per-entity logos, keyed by manifest id (used in the chrome-bar switcher and
 // the masthead). Square-format marks — shown whole (object-fit:contain), not
-// circle-cropped.
-const ENTITY_LOGOS = { "marathon-county": marathonLogo, "wausau-city": wausauLogo };
+// circle-cropped. wausau-school is an on-brand placeholder monogram; swap in the
+// district's official mark when available.
+const ENTITY_LOGOS = {
+  "marathon-county": marathonLogo,
+  "wausau-city": wausauLogo,
+  "wausau-school": schoolLogo,
+};
 
 /*
  * Follow the Money — civic budget explorer suite (Wausau Pilot & Review)
@@ -78,14 +84,17 @@ function SectionHead({ kicker, title, children }) {
 function Methodology({ b, chrome }) {
   const ent = chrome.entities.find((e) => e.id === chrome.activeId);
   const jsonUrl = import.meta.env.BASE_URL + ent.data;
+  const kindNoun = { county: "county", city: "city", school: "district" }[ent.kind];
   const csvRows = ent.kind === "city"
     ? b.general_fund.expenditures.map((r) => ({ department: r.category, fund: "General Fund", budget_2025: r.prior, budget_2026: r.proposed }))
+    : ent.kind === "school"
+    ? b.funds.map((f) => ({ fund_no: f.fund_no, fund: f.name, revenues: f.revenues, expenditures: f.expenditures, prior_expenditures: f.prior_expenditures }))
     : b.departments.map((d) => ({ department: d.department, tax_levy: d.tax_levy, operating_revenues: d.operating_revenues, operating_expenditures: d.operating_expenditures, personnel_expenditures: d.personnel_expenditures }));
   return (
     <section id="methodology" className="block">
       <SectionHead kicker="How We Built This" title="Methodology &amp; open data">
         Every figure on this page is pulled straight from {b.meta.entity}&rsquo;s official adopted {b.meta.budget_year}{" "}
-        budget — the same document the {ent.kind} publishes — and checked against the budget&rsquo;s own printed
+        budget — the same document the {kindNoun} publishes — and checked against the budget&rsquo;s own printed
         totals. Nothing here is hand-typed or estimated.
       </SectionHead>
       <ol className="method">
@@ -149,7 +158,7 @@ export default function App() {
 
   const ent = entities.find((e) => e.id === activeId);
   const chrome = { entities, activeId, onSelect };
-  const Body = ent.kind === "city" ? CityLedger : Ledger;
+  const Body = ent.kind === "city" ? CityLedger : ent.kind === "school" ? SchoolLedger : Ledger;
   return <Body key={activeId} b={data.payload} chrome={chrome} />;
 }
 
@@ -621,6 +630,402 @@ function CityLedger({ b, chrome }) {
         <p className="muted">Built and maintained by Wausau Pilot &amp; Review; department, fund, levy, tax-rate
           and debt figures extracted directly from the city&rsquo;s published budget document and reconciled
           against its printed totals.</p>
+      </footer>
+    </div>
+  );
+}
+
+// Wausau School District body. A Wisconsin school district is fund-accounted and
+// levied district-wide under a state revenue limit — no per-department levy (County)
+// and no per-jurisdiction municipal split (City). Its honest "where it goes" is BY
+// OBJECT: salaries + benefits are ~69% of the General Fund, because the book budgets
+// salaries centrally, not per school. Sections: where it goes (object/revenue), the
+// money flow, all funds, the mill rate over a half-century, the school portion of
+// your tax bill, and debt. All from the district's own validated schema.
+const SCHOOL_SANKEY_SHORT = {
+  "Other School Districts": "Other Districts",
+  "Non-Salary Operating": "Operating",
+  "Transfers to Other Funds": "Transfers Out",
+};
+
+function SchoolLedger({ b, chrome }) {
+  const [gfFlow, setGfFlow] = useState("expenditures");
+  const [showPeople, setShowPeople] = useState(false);
+  const [active, setActive] = useState("where");
+  const [taxTip, setTaxTip] = useState(null);
+  const taxbarRef = useRef(null);
+  const [homeValue, setHomeValue] = useState(200000);
+
+  const gfo = b.gf_expenditures;
+  // Where it goes: General Fund by object (spending) or by source (revenue).
+  const gfRows = useMemo(() => {
+    const rows = gfFlow === "expenditures"
+      ? gfo.by_object.map((r) => ({ label: r.object, amount: r.amount, prior: r.prior }))
+      : b.gf_revenues.map((r) => ({ label: r.source, amount: r.amount, prior: r.prior }));
+    return [...rows].sort((a, c) => c.amount - a.amount);
+  }, [gfFlow, gfo, b.gf_revenues]);
+  const gfTotal = gfFlow === "expenditures" ? b.meta.gf_expenditures : b.meta.gf_revenues;
+  const gfMax = useMemo(() => Math.max(...gfRows.map((r) => r.amount)), [gfRows]);
+
+  // "People" detail: the largest salary + benefit line items, mixed and ranked.
+  const peopleRows = useMemo(
+    () => [...gfo.salary_lines, ...gfo.benefit_lines].sort((a, c) => c.amount - a.amount).slice(0, 8),
+    [gfo]);
+  const peopleMax = peopleRows.length ? peopleRows[0].amount : 1;
+  const salaries = gfo.by_object.find((o) => o.object === "Salaries").amount;
+  const benefits = gfo.by_object.find((o) => o.object === "Benefits").amount;
+  const peopleShare = Math.round(((salaries + benefits) / gfo.total) * 100);
+
+  // All funds, largest spending first.
+  const funds = useMemo(() => [...b.funds].sort((a, c) => c.expenditures - a.expenditures), [b.funds]);
+  const fundsTotal = useMemo(() => funds.reduce((s, f) => s + f.expenditures, 0), [funds]);
+  const fundMax = useMemo(() => Math.max(...funds.map((f) => f.expenditures)), [funds]);
+
+  // General Fund money flow: revenue sources -> General Fund -> spending objects.
+  const sankey = useMemo(() => {
+    const nodes = [];
+    const id = (name, col) => { nodes.push({ name: SCHOOL_SANKEY_SHORT[name] || name, col }); return nodes.length - 1; };
+    const revIds = [...b.gf_revenues].sort((a, c) => c.amount - a.amount).map((r) => ({ i: id(r.source, 0), v: r.amount }));
+    const gf = id("General Fund", 1);
+    const expIds = [...gfo.by_object].sort((a, c) => c.amount - a.amount).map((r) => ({ i: id(r.object, 2), v: r.amount }));
+    return {
+      nodes,
+      links: [
+        ...revIds.map((r) => ({ source: r.i, target: gf, value: r.v })),
+        ...expIds.map((r) => ({ source: gf, target: r.i, value: r.v })),
+      ],
+    };
+  }, [b.gf_revenues, gfo]);
+
+  // Mill-rate history (1968 -> present), ascending; thin the axis ticks.
+  const rate = b.rate_history;
+  const rateTicks = useMemo(() => {
+    const step = Math.ceil(rate.length / 8);
+    return rate.filter((_, i) => i % step === 0 || i === rate.length - 1).map((r) => r.label);
+  }, [rate]);
+  const bridge = b.mill_bridge;
+
+  // Levy & headline deltas.
+  const levyPrior = useMemo(() => b.levy_by_fund.reduce((s, l) => s + l.prior_levy, 0), [b.levy_by_fund]);
+  const levyPct = (b.meta.total_levy / levyPrior - 1) * 100;
+  const millPct = (bridge.result_rate / bridge.base_rate - 1) * 100;
+
+  // Your tax bill: the school portion, split by fund (its four levy mill rates).
+  const jrows = useMemo(() => [...b.levy_by_fund].sort((a, c) => c.mill_rate - a.mill_rate), [b.levy_by_fund]);
+  const jtotal = b.levy_total.mill_rate;
+
+  const debt = b.debt;
+
+  const sections = [
+    ["where", "Where It Goes"],
+    ["flow", "Money Flow"],
+    ["allfunds", "All Funds"],
+    ["overtime", "Over Time"],
+    ["taxbill", "Your Tax Bill"],
+    ["debt", "Debt"],
+    ["methodology", "Methodology"],
+  ];
+
+  useEffect(() => {
+    const els = sections.map(([id]) => document.getElementById(id)).filter(Boolean);
+    const obs = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) setActive(e.target.id); }),
+      { rootMargin: "-45% 0px -50% 0px" }
+    );
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <div className="ftm">
+      <style>{CSS}</style>
+      <ChromeBar {...chrome} year={b.meta.budget_year} />
+
+      <header className="masthead">
+        <div className="masthead-head">
+          <div className="kicker-row">
+            <span className="pub">The Public Ledger</span>
+            <span className="dot">·</span>
+            <span>{b.meta.entity}</span>
+          </div>
+          {ENTITY_LOGOS[chrome.activeId] && (
+            <img className="masthead-logo" src={ENTITY_LOGOS[chrome.activeId]} alt={b.meta.entity} />
+          )}
+        </div>
+        <h1>Follow the Money</h1>
+        <p className="dek">
+          Every dollar in the {b.meta.entity}&rsquo;s {b.meta.fiscal_label} budget — where it comes from, where it
+          goes, and what it means for your tax bill. Adopted by the Board of Education.
+        </p>
+        <div className="stat-strip">
+          <Stat icon="💰" label="Total budget" value={compact(b.meta.net_expenditures)} sub="all funds, net" />
+          <Stat icon="🏛️" label="School tax levy" value={usd(b.meta.total_levy)} sub={<Delta value={levyPct} />} />
+          <Stat icon="🏠" label="Mill rate" value={b.meta.mill_rate.toFixed(2)} sub={<Delta value={millPct} invertColor />} />
+        </div>
+      </header>
+
+      <nav className="subnav">
+        {sections.map(([id, label]) => (
+          <a key={id} href={"#" + id} className={active === id ? "active" : ""}>{label}</a>
+        ))}
+      </nav>
+
+      {/* WHERE IT GOES — General Fund by object / by source */}
+      <section id="where" className="block">
+        <SectionHead kicker="The General Fund" title="Where every dollar goes">
+          The general fund — {compact(b.meta.gf_expenditures)} — pays for the district&rsquo;s day-to-day
+          operations. Schools don&rsquo;t budget salaries building-by-building, so the honest view is by
+          object: toggle between what the money buys and where it comes from.
+        </SectionHead>
+        <div className="toggle" role="group" aria-label="General fund view">
+          <button aria-pressed={gfFlow === "expenditures"} className={gfFlow === "expenditures" ? "on" : ""} onClick={() => setGfFlow("expenditures")}>Spending</button>
+          <button aria-pressed={gfFlow === "revenues"} className={gfFlow === "revenues" ? "on" : ""} onClick={() => setGfFlow("revenues")}>Revenue</button>
+        </div>
+        <div className="bars">
+          {gfRows.map((r, i) => (
+            <div className="bar-row no-spark" key={r.label} style={{ animationDelay: `${i * 40}ms` }}>
+              <div className="bar-label">{r.label}</div>
+              <div className="bar-track"><div className="bar-fill" style={{ width: `${(r.amount / gfMax) * 100}%` }} /></div>
+              <div className="bar-val">{compact(r.amount)}</div>
+              <div className="bar-share">{((r.amount / gfTotal) * 100).toFixed(0)}%</div>
+              <div className="bar-delta"><Delta value={(r.amount / r.prior - 1) * 100} invertColor={gfFlow === "expenditures"} /></div>
+            </div>
+          ))}
+        </div>
+        {gfFlow === "expenditures" && (
+          <>
+            <div className="toggle" role="group" aria-label="Salary and benefit detail" style={{ marginTop: 14 }}>
+              <button aria-pressed={showPeople} className={showPeople ? "on" : ""} onClick={() => setShowPeople((v) => !v)}>
+                {showPeople ? "Hide" : "Show"} what salaries &amp; benefits buy
+              </button>
+            </div>
+            {showPeople && (
+              <div className="bars">
+                {peopleRows.map((r, i) => (
+                  <div className="bar-row no-spark" key={r.label} style={{ animationDelay: `${i * 40}ms` }}>
+                    <div className="bar-label">{r.label}</div>
+                    <div className="bar-track"><div className="bar-fill" style={{ width: `${(r.amount / peopleMax) * 100}%` }} /></div>
+                    <div className="bar-val">{compact(r.amount)}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+        <p className="note">
+          {gfFlow === "expenditures"
+            ? `Change shown vs. the prior-year budget. People — salaries and benefits — are ${peopleShare}% of the general fund; teacher salaries alone are its single largest cost.`
+            : "Change shown vs. the prior-year budget. State equalization aid, not the local levy, is the district's largest revenue source."}
+        </p>
+      </section>
+
+      {/* MONEY FLOW — General Fund Sankey */}
+      <section id="flow" className="block">
+        <SectionHead kicker="Follow the Money" title="How the general fund flows">
+          Every general-fund dollar, traced from where it comes from, through the fund, to what it pays for.
+          Hover any ribbon to follow the money.
+        </SectionHead>
+        <div className="chart-wrap">
+          <div className="sankey-scroll">
+            <div className="sankey-inner" role="img"
+              aria-label={`Money-flow diagram: General Fund revenue sources flowing into the ${compact(b.meta.gf_expenditures)} general fund and out to spending. Largest source: State Aids.`}>
+              <ResponsiveContainer width="100%" height={420}>
+                <Sankey data={sankey} nodePadding={28} nodeWidth={12} iterations={64}
+                  node={<SankeyNode />} link={{ stroke: "#16584a", strokeOpacity: 0.2 }}
+                  margin={{ top: 24, right: 150, bottom: 24, left: 150 }}>
+                  <Tooltip content={({ active, payload }) => {
+                    if (!active || !payload || !payload.length) return null;
+                    const p = (payload[0].payload && payload[0].payload.payload) || payload[0].payload || {};
+                    const isLink = p.source && p.target && typeof p.source === "object";
+                    return (
+                      <div className="tip">
+                        <div className="tip-year">{isLink ? `${p.source.name} → ${p.target.name}` : p.name}</div>
+                        <div>{usd(p.value)}</div>
+                      </div>
+                    );
+                  }} />
+                </Sankey>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <p className="note">
+            General Fund revenue sources (left) into the fund (center) and out to spending by object (right).
+            Hover a flow for its amount.
+          </p>
+        </div>
+      </section>
+
+      {/* ALL FUNDS */}
+      <section id="allfunds" className="block">
+        <SectionHead kicker="The Whole Picture" title="All funds, by purpose">
+          Beyond the general fund, the district&rsquo;s {compact(b.meta.gross_expenditures)} all-funds budget covers
+          special education, debt service, food service, capital projects and community programs — each a separate
+          legal fund.
+        </SectionHead>
+        <div className="bars">
+          {funds.map((f, i) => (
+            <div className="bar-row no-spark" key={f.fund_no} style={{ animationDelay: `${i * 40}ms` }}>
+              <div className="bar-label">{f.name} <span className="muted">· Fund {f.fund_no}</span></div>
+              <div className="bar-track"><div className="bar-fill" style={{ width: `${(f.expenditures / fundMax) * 100}%` }} /></div>
+              <div className="bar-val">{compact(f.expenditures)}</div>
+              <div className="bar-share">{((f.expenditures / fundsTotal) * 100).toFixed(0)}%</div>
+              <div className="bar-delta"><Delta value={(f.expenditures / f.prior_expenditures - 1) * 100} invertColor /></div>
+            </div>
+          ))}
+        </div>
+        <p className="note">Spending by fund, change shown vs. the prior-year budget. Interfund transfers mean fund totals overlap; the all-funds figure above is net of them.</p>
+      </section>
+
+      {/* OVER TIME — the mill rate across a half-century */}
+      <section id="overtime" className="block">
+        <SectionHead kicker="Shifting Priorities" title="The mill rate over half a century">
+          The school tax rate has fallen from a peak of ${Math.max(...rate.map((r) => r.rate)).toFixed(2)} per $1,000
+          to ${b.meta.mill_rate.toFixed(2)} today — even as the levy itself has grown, because the district&rsquo;s
+          property base has grown faster.
+        </SectionHead>
+        <div className="chart-wrap">
+          <ResponsiveContainer width="100%" height={300}>
+            <ComposedChart data={rate} margin={{ top: 8, right: 12, bottom: 4, left: 6 }}>
+              <CartesianGrid stroke="var(--rule)" vertical={false} />
+              <XAxis dataKey="label" ticks={rateTicks} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+              <YAxis tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={34} tickFormatter={(v) => "$" + v} />
+              <Tooltip content={({ active, payload, label }) => {
+                if (!active || !payload || !payload.length) return null;
+                return (<div className="tip"><div className="tip-year">{label}</div><div><i className="sw sw-rate" /> Mill rate ${payload[0].value.toFixed(2)}</div></div>);
+              }} cursor={{ stroke: "var(--rule)" }} />
+              <Area type="monotone" dataKey="rate" name="Mill rate" stroke="var(--accent)" strokeWidth={2.5}
+                fill="var(--accent)" fillOpacity={0.12} dot={false} activeDot={{ r: 5 }} />
+            </ComposedChart>
+          </ResponsiveContainer>
+          <p className="note">Equalized school mill rate, {rate[0].label}&ndash;{rate[rate.length - 1].label} ($ per $1,000 of equalized value).</p>
+        </div>
+
+        <div className="callout">
+          <div className="callout-title">Why the rate fell {Math.round((bridge.base_rate - bridge.result_rate) * 100)}¢ this year</div>
+          <div className="bridge">
+            <div className="bridge-row"><span>{bridge.base_label}</span><b>${bridge.base_rate.toFixed(2)}</b></div>
+            {bridge.factors.map((f) => (
+              <div className="bridge-row" key={f.factor}>
+                <span>{f.factor}</span>
+                <span className="bridge-delta" style={{ color: f.delta > 0 ? "var(--neg)" : "var(--pos)" }}>
+                  {f.delta > 0 ? "+" : "−"}${Math.abs(f.delta).toFixed(2)}
+                </span>
+              </div>
+            ))}
+            <div className="bridge-row total"><span>{bridge.result_label}</span><b>${bridge.result_rate.toFixed(2)}</b></div>
+          </div>
+        </div>
+      </section>
+
+      {/* YOUR TAX BILL — school portion, split by fund */}
+      <section id="taxbill" className="block">
+        <SectionHead kicker="The Bottom Line" title="What it means for your tax bill">
+          The school district is one line on your property-tax bill, at ${jtotal.toFixed(2)} per $1,000 of value.
+          Enter your home&rsquo;s value to see your estimated school taxes and which district fund each dollar supports.
+        </SectionHead>
+
+        <div className="calc">
+          <div className="calc-input">
+            <label htmlFor="homeval-s">Your home&rsquo;s equalized value</label>
+            <div className="calc-field">
+              <span>$</span>
+              <input id="homeval-s" type="text" inputMode="numeric" value={homeValue.toLocaleString("en-US")}
+                onChange={(e) => setHomeValue(Math.min(parseInt(e.target.value.replace(/[^\d]/g, "")) || 0, 99999999))} />
+            </div>
+          </div>
+          <div className="calc-out">
+            <span className="calc-out-label">Estimated annual school tax</span>
+            <span className="calc-out-val">{usd(Math.round((homeValue / 1000) * jtotal))}</span>
+          </div>
+        </div>
+
+        <div className="taxbar" ref={taxbarRef} onMouseLeave={() => setTaxTip(null)}>
+          {jrows.map((r, i) => {
+            const share = (r.mill_rate / jtotal) * 100;
+            return (
+              <div className="taxbar-seg" key={r.fund}
+                style={{ width: share + "%", background: JURIS_COLORS[i % JURIS_COLORS.length] }}
+                onMouseMove={(e) => {
+                  const rect = taxbarRef.current.getBoundingClientRect();
+                  setTaxTip({ i, x: e.clientX - rect.left, w: rect.width });
+                }}>
+                {share > 9 ? Math.round(share) + "%" : ""}
+              </div>
+            );
+          })}
+          {taxTip && (() => {
+            const r = jrows[taxTip.i];
+            const share = (r.mill_rate / jtotal) * 100;
+            return (
+              <div className="taxbar-tip" style={{ left: Math.max(90, Math.min(taxTip.x, taxTip.w - 90)) }}>
+                <div className="tip-year">{r.fund}</div>
+                <div>{usd(Math.round((homeValue / 1000) * r.mill_rate))} &middot; {share.toFixed(1)}% &middot; ${r.mill_rate.toFixed(2)}/$1k</div>
+              </div>
+            );
+          })()}
+        </div>
+        <div className="jrows">
+          {jrows.map((r, i) => (
+            <div className="jrow" key={r.fund}>
+              <span className="jrow-sw" style={{ background: JURIS_COLORS[i % JURIS_COLORS.length] }} />
+              <span className="jrow-name">{r.fund}</span>
+              <span className="jrow-amt">{usd(Math.round((homeValue / 1000) * r.mill_rate))}</span>
+              <span className="jrow-share">{((r.mill_rate / jtotal) * 100).toFixed(0)}%</span>
+            </div>
+          ))}
+          <div className="jrow total">
+            <span className="jrow-sw" />
+            <span className="jrow-name">Your school taxes</span>
+            <span className="jrow-amt">{usd(Math.round((homeValue / 1000) * jtotal))}</span>
+            <span className="jrow-share">100%</span>
+          </div>
+        </div>
+        <p className="note">
+          Estimated from the {b.meta.fiscal_label} school mill rate of ${jtotal.toFixed(2)} per $1,000 of equalized
+          value. This is only the school district&rsquo;s share — your full bill also includes the county, your
+          municipality, and the technical college. Actual bills vary with credits and exemptions.
+        </p>
+      </section>
+
+      {/* DEBT */}
+      <section id="debt" className="block">
+        <SectionHead kicker="What the District Owes" title="Outstanding debt">
+          The district carries <b>{compact(debt.outstanding_principal)}</b> in outstanding principal — largely the
+          voter-approved 2022 referendum — with {compact(debt.total_interest_remaining)} in interest still to come.
+          Here is how it is scheduled to be paid down.
+        </SectionHead>
+        <div className="chart-wrap">
+          <div className="chart-legend">
+            <span><i className="sw sw-new" /> Principal</span>
+            <span><i className="sw sw-old" /> Interest</span>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={debt.retirement} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
+              <CartesianGrid stroke="var(--rule)" vertical={false} />
+              <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+              <YAxis tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
+              <Tooltip content={<BarTip />} cursor={{ fill: "var(--paper-2)" }} />
+              <Bar dataKey="principal" stackId="d" fill="var(--accent)" name="Principal" maxBarSize={26} />
+              <Bar dataKey="interest" stackId="d" fill="var(--gold)" fillOpacity={0.82} name="Interest" maxBarSize={26} />
+            </BarChart>
+          </ResponsiveContainer>
+          <p className="note">
+            Annual principal + interest on existing debt. The {debt.retirement[0].year} payment is{" "}
+            {compact(debt.retirement[0].total)}; the schedule runs through {debt.retirement[debt.retirement.length - 1].year}.
+          </p>
+        </div>
+      </section>
+
+      <Methodology b={b} chrome={chrome} />
+
+      <footer className="foot">
+        <p>
+          <b>Source:</b> {b.meta.entity} {b.meta.fiscal_label} Annual Budget. Figures are as adopted and may be
+          amended during the year.
+        </p>
+        <p className="muted">Built and maintained by Wausau Pilot &amp; Review; fund, levy, mill-rate and debt
+          figures extracted directly from the district&rsquo;s published budget document and reconciled against its
+          printed totals.</p>
       </footer>
     </div>
   );
@@ -1352,6 +1757,15 @@ html{scroll-behavior:smooth;}
 .callout{margin-top:26px; padding:18px 22px; background:var(--paper-2); border-left:3px solid var(--neg);}
 .callout-title{font-family:var(--serif); font-size:19px; font-weight:600; letter-spacing:-0.01em; margin-bottom:7px;}
 .callout p{font-size:15px; color:#3a362d; line-height:1.55; margin:0; max-width:66ch;}
+
+/* mill-rate bridge (the year-over-year rate walk, inside a callout) */
+.bridge{margin-top:10px; max-width:46ch;}
+.bridge-row{display:flex; justify-content:space-between; gap:16px; padding:5px 0; font-size:14px;
+  font-family:var(--sans); border-bottom:1px solid var(--rule);}
+.bridge-row span:first-child{color:#3a362d;}
+.bridge-row b{font-variant-numeric:tabular-nums;}
+.bridge-delta{font-variant-numeric:tabular-nums; font-weight:600;}
+.bridge-row.total{border-bottom:none; border-top:2px solid var(--ink); margin-top:2px; padding-top:8px; font-weight:600;}
 
 /* growth bars (TIF valuation growth) */
 .gbars{border-top:2px solid var(--ink); margin-top:4px;}

@@ -7,8 +7,9 @@ Context for Claude Code sessions on this repo.
 A civic-transparency widget for **Wausau Pilot & Review** that visualizes the
 **Marathon County** annual budget — where the money comes from, where it goes,
 the per-department breakdown, the tax-levy/mill-rate story, other funds, and
-outstanding debt. It is the first entity in a planned "Follow the Money" suite;
-the **City of Wausau** is the intended second entity (format not yet verified).
+outstanding debt. It was the first entity in the "Follow the Money" suite, now
+joined by the **City of Wausau** and the **Wausau School District** — three
+governments, three structurally different budgets, one shared chrome.
 
 This is a grant-anchor project (accountability journalism) that pairs with the
 existing Marathon Meetings tracker as a "civic transparency suite," and is also
@@ -28,6 +29,7 @@ are structurally different governments.
 |---|---|---|---|---|
 | Marathon County | county | `scripts/extract_budget.py` | `public/marathon-county.json` | `Ledger` |
 | City of Wausau | city | `scripts/extract_wausau.py` | `public/wausau-city.json` | `CityLedger` |
+| Wausau School District | school | `scripts/extract_school.py` | `public/wausau-school.json` | `SchoolLedger` |
 
 `ChromeBar` is shared; `App` gates rendering on `data.id === activeId` so a body
 is never handed the previous entity's data mid-switch.
@@ -36,7 +38,7 @@ Same pipeline pattern as the other WPR widgets, with one deliberate difference:
 
 ```
 official budget PDF (downloaded by hand)
-  -> scripts/extract_budget.py / extract_wausau.py   (pdfplumber, run locally, yearly)
+  -> scripts/extract_budget.py / extract_wausau.py / extract_school.py  (pdfplumber, local, yearly)
   -> public/<entity>.json        (committed to the repo)
   -> src/App.jsx                 (React + Vite, fetches entities.json + the entity file)
   -> GitHub Pages                (built + deployed by .github/workflows/deploy.yml)
@@ -70,6 +72,14 @@ python scripts/extract_budget.py 2026-Annual-Budget.pdf public/marathon-county.j
 
 # City of Wausau (separate extractor, separate schema — see extract_wausau.py):
 python scripts/extract_wausau.py "2026-Wausau-Budget.pdf" public/wausau-city.json
+
+# Wausau School District (separate extractor, separate schema — see extract_school.py).
+# Source = the district's "Annual Budget Book" PDF, linked from
+# https://www.wausauschools.org/departments/business-services (the view link
+# 302-redirects to a public finalsite CDN PDF). NOT BoardDocs — go.boarddocs.com/wa/
+# psd401 is *Peninsula SD in Washington*, a search-collision trap. Raw source files
+# live in the gitignored sources/ folder:
+python scripts/extract_school.py sources/2026-Wausau-School-Budget.pdf public/wausau-school.json
 ```
 
 **Prior-year format limitation.** Only the **2025 and 2026** books use the
@@ -144,13 +154,45 @@ The City has NO per-department tax levy (it levies city-wide and funds
 departments from the General Fund), so its schema and body deliberately differ
 from the County's.
 
+### wausau-school.json schema (Wausau School District — separate again)
+
+```
+meta:           { entity, kind:"school", budget_year, fiscal_label, total_levy, mill_rate,
+                  gross_expenditures, net_expenditures, gf_expenditures, gf_revenues }
+funds[]:        { fund_no, name, revenues, expenditures, prior_revenues, prior_expenditures }
+                # all-funds summary (Fund 10/27/20/38/39/49/50/73/80); reconciled to GROSS totals
+gf_revenues[]:  { source, amount, prior }    # General Fund by source; sums to gf_revenues
+gf_expenditures:{ total, by_object[], salary_lines[], benefit_lines[] }
+                # by_object: {object, amount, prior} = Salaries/Benefits/Non-Salary Operating/
+                # Transfers — sums EXACTLY to total. salary_lines/benefit_lines: {label, amount,
+                # prior} detail (reconciled to their subtotals with a $1 tolerance for the book's
+                # own rounding). This is the honest "where it goes": ~69% is people.
+levy_by_fund[]: { fund, levy, prior_levy, mill_rate }   # 4 funds; sums to levy_total
+levy_total:     { levy, mill_rate }
+mill_bridge:    { base_rate, base_label, result_rate, result_label, factors[] }
+                # the year-over-year mill-rate walk; factors: {factor, delta}; base+Σdelta == result
+rate_history[]: { year, label, rate }        # equalized mill rate, 1968-69 → present (~58 yrs)
+debt:           { outstanding_principal, total_interest_remaining, total_principal_interest,
+                  retirement[] }              # retirement: {year, principal, interest, total}
+```
+
+A Wisconsin school district is a THIRD kind of government: fund-accounted, levied
+district-wide under a state revenue limit, with NO per-department levy (County) and
+NO per-jurisdiction municipal split (City). Its honest "where it goes" is BY OBJECT
+because the book budgets salaries centrally, not per school — per-school dollar lines
+are tiny non-salary allocations and would mislead. Phase 1 (this) is from the budget
+book alone; **Phase 2 (not yet built)** layers in DPI per-student-vs-state benchmarks
++ enrollment + the equalized-valuation history (needs DPI CSVs downloaded by hand —
+DPI 403s datacenter IPs).
+
 ## Frontend
 
 - `src/App.jsx` — the ENTIRE UI in one file (~1,500 lines), one injected CSS
   string (no Tailwind / CSS files). `App` loads `entities.json` + the active
   entity's data (see Architecture) and routes to a body by kind: `Ledger`
-  (County) or `CityLedger` (City). `ChromeBar` (brand + logo-button entity
-  switcher) is shared. Hooks are top-level in each body (no conditional hooks).
+  (County), `CityLedger` (City), or `SchoolLedger` (School). `ChromeBar` (brand +
+  logo-button entity switcher) is shared. Hooks are top-level in each body (no
+  conditional hooks).
   Charts use `recharts`; icons `lucide-react`; sparklines, the Sankey nodes, and
   the tax-bill stacked bar are hand-rolled SVG/CSS.
 - Aesthetic: editorial / public-ledger. Fraunces (display) + Public Sans (data),
@@ -166,6 +208,13 @@ from the County's.
   category) · Over Time (10-yr levy bars) · Workforce (11-yr FTE, one department
   at a time via a chip picker) · Your Tax Bill (calculator + property-tax-by-
   jurisdiction split with hover tooltip) · Development (TIF) · Debt · Methodology.
+- **School (`SchoolLedger`) sections:** Where It Goes (GF spending-by-object /
+  revenue-by-source toggle, plus a "show what salaries & benefits buy" reveal of
+  the top salary+benefit line items) · Money Flow (recharts `Sankey`: revenue
+  sources → GF → spending objects) · All Funds (by fund) · Over Time (the equalized
+  mill rate across ~58 years + a `.bridge` callout walking this year's rate change)
+  · Your Tax Bill (calculator + the school portion split across its four levy funds,
+  same `taxbar` pattern as the City) · Debt · Methodology.
 - **Shared features:** the "Your Tax Bill" calculator (`homeValue` state →
   estimated bill); the `Methodology` component (JSON via link + CSV via
   `downloadCSV`); accessibility (`:focus-visible`, `prefers-reduced-motion`,
@@ -201,17 +250,27 @@ data; separation of concerns. Match the existing editorial aesthetic.
 
 ## Current state (as of last session — read this first)
 
-Both entities are LIVE and deployed. `main` is the source of truth; pushing to
-it auto-deploys. Local PDFs (`*.pdf`, gitignored) needed to re-run extractors:
-`2026-Annual-Budget.pdf` + `2025-…` (County) and `2026-Wausau-Budget.pdf` (City).
+All THREE entities are built and verified locally (`npm run build` clean). `main`
+is the source of truth; pushing to it auto-deploys. Raw source files (gitignored)
+needed to re-run extractors live in `sources/` and repo root: `2026-Annual-Budget.pdf`
++ `2025-…` (County), `2026-Wausau-Budget.pdf` (City), and
+`sources/2026-Wausau-School-Budget.pdf` (School).
+
+> The School entity was added but NOT yet committed/pushed at the end of that
+> session — check `git status`. It is Phase 1 (budget book only); Phase 2 (DPI
+> per-student + enrollment + valuation history) is pending a manual DPI download.
 
 Done and shipped:
 - ✅ County entity (FY2026) + 2025 history (department trend + total-budget delta).
 - ✅ City of Wausau entity — full build (extractor `extract_wausau.py`, schema,
   `CityLedger` with all sections above).
+- ✅ Wausau School District entity (Phase 1) — extractor `extract_school.py`, schema,
+  `SchoolLedger` (where-it-goes by object, Sankey, all funds, 58-yr mill rate +
+  rate-change bridge, school-portion tax bill, debt). Placeholder SVG logo
+  (`src/assets/wausau-school.svg`) — swap in the district's official mark.
 - ✅ WPR brand chrome bar + logo-button entity switcher + per-entity masthead logos.
-- ✅ Grant-pitch features: interactive tax-bill calculator (both), money-flow
-  Sankey (City), Methodology + open-data (JSON/CSV) + accessibility pass (both).
+- ✅ Grant-pitch features: interactive tax-bill calculator (all), money-flow
+  Sankey (City + School), Methodology + open-data (JSON/CSV) + accessibility pass.
 - ✅ CI bumped off Node 20 (deploy uses Node-24 actions, build on Node 22).
 
 ## Next steps / backlog
@@ -223,6 +282,12 @@ Done and shipped:
   (loud failure). Don't retry unless newer-format PDFs surface. (City is single-
   year; its multi-year data — levy 10-yr, personnel 11-yr — comes from within the
   2026 book.)
+- **School Phase 2:** layer in DPI per-student-vs-state spending benchmarks (the
+  distinctive "is my district efficient?" section County/City can't do), enrollment/
+  membership history, and the equalized-valuation history (the budget book has it on
+  the "HISTORY OF EQUALIZED VALUATION" page, p56 — deliberately skipped in Phase 1
+  because pdfplumber splits the leading digit off the big numbers; needs a careful
+  reconstructing parser). Needs DPI CSVs downloaded by hand (DPI 403s datacenter IPs).
 - Possible enhancements floated but not built: per-capita / per-household toggle;
   auto "what changed this year"; County money-flow Sankey; City personnel beyond
   the chart; chart annotations; treemap. (Recharts 2.x→3.x migration is optional,
@@ -235,6 +300,17 @@ Done and shipped:
 - **City book quirks:** mixed-case decorative headers (`find_page` is
   case-insensitive); long names shortened for the Sankey (`SANKEY_SHORT`); some
   pages reverse-render decorative text — target the clean data lines.
+- **School extractor quirks (`extract_school.py`):** fund detail tables (revenue/
+  expenditure) span multiple pages AND repeat the same subtotal labels across funds,
+  so it uses `find_section` (contiguous run from the first `FUND 10`+title hit), not
+  `find_page`. The book has small source-rounding artifacts: salary/benefit line
+  items sum $1 off their printed subtotal, and the debt "total" column a few dollars
+  off — handled by `reconcile_within(tol)`, while the integrity anchors (by-object →
+  GF total; debt principal) reconcile EXACTLY. Salary lines carry a trailing budget
+  flag ("Teachers E", "…Teachers R") that gets stripped. The current rate-history
+  row has a `***` footnote between year and rate (regex allows it) — miss it and
+  `budget_year` comes out a year low. The summary `print` avoids non-cp1252 chars
+  (Windows console).
 - **Switching entities** must gate on `data.id === activeId` (App) or a body
   briefly gets the other entity's schema and crashes — already handled, keep it.
 - **recharts Sankey** link tooltip data is nested at `payload[0].payload.payload`

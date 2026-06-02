@@ -1,0 +1,764 @@
+{
+  "meta": {
+    "entity": "Wausau School District",
+    "kind": "school",
+    "budget_year": 2026,
+    "fiscal_label": "2025-26",
+    "total_levy": 44385271,
+    "mill_rate": 6.58,
+    "gross_expenditures": 199561861,
+    "net_expenditures": 189613823,
+    "gf_expenditures": 117366124,
+    "gf_revenues": 117366124
+  },
+  "funds": [
+    {
+      "fund_no": 10,
+      "name": "General Fund",
+      "revenues": 117366124,
+      "expenditures": 117366124,
+      "prior_revenues": 118497789,
+      "prior_expenditures": 119272787
+    },
+    {
+      "fund_no": 27,
+      "name": "Special Projects Fund: Special Education",
+      "revenues": 20110260,
+      "expenditures": 20110260,
+      "prior_revenues": 19687640,
+      "prior_expenditures": 19687640
+    },
+    {
+      "fund_no": 20,
+      "name": "Special Projects Fund",
+      "revenues": 3125000,
+      "expenditures": 3125000,
+      "prior_revenues": 2300000,
+      "prior_expenditures": 2300000
+    },
+    {
+      "fund_no": 38,
+      "name": "Debt Service",
+      "revenues": 1113613,
+      "expenditures": 1156035,
+      "prior_revenues": 2098765,
+      "prior_expenditures": 2098765
+    },
+    {
+      "fund_no": 39,
+      "name": "Debt Service",
+      "revenues": 17913140,
+      "expenditures": 17986765,
+      "prior_revenues": 22275000,
+      "prior_expenditures": 22354000
+    },
+    {
+      "fund_no": 49,
+      "name": "Capital Projects",
+      "revenues": 1500000,
+      "expenditures": 29873069,
+      "prior_revenues": 1500000,
+      "prior_expenditures": 66756925
+    },
+    {
+      "fund_no": 50,
+      "name": "Food Service",
+      "revenues": 5111000,
+      "expenditures": 5380733,
+      "prior_revenues": 5139500,
+      "prior_expenditures": 5242031
+    },
+    {
+      "fund_no": 73,
+      "name": "Employee Benefit Trust Fund",
+      "revenues": 3145497,
+      "expenditures": 2988222,
+      "prior_revenues": 3053880,
+      "prior_expenditures": 2894673
+    },
+    {
+      "fund_no": 80,
+      "name": "Community Service Fund",
+      "revenues": 1575653,
+      "expenditures": 1575653,
+      "prior_revenues": 1279619,
+      "prior_expenditures": 1279619
+    }
+  ],
+  "gf_revenues": [
+    {
+      "source": "Local Sources",
+      "amount": 25486518,
+      "prior": 20640007
+    },
+    {
+      "source": "Other School Districts",
+      "amount": 2418714,
+      "prior": 2214407
+    },
+    {
+      "source": "State Grants",
+      "amount": 523581,
+      "prior": 555818
+    },
+    {
+      "source": "State Aids",
+      "amount": 84616118,
+      "prior": 88430638
+    },
+    {
+      "source": "Federal Grants",
+      "amount": 3421193,
+      "prior": 5756919
+    },
+    {
+      "source": "Federal Aid",
+      "amount": 900000,
+      "prior": 900000
+    }
+  ],
+  "gf_expenditures": {
+    "total": 117366124,
+    "by_object": [
+      {
+        "object": "Salaries",
+        "amount": 56987028,
+        "prior": 57451023
+      },
+      {
+        "object": "Benefits",
+        "amount": 23921432,
+        "prior": 22913469
+      },
+      {
+        "object": "Non-Salary Operating",
+        "amount": 26509626,
+        "prior": 27404986
+      },
+      {
+        "object": "Transfers to Other Funds",
+        "amount": 9948038,
+        "prior": 11503309
+      }
+    ],
+    "salary_lines": [
+      {
+        "label": "Teachers",
+        "amount": 34905210,
+        "prior": 35380014
+      },
+      {
+        "label": "Custodial",
+        "amount": 4711566,
+        "prior": 4476611
+      },
+      {
+        "label": "Teacher Aides",
+        "amount": 3046172,
+        "prior": 3244362
+      },
+      {
+        "label": "Other Certified Teachers",
+        "amount": 2695641,
+        "prior": 2616964
+      },
+      {
+        "label": "Principals",
+        "amount": 2344208,
+        "prior": 2366213
+      },
+      {
+        "label": "Secretarial/Clerical",
+        "amount": 1940842,
+        "prior": 2010161
+      },
+      {
+        "label": "Other Professional",
+        "amount": 1619704,
+        "prior": 1571997
+      },
+      {
+        "label": "Technical Staff",
+        "amount": 1330468,
+        "prior": 1291466
+      },
+      {
+        "label": "Assistant Principals",
+        "amount": 830525,
+        "prior": 804185
+      },
+      {
+        "label": "Coaching",
+        "amount": 777342,
+        "prior": 948692
+      },
+      {
+        "label": "Contracted Subs",
+        "amount": 675000,
+        "prior": 675000
+      },
+      {
+        "label": "Administrators",
+        "amount": 523086,
+        "prior": 507863
+      },
+      {
+        "label": "Long Term Subs",
+        "amount": 420000,
+        "prior": 420000
+      },
+      {
+        "label": "Other Supervisors",
+        "amount": 287419,
+        "prior": 278969
+      },
+      {
+        "label": "Professional Health",
+        "amount": 224040,
+        "prior": 217521
+      },
+      {
+        "label": "Maintenance",
+        "amount": 140162,
+        "prior": 136090
+      },
+      {
+        "label": "Administrative Assistants",
+        "amount": 129624,
+        "prior": 125854
+      },
+      {
+        "label": "Misc. Payrolls",
+        "amount": 125000,
+        "prior": 125000
+      },
+      {
+        "label": "Instructional Subs",
+        "amount": 100000,
+        "prior": 100000
+      },
+      {
+        "label": "Enrollment Aides",
+        "amount": 66950,
+        "prior": 65000
+      },
+      {
+        "label": "Attendance",
+        "amount": 66168,
+        "prior": 61161
+      },
+      {
+        "label": "Board Salaries",
+        "amount": 27900,
+        "prior": 27900
+      }
+    ],
+    "benefit_lines": [
+      {
+        "label": "Health Insurance",
+        "amount": 13379927,
+        "prior": 12296177
+      },
+      {
+        "label": "Retirement Employer",
+        "amount": 3721834,
+        "prior": 3838369
+      },
+      {
+        "label": "Social Security",
+        "amount": 3447932,
+        "prior": 3476005
+      },
+      {
+        "label": "Retiree Health",
+        "amount": 1338835,
+        "prior": 1275238
+      },
+      {
+        "label": "Medicare Portion/Social Security",
+        "amount": 808541,
+        "prior": 815124
+      },
+      {
+        "label": "Dental Insurance",
+        "amount": 718537,
+        "prior": 711095
+      },
+      {
+        "label": "Post 2011 Retiree Benefit",
+        "amount": 170000,
+        "prior": 170000
+      },
+      {
+        "label": "Disability Insurance",
+        "amount": 157063,
+        "prior": 158342
+      },
+      {
+        "label": "Group Life Insurance",
+        "amount": 110763,
+        "prior": 105119
+      },
+      {
+        "label": "College Credit Reimbursement",
+        "amount": 40000,
+        "prior": 40000
+      },
+      {
+        "label": "Other Employee Benefits",
+        "amount": 20000,
+        "prior": 20000
+      },
+      {
+        "label": "Membership Reimbursement",
+        "amount": 8000,
+        "prior": 8000
+      }
+    ]
+  },
+  "levy_by_fund": [
+    {
+      "fund": "General Fund",
+      "levy": 24266518,
+      "prior_levy": 19219507,
+      "mill_rate": 3.6
+    },
+    {
+      "fund": "Debt Service Fund 38",
+      "levy": 1113613,
+      "prior_levy": 2098764,
+      "mill_rate": 0.17
+    },
+    {
+      "fund": "Debt Service Fund 39",
+      "levy": 17913140,
+      "prior_levy": 22275000,
+      "mill_rate": 2.65
+    },
+    {
+      "fund": "Community Service Fund 80",
+      "levy": 1092000,
+      "prior_levy": 792000,
+      "mill_rate": 0.16
+    }
+  ],
+  "levy_total": {
+    "levy": 44385271,
+    "mill_rate": 6.58
+  },
+  "mill_bridge": {
+    "base_rate": 7.18,
+    "base_label": "2024-25 Mill Rate",
+    "result_rate": 6.58,
+    "result_label": "2025-26 Proposed Mill Rate",
+    "factors": [
+      {
+        "factor": "Increase to the Revenue Limit with Recurring Exemptions",
+        "delta": 0.31
+      },
+      {
+        "factor": "Non-Reoccurring Exemptions",
+        "delta": -0.13
+      },
+      {
+        "factor": "Increase in Community Service",
+        "delta": 0.04
+      },
+      {
+        "factor": "Decrease in Debt Service",
+        "delta": -0.66
+      },
+      {
+        "factor": "Decrease in Equalization Aid",
+        "delta": 0.44
+      },
+      {
+        "factor": "Increase in Equalized Property Value District-Wide",
+        "delta": -0.6
+      }
+    ]
+  },
+  "rate_history": [
+    {
+      "year": 1969,
+      "label": "1968-69",
+      "rate": 19.35
+    },
+    {
+      "year": 1970,
+      "label": "1969-70",
+      "rate": 20.26
+    },
+    {
+      "year": 1971,
+      "label": "1970-71",
+      "rate": 20.67
+    },
+    {
+      "year": 1972,
+      "label": "1971-72",
+      "rate": 19.76
+    },
+    {
+      "year": 1973,
+      "label": "1972-73",
+      "rate": 19.82
+    },
+    {
+      "year": 1974,
+      "label": "1973-74",
+      "rate": 16.87
+    },
+    {
+      "year": 1975,
+      "label": "1974-75",
+      "rate": 16.75
+    },
+    {
+      "year": 1976,
+      "label": "1975-76",
+      "rate": 14.63
+    },
+    {
+      "year": 1977,
+      "label": "1976-77",
+      "rate": 14.46
+    },
+    {
+      "year": 1978,
+      "label": "1977-78",
+      "rate": 13.48
+    },
+    {
+      "year": 1979,
+      "label": "1978-79",
+      "rate": 11.86
+    },
+    {
+      "year": 1980,
+      "label": "1979-80",
+      "rate": 10.36
+    },
+    {
+      "year": 1981,
+      "label": "1980-81",
+      "rate": 9.74
+    },
+    {
+      "year": 1982,
+      "label": "1981-82",
+      "rate": 10.41
+    },
+    {
+      "year": 1983,
+      "label": "1982-83",
+      "rate": 10.21
+    },
+    {
+      "year": 1984,
+      "label": "1983-84",
+      "rate": 11.6
+    },
+    {
+      "year": 1985,
+      "label": "1984-85",
+      "rate": 12.01
+    },
+    {
+      "year": 1986,
+      "label": "1985-86",
+      "rate": 13.88
+    },
+    {
+      "year": 1987,
+      "label": "1986-87",
+      "rate": 15.71
+    },
+    {
+      "year": 1988,
+      "label": "1987-88",
+      "rate": 14.49
+    },
+    {
+      "year": 1989,
+      "label": "1988-89",
+      "rate": 16.62
+    },
+    {
+      "year": 1990,
+      "label": "1989-90",
+      "rate": 16.95
+    },
+    {
+      "year": 1991,
+      "label": "1990-91",
+      "rate": 17.43
+    },
+    {
+      "year": 1992,
+      "label": "1991-92",
+      "rate": 18.93
+    },
+    {
+      "year": 1993,
+      "label": "1992-93",
+      "rate": 20.61
+    },
+    {
+      "year": 1994,
+      "label": "1993-94",
+      "rate": 19.09
+    },
+    {
+      "year": 1995,
+      "label": "1994-95",
+      "rate": 18.13
+    },
+    {
+      "year": 1996,
+      "label": "1995-96",
+      "rate": 16.22
+    },
+    {
+      "year": 1997,
+      "label": "1996-97",
+      "rate": 12.0
+    },
+    {
+      "year": 1998,
+      "label": "1997-98",
+      "rate": 12.3
+    },
+    {
+      "year": 1999,
+      "label": "1998-99",
+      "rate": 11.66
+    },
+    {
+      "year": 2000,
+      "label": "1999-00",
+      "rate": 11.3
+    },
+    {
+      "year": 2001,
+      "label": "2000-01",
+      "rate": 11.28
+    },
+    {
+      "year": 2002,
+      "label": "2001-02",
+      "rate": 11.12
+    },
+    {
+      "year": 2003,
+      "label": "2002-03",
+      "rate": 10.73
+    },
+    {
+      "year": 2004,
+      "label": "2003-04",
+      "rate": 10.76
+    },
+    {
+      "year": 2005,
+      "label": "2004-05",
+      "rate": 11.16
+    },
+    {
+      "year": 2006,
+      "label": "2005-06",
+      "rate": 9.95
+    },
+    {
+      "year": 2007,
+      "label": "2006-07",
+      "rate": 9.44
+    },
+    {
+      "year": 2008,
+      "label": "2007-08",
+      "rate": 9.66
+    },
+    {
+      "year": 2009,
+      "label": "2008-09",
+      "rate": 9.27
+    },
+    {
+      "year": 2010,
+      "label": "2009-10",
+      "rate": 10.41
+    },
+    {
+      "year": 2011,
+      "label": "2010-11",
+      "rate": 11.09
+    },
+    {
+      "year": 2012,
+      "label": "2011-12",
+      "rate": 11.18
+    },
+    {
+      "year": 2013,
+      "label": "2012-13",
+      "rate": 11.04
+    },
+    {
+      "year": 2014,
+      "label": "2013-14",
+      "rate": 11.09
+    },
+    {
+      "year": 2015,
+      "label": "2014-15",
+      "rate": 11.12
+    },
+    {
+      "year": 2016,
+      "label": "2015-16",
+      "rate": 11.46
+    },
+    {
+      "year": 2017,
+      "label": "2016-17",
+      "rate": 11.14
+    },
+    {
+      "year": 2018,
+      "label": "2017-18",
+      "rate": 11.12
+    },
+    {
+      "year": 2019,
+      "label": "2018-19",
+      "rate": 11.0
+    },
+    {
+      "year": 2020,
+      "label": "2019-20",
+      "rate": 10.79
+    },
+    {
+      "year": 2021,
+      "label": "2020-21",
+      "rate": 10.29
+    },
+    {
+      "year": 2022,
+      "label": "2021-22",
+      "rate": 10.27
+    },
+    {
+      "year": 2023,
+      "label": "2022-23",
+      "rate": 9.36
+    },
+    {
+      "year": 2024,
+      "label": "2023-24",
+      "rate": 8.83
+    },
+    {
+      "year": 2025,
+      "label": "2024-25",
+      "rate": 7.18
+    },
+    {
+      "year": 2026,
+      "label": "2025-26",
+      "rate": 6.58
+    }
+  ],
+  "debt": {
+    "outstanding_principal": 94388547,
+    "total_interest_remaining": 30176062,
+    "total_principal_interest": 124564609,
+    "retirement": [
+      {
+        "year": 2025,
+        "principal": 18558406,
+        "interest": 3716594,
+        "total": 22275000
+      },
+      {
+        "year": 2026,
+        "principal": 14657353,
+        "interest": 3255788,
+        "total": 17913140
+      },
+      {
+        "year": 2027,
+        "principal": 3090000,
+        "interest": 3108763,
+        "total": 6198763
+      },
+      {
+        "year": 2028,
+        "principal": 4325000,
+        "interest": 2942038,
+        "total": 7267038
+      },
+      {
+        "year": 2029,
+        "principal": 4530000,
+        "interest": 2735463,
+        "total": 7265463
+      },
+      {
+        "year": 2030,
+        "principal": 4765000,
+        "interest": 2503088,
+        "total": 7268088
+      },
+      {
+        "year": 2031,
+        "principal": 5005000,
+        "interest": 2258838,
+        "total": 7263838
+      },
+      {
+        "year": 2032,
+        "principal": 5245000,
+        "interest": 2023025,
+        "total": 7268025
+      },
+      {
+        "year": 2033,
+        "principal": 5460000,
+        "interest": 1806325,
+        "total": 7266325
+      },
+      {
+        "year": 2034,
+        "principal": 5660000,
+        "interest": 1604550,
+        "total": 7264550
+      },
+      {
+        "year": 2035,
+        "principal": 5855000,
+        "interest": 1409594,
+        "total": 7264594
+      },
+      {
+        "year": 2036,
+        "principal": 6080000,
+        "interest": 1188800,
+        "total": 7268800
+      },
+      {
+        "year": 2037,
+        "principal": 6325000,
+        "interest": 940700,
+        "total": 7265700
+      },
+      {
+        "year": 2038,
+        "principal": 4832788,
+        "interest": 682500,
+        "total": 5515288
+      }
+    ]
+  }
+}

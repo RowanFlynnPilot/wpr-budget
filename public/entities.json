@@ -12,5 +12,12 @@
     "kind": "city",
     "short": "City of Wausau Budget",
     "data": "wausau-city.json"
+  },
+  {
+    "id": "wausau-school",
+    "name": "Wausau School District",
+    "kind": "school",
+    "short": "Wausau School Budget",
+    "data": "wausau-school.json"
   }
 ]
