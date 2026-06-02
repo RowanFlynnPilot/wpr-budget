@@ -3,21 +3,28 @@
     "id": "marathon-county",
     "name": "Marathon County",
     "kind": "county",
-    "short": "Marathon County Budget",
+    "short": "Marathon County",
     "data": "marathon-county.json"
   },
   {
     "id": "wausau-city",
     "name": "City of Wausau",
     "kind": "city",
-    "short": "City of Wausau Budget",
+    "short": "City of Wausau",
     "data": "wausau-city.json"
   },
   {
     "id": "wausau-school",
     "name": "Wausau School District",
     "kind": "school",
-    "short": "Wausau School Budget",
+    "short": "Wausau Schools",
     "data": "wausau-school.json"
+  },
+  {
+    "id": "your-tax-bill",
+    "name": "Your Tax Bill",
+    "kind": "taxbill",
+    "short": "Your Tax Bill",
+    "data": "wausau-city.json"
   }
 ]

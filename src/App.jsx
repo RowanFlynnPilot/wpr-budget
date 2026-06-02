@@ -3,7 +3,7 @@ import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceDot,
   ComposedChart, BarChart, Bar, Area, Sankey, Layer,
 } from "recharts";
-import { ChevronDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { ChevronDown, ArrowUpRight, ArrowDownRight, Receipt, Share2, Check } from "lucide-react";
 import logoUrl from "./assets/logo-32.png";
 import marathonLogo from "./assets/marathon-county.jpg";
 import wausauLogo from "./assets/wausau-city.jpg";
@@ -158,14 +158,36 @@ export default function App() {
 
   const ent = entities.find((e) => e.id === activeId);
   const chrome = { entities, activeId, onSelect };
-  const Body = ent.kind === "city" ? CityLedger : ent.kind === "school" ? SchoolLedger : Ledger;
+  const Body = ent.kind === "city" ? CityLedger
+    : ent.kind === "school" ? SchoolLedger
+    : ent.kind === "taxbill" ? TaxBillOverview
+    : Ledger;
   return <Body key={activeId} b={data.payload} chrome={chrome} />;
 }
 
 // Shared WPR brand chrome bar, with the entity switcher (rendered only when the
-// suite has more than one entity).
+// suite has more than one entity) and a share control.
 function ChromeBar({ entities, activeId, onSelect, year }) {
   const active = entities.find((e) => e.id === activeId);
+  const [shared, setShared] = useState(false);
+
+  // Share a canonical deep-link to the ACTIVE entity, built from activeId rather
+  // than location.href so it stays valid no matter what the in-page scroll has
+  // done to the hash. No personal data (e.g. the tax-bill home value) is included.
+  const onShare = async () => {
+    const url = `${window.location.origin}${window.location.pathname}#${activeId}`;
+    const title = `Follow the Money — ${active ? active.name : "Wausau Pilot & Review"}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setShared(true);
+        setTimeout(() => setShared(false), 1800);
+      }
+    } catch (e) { /* user dismissed the share sheet, or clipboard was blocked */ }
+  };
+
   return (
     <div className="chrome-bar">
       <div className="chrome-bar__left">
@@ -174,23 +196,35 @@ function ChromeBar({ entities, activeId, onSelect, year }) {
           <img className="chrome-bar__logo-img" src={logoUrl} alt="Wausau Pilot &amp; Review" />
           <span className="chrome-bar__wordmark">Wausau Pilot &amp; Review</span>
         </a>
-        <span className="chrome-bar__divider" />
-        {entities.length > 1 ? (
-          <span className="chrome-bar__switch" role="tablist" aria-label="Choose budget">
-            {entities.map((e) => (
-              <button key={e.id} type="button" role="tab" aria-selected={e.id === activeId}
-                className={"chrome-bar__ent" + (e.id === activeId ? " on" : "")}
-                onClick={() => onSelect(e.id)}>
-                <img src={ENTITY_LOGOS[e.id]} alt="" />
-                <span>{e.short}</span>
-              </button>
-            ))}
-          </span>
-        ) : (
-          <span className="chrome-bar__section">{active.short}</span>
+        {entities.length <= 1 && (
+          <>
+            <span className="chrome-bar__divider" />
+            <span className="chrome-bar__section">{active.short}</span>
+          </>
         )}
       </div>
-      <span className="chrome-bar__meta">FY{year} Adopted Budget</span>
+      <div className="chrome-bar__right">
+        <button type="button" className="chrome-bar__share" onClick={onShare}
+          aria-label={shared ? "Link copied" : "Share this page"}>
+          {shared ? <Check size={14} strokeWidth={2.5} /> : <Share2 size={14} strokeWidth={2.5} />}
+          <span>{shared ? "Copied" : "Share"}</span>
+        </button>
+        <span className="chrome-bar__meta">FY{year} Adopted Budget</span>
+      </div>
+      {entities.length > 1 && (
+        <span className="chrome-bar__switch" role="tablist" aria-label="Choose budget">
+          {entities.map((e) => (
+            <button key={e.id} type="button" role="tab" aria-selected={e.id === activeId}
+              className={"chrome-bar__ent" + (e.id === activeId ? " on" : "")}
+              onClick={() => onSelect(e.id)}>
+              {e.kind === "taxbill"
+                ? <Receipt className="chrome-bar__ent-icon" size={18} strokeWidth={2} aria-hidden="true" />
+                : <img src={ENTITY_LOGOS[e.id]} alt="" />}
+              <span>{e.short}</span>
+            </button>
+          ))}
+        </span>
+      )}
     </div>
   );
 }
@@ -207,6 +241,156 @@ const SANKEY_SHORT = {
   "Other Financing Sources": "Other Financing",
 };
 const shortName = (n) => SANKEY_SHORT[n] || n;
+
+// Cross-entity overview: a City of Wausau homeowner's COMPLETE local property-tax
+// bill, split across every taxing jurisdiction (city, county, school, technical
+// college), each row clickable through to its entity. Sourced from the City book's
+// tax_by_jurisdiction table — all jurisdictions, one year, reconciled to the total
+// — so it's the real breakdown of one bill, not four numbers stitched together.
+// Maps a jurisdiction name to its suite entity id for the drill-down.
+function billEntityFor(name) {
+  const n = name.toLowerCase();
+  if (n.includes("city of wausau")) return "wausau-city";
+  if (n.includes("marathon county")) return "marathon-county";
+  if (n.includes("school")) return "wausau-school";
+  return null; // e.g. NC Technical College — not its own entity in the suite
+}
+
+function TaxBillOverview({ b, chrome }) {
+  const [homeValue, setHomeValue] = useState(200000);
+  const [taxTip, setTaxTip] = useState(null);
+  const taxbarRef = useRef(null);
+
+  const j = b.tax_by_jurisdiction;
+  const ry = j.rate_years[0];
+  const jrows = useMemo(() => [...j.rows].sort((a, c) => c.rates[ry] - a.rates[ry]), [j.rows, ry]);
+  const jtotal = j.total[ry];
+  const bill = Math.round((homeValue / 1000) * jtotal);
+  const top = jrows[0];
+  const inSuite = (id) => id && chrome.entities.some((e) => e.id === id);
+  const drill = (id) => { if (inSuite(id)) chrome.onSelect(id); };
+
+  return (
+    <div className="ftm">
+      <style>{CSS}</style>
+      <ChromeBar {...chrome} year={b.meta.budget_year} />
+
+      <header className="masthead">
+        <div className="masthead-head">
+          <div className="kicker-row">
+            <span className="pub">The Public Ledger</span>
+            <span className="dot">·</span>
+            <span>Your Tax Bill</span>
+          </div>
+        </div>
+        <h1>Where your tax bill goes</h1>
+        <p className="dek">
+          Four local governments tax the same Wausau home. For a home in the City of Wausau, this is your full
+          local property-tax bill — and exactly which government gets each dollar. Enter your home&rsquo;s value,
+          then follow any line to see where that money goes.
+        </p>
+        <div className="stat-strip">
+          <Stat icon="🧾" label="Combined tax rate" value={"$" + jtotal.toFixed(2)} sub={"per $1,000 · " + ry} />
+          <Stat icon="🏛️" label="Governments on your bill" value={String(jrows.length)} sub="county · city · school · college" />
+          <Stat icon="🏠" label="Largest share" value={Math.round((top.rates[ry] / jtotal) * 100) + "%"} sub={top.jurisdiction.replace(/\s*\(net\)/i, "")} />
+        </div>
+      </header>
+
+      <section id="bill" className="block">
+        <SectionHead kicker="The Bottom Line" title="Your complete property-tax bill">
+          The county, the city, the school district and the technical college all tax the same home. Enter your
+          value to see the split — then click any line to explore where that government spends it.
+        </SectionHead>
+
+        <div className="calc">
+          <div className="calc-input">
+            <label htmlFor="homeval-all">Your home&rsquo;s equalized value</label>
+            <div className="calc-field">
+              <span>$</span>
+              <input id="homeval-all" type="text" inputMode="numeric" value={homeValue.toLocaleString("en-US")}
+                onChange={(e) => setHomeValue(Math.min(parseInt(e.target.value.replace(/[^\d]/g, "")) || 0, 99999999))} />
+            </div>
+          </div>
+          <div className="calc-out">
+            <span className="calc-out-label">Your total annual property tax</span>
+            <span className="calc-out-val">{usd(bill)}</span>
+          </div>
+        </div>
+
+        <div className="taxbar" ref={taxbarRef} onMouseLeave={() => setTaxTip(null)}>
+          {jrows.map((r, i) => {
+            const share = (r.rates[ry] / jtotal) * 100;
+            return (
+              <div className="taxbar-seg" key={r.jurisdiction}
+                style={{ width: share + "%", background: JURIS_COLORS[i % JURIS_COLORS.length] }}
+                onMouseMove={(e) => {
+                  const rect = taxbarRef.current.getBoundingClientRect();
+                  setTaxTip({ i, x: e.clientX - rect.left, w: rect.width });
+                }}>
+                {share > 9 ? Math.round(share) + "%" : ""}
+              </div>
+            );
+          })}
+          {taxTip && (() => {
+            const r = jrows[taxTip.i];
+            const share = (r.rates[ry] / jtotal) * 100;
+            return (
+              <div className="taxbar-tip" style={{ left: Math.max(90, Math.min(taxTip.x, taxTip.w - 90)) }}>
+                <div className="tip-year">{r.jurisdiction}</div>
+                <div>{usd(Math.round((homeValue / 1000) * r.rates[ry]))} &middot; {share.toFixed(1)}% &middot; ${r.rates[ry].toFixed(2)}/$1k</div>
+              </div>
+            );
+          })()}
+        </div>
+
+        <div className="jrows">
+          {jrows.map((r, i) => {
+            const id = billEntityFor(r.jurisdiction);
+            const go = inSuite(id);
+            return (
+              <div key={r.jurisdiction} className={"jrow" + (go ? " go" : "")}
+                {...(go ? {
+                  role: "button", tabIndex: 0, onClick: () => drill(id),
+                  onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); drill(id); } },
+                } : {})}>
+                <span className="jrow-sw" style={{ background: JURIS_COLORS[i % JURIS_COLORS.length] }} />
+                <span className="jrow-name">
+                  {r.jurisdiction}
+                  {go && <span className="jrow-go">Explore <ArrowUpRight size={12} strokeWidth={2.5} /></span>}
+                </span>
+                <span className="jrow-amt">{usd(Math.round((homeValue / 1000) * r.rates[ry]))}</span>
+                <span className="jrow-share">{((r.rates[ry] / jtotal) * 100).toFixed(0)}%</span>
+              </div>
+            );
+          })}
+          <div className="jrow total">
+            <span className="jrow-sw" />
+            <span className="jrow-name">Your total bill</span>
+            <span className="jrow-amt">{usd(bill)}</span>
+            <span className="jrow-share">100%</span>
+          </div>
+        </div>
+        <p className="note">
+          Based on the {ry} combined equalized rate of ${jtotal.toFixed(2)} per $1,000 — the most recent year all
+          four jurisdictions have set — for a home in the City of Wausau. Your actual bill varies with credits and
+          exemptions (the lottery and first-dollar credits alone are worth a few hundred dollars), and with where in
+          the county you live. The county, city and school district each have their own detailed breakdown in this
+          tool; the technical college does not.
+        </p>
+      </section>
+
+      <footer className="foot">
+        <p>
+          <b>Source:</b> the City of Wausau&rsquo;s published property-tax allocation by taxing jurisdiction.
+          Figures are equalized rates as certified for {ry}.
+        </p>
+        <p className="muted">Built and maintained by Wausau Pilot &amp; Review as part of its &ldquo;Follow the
+          Money&rdquo; civic-transparency suite; rates are taken directly from the published budget document and
+          reconciled against its printed totals.</p>
+      </footer>
+    </div>
+  );
+}
 
 // City of Wausau body. A municipality is fund-based with no per-department levy,
 // so the sections differ from the County's: spending by GF department and by
@@ -1697,46 +1881,50 @@ html{scroll-behavior:smooth;}
 .ftm h1,.ftm h2{font-family:var(--serif); font-weight:600; letter-spacing:-0.01em; margin:0;}
 
 /* WPR brand chrome bar — shared "Follow the Money" suite chrome (matches River Conditions) */
-.chrome-bar{display:flex; align-items:center; justify-content:space-between; gap:12px;
-  margin:0 -24px; padding:10px 24px; background:#0d7377; color:#fff;}
+/* Two-tier chrome: brand + share/FY on the top row, the entity switcher as its own
+   full-width row beneath. Scales cleanly to four (and more) entities at any width
+   instead of cramming them into the brand row. */
+.chrome-bar{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:9px 14px;
+  margin:0 -24px; padding:9px 24px; background:#0d7377; color:#fff;}
 .chrome-bar__brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:#fff;}
 .chrome-bar__logo-img{height:30px; width:30px; border-radius:50%; object-fit:cover;
   border:1.5px solid rgba(255,255,255,.5); flex-shrink:0;}
 .chrome-bar__wordmark{font-family:'Playfair Display',Georgia,serif; font-weight:900;
   font-size:14px; letter-spacing:.03em; text-transform:uppercase; white-space:nowrap;}
-.chrome-bar__left{display:flex; align-items:center; gap:12px; min-width:0;}
+.chrome-bar__left{display:flex; align-items:center; gap:12px; min-width:0; flex:1 1 auto;}
 .chrome-bar__divider{width:1px; height:18px; background:rgba(255,255,255,.35);}
 .chrome-bar__section{font-weight:600; font-size:12px; letter-spacing:.04em;
   text-transform:uppercase; opacity:.9; white-space:nowrap;}
-.chrome-bar__switch{display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap;}
-.chrome-bar__ent{display:inline-flex; align-items:center; gap:7px; cursor:pointer;
-  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.28); color:#fff;
+.chrome-bar__right{display:flex; align-items:center; gap:12px; flex:0 0 auto;}
+.chrome-bar__meta{font-size:11px; letter-spacing:.04em; opacity:.75; white-space:nowrap;}
+.chrome-bar__share{display:inline-flex; align-items:center; gap:6px; cursor:pointer;
+  background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.32); color:#fff;
   font-family:var(--sans); font-weight:600; font-size:12px; letter-spacing:.02em; line-height:1;
-  padding:3px 11px 3px 3px; border-radius:18px; white-space:nowrap;
+  padding:6px 12px; border-radius:18px; white-space:nowrap;
+  transition:background .15s ease, border-color .15s ease;}
+.chrome-bar__share:hover{background:rgba(255,255,255,.2);}
+/* the switcher row */
+.chrome-bar__switch{display:flex; flex-wrap:wrap; align-items:center; gap:8px; flex:1 1 100%;
+  padding-top:8px; border-top:1px solid rgba(255,255,255,.18);}
+.chrome-bar__ent{display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.28); color:#fff;
+  font-family:var(--sans); font-weight:600; font-size:12.5px; letter-spacing:.02em; line-height:1;
+  padding:6px 14px 6px 5px; border-radius:18px; white-space:nowrap;
   transition:background .15s ease, border-color .15s ease, color .15s ease;}
 .chrome-bar__ent img{width:24px; height:24px; border-radius:5px; object-fit:contain;
   background:#fff; padding:2px; flex-shrink:0;}
 .chrome-bar__ent:hover{background:rgba(255,255,255,.18);}
 .chrome-bar__ent.on{background:#fff; color:var(--ink); border-color:#fff;}
-.chrome-bar__meta{font-size:11px; letter-spacing:.04em; opacity:.75; white-space:nowrap;}
-/* Desktop: let the two entity buttons grow to fill the space between the brand
-   and the FY label, for a more prominent switcher. */
-@media (min-width:561px){
-  .chrome-bar__left{flex:1;}
-  .chrome-bar__switch{flex:1; gap:10px;}
-  .chrome-bar__ent{flex:1 1 0; justify-content:center; font-size:13px; gap:9px; padding:7px 18px 7px 7px;}
-  .chrome-bar__ent img{width:26px; height:26px;}
-}
+/* Switcher icon for the non-government "Your Tax Bill" view — sized to match the
+   entity seals so the row reads evenly. */
+.chrome-bar__ent-icon{width:24px; height:24px; padding:3px; border-radius:5px;
+  background:rgba(255,255,255,.16); color:inherit; flex-shrink:0;}
+.chrome-bar__ent.on .chrome-bar__ent-icon{background:var(--paper-2);}
 @media (max-width:560px){
-  .chrome-bar{flex-wrap:wrap; padding:8px 24px;}
   .chrome-bar__divider,.chrome-bar__section{display:none;}
-  .chrome-bar__left{flex-wrap:wrap; gap:8px 10px;}
-  /* Stack the entity buttons full-width so three long labels never run off the
-     edge; each is a tappable row with its logo and full name. */
-  .chrome-bar__switch{flex:1 1 100%; gap:6px;}
+  /* Stack the entity buttons full-width so the labels never run off the edge. */
   .chrome-bar__ent{flex:1 1 100%; justify-content:flex-start; font-size:12px; padding:6px 12px 6px 5px;}
-  .chrome-bar__ent img{width:22px; height:22px;}
-  .chrome-bar__meta{width:100%; padding-top:2px;}
+  .chrome-bar__ent img, .chrome-bar__ent-icon{width:22px; height:22px;}
 }
 
 /* masthead */
@@ -1820,6 +2008,15 @@ html{scroll-behavior:smooth;}
 .jrow-amt,.jrow-share{text-align:right;}
 .jrow-amt{font-weight:600;}
 .jrow.total{font-weight:700; border-bottom:none; border-top:1px solid var(--ink); margin-top:2px;}
+/* Clickable jurisdiction rows in the complete-bill overview drill through to that
+   government's page. */
+.jrow.go{cursor:pointer; transition:background .12s ease;}
+.jrow.go:hover{background:var(--paper-2);}
+.jrow.go:focus-visible{outline:2px solid var(--accent); outline-offset:-2px;}
+.jrow-go{display:inline-flex; align-items:center; gap:2px; margin-left:9px; font-size:11px; font-weight:700;
+  letter-spacing:.04em; text-transform:uppercase; color:var(--accent); opacity:0; transition:opacity .12s ease;}
+.jrow.go:hover .jrow-go, .jrow.go:focus-visible .jrow-go{opacity:1;}
+@media (hover:none){ .jrow-go{opacity:.85;} }
 
 /* money-flow Sankey — fits on desktop; scrolls horizontally only when too narrow */
 .sankey-scroll{overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;}

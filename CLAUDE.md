@@ -30,6 +30,13 @@ are structurally different governments.
 | Marathon County | county | `scripts/extract_budget.py` | `public/marathon-county.json` | `Ledger` |
 | City of Wausau | city | `scripts/extract_wausau.py` | `public/wausau-city.json` | `CityLedger` |
 | Wausau School District | school | `scripts/extract_school.py` | `public/wausau-school.json` | `SchoolLedger` |
+| Your Tax Bill (overview) | taxbill | — (no extractor) | `public/wausau-city.json` (reuses the City's `tax_by_jurisdiction`) | `TaxBillOverview` |
+
+The last entry is NOT a government — it's a cross-entity **overview**: a City of Wausau
+homeowner's complete property-tax bill split across all four taxing jurisdictions
+(city/county/school/technical college), each row clicking through to its entity. It
+has no data file of its own; it reads the City book's `tax_by_jurisdiction` table
+(the one place all four jurisdictions appear at one year, reconciled to the total).
 
 `ChromeBar` is shared; `App` gates rendering on `data.id === activeId` so a body
 is never handed the previous entity's data mid-switch.
@@ -206,9 +213,12 @@ for 2025-26) for a per-student denominator.
 - `src/App.jsx` — the ENTIRE UI in one file (~1,500 lines), one injected CSS
   string (no Tailwind / CSS files). `App` loads `entities.json` + the active
   entity's data (see Architecture) and routes to a body by kind: `Ledger`
-  (County), `CityLedger` (City), or `SchoolLedger` (School). `ChromeBar` (brand +
-  logo-button entity switcher) is shared. Hooks are top-level in each body (no
-  conditional hooks).
+  (County), `CityLedger` (City), `SchoolLedger` (School), or `TaxBillOverview`
+  (the cross-entity Your-Tax-Bill view). `ChromeBar` is shared — a **two-tier** bar
+  (brand + Share/FY on top, the entity switcher as its own full-width row beneath, so
+  it scales past three entities), with a `navigator.share`-or-clipboard **Share**
+  button that emits a canonical `#<activeId>` deep link (no personal data in the URL).
+  Hooks are top-level in each body (no conditional hooks).
   Charts use `recharts`; icons `lucide-react`; sparklines, the Sankey nodes, and
   the tax-bill stacked bar are hand-rolled SVG/CSS.
 - Aesthetic: editorial / public-ledger. Fraunces (display) + Public Sans (data),
@@ -293,6 +303,14 @@ Done and shipped:
 - ✅ Grant-pitch features: interactive tax-bill calculator (all), money-flow
   Sankey (City + School), Methodology + open-data (JSON/CSV) + accessibility pass.
 - ✅ CI bumped off Node 20 (deploy uses Node-24 actions, build on Node 22).
+- ✅ Complete tax-bill unifier (`TaxBillOverview`, a 4th "Your Tax Bill" switcher view):
+  one calculator → a City of Wausau homeowner's whole bill split across all four
+  jurisdictions, each clicking through to its entity. Two-tier `ChromeBar` + Share
+  button + OG/Twitter social meta in `index.html` + a generated `public/og-image.png`
+  (1200×630 editorial card). Switcher labels shortened ("…Budget" dropped).
+- ⏳ Cloudflare Web Analytics snippet is in `index.html` but COMMENTED OUT pending the
+  site token — replace `CLOUDFLARE_TOKEN` and uncomment once the user creates the
+  Web Analytics site for the Pages URL. Privacy-first, no cookie banner.
 
 ## Next steps / backlog
 
@@ -344,3 +362,12 @@ Done and shipped:
 - **recharts Sankey** link tooltip data is nested at `payload[0].payload.payload`
   (source/target are resolved node objects there).
 - One CSS file, injected as a string — search the `CSS` template literal.
+- **Social cards / OG:** this is a client-rendered SPA on GitHub Pages, so crawlers
+  only read the static `index.html` meta — per-page OG images can't vary without
+  prerendering. There's ONE suite card at `public/og-image.png` (a 1200×630 editorial
+  card generated locally with PIL — regenerate with the same script if branding
+  changes). `og:image`/`twitter:image` use absolute Pages URLs.
+- **Tax-bill unifier scope:** `TaxBillOverview` is specifically a *City of Wausau*
+  resident's bill (that's whose `tax_by_jurisdiction` the City book carries). Other
+  municipalities/towns in the county would need their own jurisdiction splits — a
+  clear future extension. Jurisdiction→entity mapping is `billEntityFor()`.
