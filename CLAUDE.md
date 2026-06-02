@@ -245,11 +245,16 @@ for 2025-26) for a per-student denominator.
   (calculator + the school portion split across funds, same `taxbar` pattern as the
   City) · Debt · Methodology.
 - **Shared features:** the "Your Tax Bill" calculator (`homeValue` state →
-  estimated bill); the `Methodology` component (JSON via link + CSV via
-  `downloadCSV`); accessibility (`:focus-visible`, `prefers-reduced-motion`,
-  `aria-pressed` on toggles/chips, `role="img"` on the Sankey). Tax-levy values
-  render in full dollars everywhere EXCEPT the levy chart y-axes ($M); the County
-  dept-ledger levy uses compact on mobile via `.lg-only`/`.sm-only`.
+  estimated bill); the `Highlights` "What changed this year" lead band (rendered
+  between masthead and subnav by the three government bodies — each computes its own
+  3 items: levy/rate deltas + the biggest mover; the County mover EXCLUDES sign-flip
+  revenue-returning offices to avoid the reclassification artifact); the `Methodology`
+  component (JSON via link + CSV via `downloadCSV`) which also carries the `.suite-link`
+  cross-link to the Central Wisconsin Meeting Tracker (`MEETING_TRACKER_URL`);
+  accessibility (`:focus-visible`, `prefers-reduced-motion`, `aria-pressed` on
+  toggles/chips, `role="img"` on the Sankey). Tax-levy values render in full dollars
+  everywhere EXCEPT the levy chart y-axes ($M); the County dept-ledger levy uses
+  compact on mobile via `.lg-only`/`.sm-only`.
 
 ### Sponsor surface (deferred — not yet built)
 
@@ -308,6 +313,8 @@ Done and shipped:
   jurisdictions, each clicking through to its entity. Two-tier `ChromeBar` + Share
   button + OG/Twitter social meta in `index.html` + a generated `public/og-image.png`
   (1200×630 editorial card). Switcher labels shortened ("…Budget" dropped).
+- ✅ "What changed this year" lead band (`Highlights`) on all three governments, and a
+  cross-link to the Central Wisconsin Meeting Tracker in each Methodology section.
 - ⏳ Cloudflare Web Analytics snippet is in `index.html` but COMMENTED OUT pending the
   site token — replace `CLOUDFLARE_TOKEN` and uncomment once the user creates the
   Web Analytics site for the Pages URL. Privacy-first, no cookie banner.

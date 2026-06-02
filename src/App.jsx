@@ -79,6 +79,35 @@ function SectionHead({ kicker, title, children }) {
   );
 }
 
+// Companion civic-transparency tool — the budgets adopted here are debated and voted
+// in the meetings the tracker covers.
+const MEETING_TRACKER_URL = "https://rowanflynnpilot.github.io/marathon-meetings/";
+
+// "What changed this year" lead band — a few auto-computed highlights rendered between
+// the masthead and the section nav. Each body passes its own data-appropriate items:
+// { label, value, delta?, invert?, money?, exact?, note? }. delta uses <Delta>.
+function Highlights({ items }) {
+  const shown = (items || []).filter(Boolean);
+  if (!shown.length) return null;
+  return (
+    <div className="whatchanged">
+      <div className="wc-head">What changed this year</div>
+      <div className="wc-grid">
+        {shown.map((it, i) => (
+          <div className="wc-item" key={i}>
+            <div className="wc-label">{it.label}</div>
+            <div className="wc-value">{it.value}</div>
+            <div className="wc-meta">
+              {it.delta !== undefined && <Delta value={it.delta} invertColor={it.invert} money={it.money} exact={it.exact} />}
+              {it.note && <span className="wc-note">{it.note}</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Shared methodology + open-data section, rendered by both entity bodies. The
 // reconcile-against-printed-totals point is the core trust signal.
 function Methodology({ b, chrome }) {
@@ -113,6 +142,14 @@ function Methodology({ b, chrome }) {
         This data is free to reuse. Built and maintained by Wausau Pilot &amp; Review as part of its civic
         transparency work.
       </p>
+      <a className="suite-link" href={MEETING_TRACKER_URL} target="_blank" rel="noopener noreferrer">
+        <span className="suite-link__icon" aria-hidden="true">📋</span>
+        <span>
+          <b>See the decisions behind the budget.</b> This budget was debated and adopted in public meetings —
+          follow them in WPR&rsquo;s Central Wisconsin Meeting Tracker.
+        </span>
+        <ArrowUpRight size={16} strokeWidth={2.5} className="suite-link__arrow" />
+      </a>
     </section>
   );
 }
@@ -473,6 +510,17 @@ function CityLedger({ b, chrome }) {
   const tifGrowth = useMemo(() => [...tif.valuation_growth].sort((a, c) => c.growth - a.growth), [tif.valuation_growth]);
   const tifMaxGrowth = Math.max(...tifGrowth.map((g) => g.growth));
 
+  const changed = useMemo(() => {
+    const cur = b.expenditure_categories.reduce((s, c) => s + c.current, 0);
+    const prior = b.expenditure_categories.reduce((s, c) => s + c.prior, 0);
+    const mover = [...b.expenditure_categories].sort((a, c) => (c.current - c.prior) - (a.current - a.prior))[0];
+    return [
+      { label: "City tax levy", value: usd(b.meta.tax_levy), delta: levyPct },
+      { label: "Total budget · all funds", value: compact(b.meta.total_expenditures), delta: (cur / prior - 1) * 100 },
+      { label: "Fastest-growing category", value: mover.category, note: "+" + compact(mover.current - mover.prior) },
+    ];
+  }, [b.expenditure_categories, b.meta, levyPct]);
+
   const sections = [
     ["where", "Where It Goes"],
     ["flow", "Money Flow"],
@@ -522,6 +570,8 @@ function CityLedger({ b, chrome }) {
           <Stat icon="🏠" label="City share of tax bill" value={cityShare + "%"} sub={"of $" + jtotal.toFixed(2) + " total rate"} />
         </div>
       </header>
+
+      <Highlights items={changed} />
 
       <nav className="subnav">
         {sections.map(([id, label]) => (
@@ -925,6 +975,16 @@ function SchoolLedger({ b, chrome }) {
   const perStudentGF = enr ? Math.round(b.gf_expenditures.total / enrNow) : 0;
   const perStudentAll = enr ? Math.round(b.meta.net_expenditures / enrNow) : 0;
 
+  const changed = useMemo(() => ([
+    { label: "School tax levy", value: usd(b.meta.total_levy), delta: levyPct },
+    { label: "Mill rate", value: "$" + b.meta.mill_rate.toFixed(2), delta: millPct, invert: true },
+    enr && {
+      label: "Enrollment", value: enrNow.toLocaleString(),
+      note: (enrChange < 0 ? "down " : enrChange > 0 ? "up " : "flat, ") +
+        (enrChange ? Math.abs(enrChange).toLocaleString() + " since " + enr.labels[0] : "five years"),
+    },
+  ]), [b.meta, levyPct, millPct, enr, enrNow, enrChange]);
+
   const sections = [
     ["where", "Where It Goes"],
     ["flow", "Money Flow"],
@@ -973,6 +1033,8 @@ function SchoolLedger({ b, chrome }) {
           <Stat icon="🏠" label="Mill rate" value={b.meta.mill_rate.toFixed(2)} sub={<Delta value={millPct} invertColor />} />
         </div>
       </header>
+
+      <Highlights items={changed} />
 
       <nav className="subnav">
         {sections.map(([id, label]) => (
@@ -1376,6 +1438,26 @@ function Ledger({ b, chrome }) {
     return { first, last, rows, maxVal, maxChange };
   }, [b.history]);
 
+  // Biggest single-department levy increase. Require a positive levy in BOTH years
+  // so revenue-returning offices (County Treasurer, Register of Deeds, Non
+  // Departmental) are excluded — their levy sign flips between books and shows a
+  // tens-of-millions reclassification artifact that would dwarf every real change.
+  const levyMover = useMemo(() => {
+    const ds = b.departments.filter((d) =>
+      typeof d.levy_difference === "number" && d.tax_levy > 0 && d.prior_tax_levy > 0);
+    return ds.sort((a, c) => c.levy_difference - a.levy_difference)[0];
+  }, [b.departments]);
+
+  const changed = useMemo(() => ([
+    { label: "County tax levy", value: usd(b.meta.tax_levy), delta: levyPctChange },
+    { label: "Mill rate", value: "$" + b.meta.tax_rate.toFixed(2), delta: ratePctChange },
+    levyMover && levyMover.levy_difference > 0
+      ? { label: "Biggest levy increase", value: levyMover.department, note: "+" + usd(levyMover.levy_difference) }
+      : (budgetPctChange != null
+        ? { label: "Total budget", value: compact(b.meta.total_expenditures), delta: budgetPctChange }
+        : null),
+  ]), [b.meta, levyPctChange, ratePctChange, levyMover, budgetPctChange]);
+
   const sections = [
     ["where", "Where It Goes"],
     ["departments", "Departments"],
@@ -1430,6 +1512,8 @@ function Ledger({ b, chrome }) {
           <Stat icon="🏠" label="Mill rate" value={"$" + b.meta.tax_rate.toFixed(2)} sub={<Delta value={ratePctChange} />} />
         </div>
       </header>
+
+      <Highlights items={changed} />
 
       <nav className="subnav">
         {sections.map(([id, label]) => (
@@ -2077,6 +2161,29 @@ html{scroll-behavior:smooth;}
   padding:10px 18px; border:1px solid var(--ink); background:var(--ink); color:var(--paper);
   text-decoration:none; cursor:pointer; transition:background .15s ease, color .15s ease;}
 .dl-btn:hover{background:transparent; color:var(--ink);}
+
+/* "What changed this year" lead band (between masthead and section nav) */
+.whatchanged{margin:22px 0 2px; padding:18px 22px; background:var(--paper-2); border:1px solid var(--rule);}
+.wc-head{font-family:var(--sans); font-size:12px; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+.wc-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+.wc-item{display:flex; flex-direction:column; gap:4px; min-width:0;}
+.wc-label{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); font-weight:700;}
+.wc-value{font-family:var(--serif); font-size:clamp(19px,2.3vw,25px); font-weight:600; line-height:1.12;
+  color:var(--ink); letter-spacing:-0.01em;}
+.wc-meta{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:13px; margin-top:1px;}
+.wc-note{color:var(--ink-soft);}
+@media (max-width:620px){ .wc-grid{grid-template-columns:1fr; gap:14px;} }
+
+/* suite cross-link to the Central Wisconsin Meeting Tracker */
+.suite-link{display:flex; align-items:center; gap:14px; margin-top:24px; padding:15px 20px;
+  background:var(--paper-2); border-left:3px solid var(--accent); text-decoration:none; color:var(--ink);
+  transition:background .15s ease;}
+.suite-link:hover{background:rgba(22,88,74,.07);}
+.suite-link__icon{font-size:22px; flex-shrink:0; line-height:1;}
+.suite-link span{font-size:14px; line-height:1.5;}
+.suite-link span b{color:var(--accent);}
+.suite-link__arrow{flex-shrink:0; color:var(--accent); margin-left:auto;}
 
 /* accessibility: visible focus + respect reduced-motion */
 .ftm a:focus-visible, .ftm button:focus-visible, .ftm input:focus-visible, .ftm select:focus-visible{
