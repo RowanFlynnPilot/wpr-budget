@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceDot,
-  ComposedChart, BarChart, Bar, Area, Sankey, Layer,
+  ReferenceLine, ComposedChart, BarChart, Bar, Area, Sankey, Layer,
 } from "recharts";
 import { ChevronDown, ArrowUpRight, ArrowDownRight, Receipt, Share2, Check, Home } from "lucide-react";
 import { LANGS, LangProvider, useLang, useStrings } from "./i18n";
+import annotations from "./annotations.json";
 import logoUrl from "./assets/logo-32.png";
 import marathonLogo from "./assets/marathon-county.jpg";
 import wausauLogo from "./assets/wausau-city.jpg";
@@ -107,6 +108,29 @@ function Highlights({ items }) {
         ))}
       </div>
     </div>
+  );
+}
+
+// Resolve editorial chart annotations for one entity+chart into the active language.
+// Returns [] when none — charts render unchanged if a chart has no annotations.
+function resolveNotes(chrome, lang, chartId) {
+  const list = (chrome.annotations && chrome.annotations[chrome.activeId] && chrome.annotations[chrome.activeId][chartId]) || [];
+  return list.map((a) => ({ x: a.x, tag: (a.tag && (a.tag[lang] || a.tag.en)) || "", note: (a.note && (a.note[lang] || a.note.en)) || "", source: a.source || null }));
+}
+
+// The text companion to the on-chart reference lines: a short list beneath the chart
+// with each marker's year, plain-language note, and (when provided) a source link.
+function ChartNotes({ notes }) {
+  if (!notes || !notes.length) return null;
+  return (
+    <ul className="chart-notes">
+      {notes.map((a) => (
+        <li key={a.x}>
+          <b>{a.x}</b> — {a.note}
+          {a.source && <a className="chart-note-src" href={a.source} target="_blank" rel="noopener noreferrer" aria-label="source"> ↗</a>}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -279,7 +303,7 @@ export default function App() {
   if (err) return (<div className="ftm load"><style>{CSS}</style><p>Could not load budget data &mdash; {err}</p></div>);
   if (!entities) return (<div className="ftm load"><style>{CSS}</style><p>Loading the ledger&hellip;</p></div>);
 
-  const chrome = { entities, activeId, onSelect };
+  const chrome = { entities, activeId, onSelect, annotations };
   // No entity selected → the suite landing page.
   if (!activeId) return <LangProvider><Landing entities={entities} chrome={chrome} /></LangProvider>;
 
@@ -936,6 +960,9 @@ const SCHOOL_SANKEY_SHORT = {
 
 function SchoolLedger({ b, chrome }) {
   const t = useStrings();
+  const { lang } = useLang();
+  const overNotes = resolveNotes(chrome, lang, "overtime");
+  const enrNotes = resolveNotes(chrome, lang, "students");
   const [gfFlow, setGfFlow] = useState("expenditures");
   const [showPeople, setShowPeople] = useState(false);
   const [active, setActive] = useState("where");
@@ -1205,9 +1232,14 @@ function SchoolLedger({ b, chrome }) {
               }} cursor={{ stroke: "var(--rule)" }} />
               <Area type="monotone" dataKey="count" name="Enrollment" stroke="var(--accent)" strokeWidth={2.5}
                 fill="var(--accent)" fillOpacity={0.12} dot={{ r: 3, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
+              {enrNotes.map((a) => (
+                <ReferenceLine key={a.x} x={a.x} stroke="var(--ink-soft)" strokeDasharray="3 3" strokeOpacity={0.75}
+                  label={{ value: a.tag, position: "insideTopRight", fontSize: 10, fill: "var(--ink-soft)", fontFamily: "var(--sans)" }} />
+              ))}
             </ComposedChart>
           </ResponsiveContainer>
           <p className="note">{t("s.students.note", enr.labels[0], enr.labels[enr.labels.length - 1], usd(perStudentGF), usd(perStudentAll))}</p>
+          <ChartNotes notes={enrNotes} />
         </div>
       </section>
       )}
@@ -1244,9 +1276,14 @@ function SchoolLedger({ b, chrome }) {
                 strokeWidth={1.5} fill="var(--gold)" fillOpacity={0.14} dot={false} connectNulls activeDot={{ r: 4 }} />
               <Line yAxisId="rate" type="monotone" dataKey="rate" name="Mill rate" stroke="var(--accent)" strokeWidth={2.5}
                 dot={false} activeDot={{ r: 5 }} />
+              {overNotes.map((a) => (
+                <ReferenceLine key={a.x} yAxisId="rate" x={a.x} stroke="var(--ink-soft)" strokeDasharray="3 3" strokeOpacity={0.75}
+                  label={{ value: a.tag, position: "insideTopRight", fontSize: 10, fill: "var(--ink-soft)", fontFamily: "var(--sans)" }} />
+              ))}
             </ComposedChart>
           </ResponsiveContainer>
           <p className="note">{t("s.overtime.note", rate[0].label, rate[rate.length - 1].label, valFirst.year, valLast.year)}</p>
+          <ChartNotes notes={overNotes} />
         </div>
 
         <div className="callout">
@@ -2039,6 +2076,12 @@ html{scroll-behavior:smooth;}
 .sec-head h2{font-size:clamp(28px,4.5vw,40px); margin:6px 0 0;}
 .standfirst{font-size:16px; color:#3a362d; margin:12px 0 0; line-height:1.55;}
 .note{font-size:13px; color:var(--ink-soft); margin:18px 0 0; font-style:italic; max-width:64ch;}
+/* editorial chart annotations — the text list under a chart, paired with the
+   dashed on-chart reference lines. */
+.chart-notes{list-style:none; margin:10px 0 0; padding:0; max-width:66ch; border-left:3px solid var(--rule);}
+.chart-notes li{font-size:13px; color:#3a362d; line-height:1.5; padding:3px 0 3px 12px;}
+.chart-notes li b{color:var(--accent); font-variant-numeric:tabular-nums;}
+.chart-note-src{color:var(--accent); text-decoration:none; font-weight:700;}
 .muted{color:var(--ink-soft);}
 .load{padding:90px 0; font-size:16px; color:var(--ink-soft);}
 

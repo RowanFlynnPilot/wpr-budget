@@ -342,6 +342,18 @@ Done and shipped:
   Chrome gains a Home button. **Behavior change:** the bare Pages URL now shows the
   landing, not Marathon County — embeds wanting a fixed view should point at a hash
   (e.g. `…/wpr-budget/#marathon-county`).
+- ✅ Chart annotations — EDITORIAL markers on time-series charts, curated in
+  `src/annotations.json` (NOT extracted; keyed entity→chart/section→[{x, tag, note,
+  source}] with `{en,es,hmn}` labels). Imported in App, passed via `chrome.annotations`;
+  `resolveNotes()` picks the active language, `ChartNotes` renders the list, and bodies
+  drop `<ReferenceLine>` markers into the chart. Charts with no annotations render
+  unchanged (graceful absence). SEEDED on the School over-time chart (2022 referendum,
+  confident) + enrollment chart (consolidation, **DRAFT — verify year + add source**).
+  County/City not seeded: the County story is a trend (no clean point event) and the
+  City's ARPA/SAFER cliff is forward-looking (2027, off the historical chart — it stays
+  as the levy-section callout). To add one: append to `annotations.json` (and render
+  `<ReferenceLine>`/`<ChartNotes>` in that chart, as the School body shows). Hmong
+  captions are AI-drafted; sources should be added before relying on them publicly.
 - ✅ Cloudflare Web Analytics beacon live in `index.html` (token is the shared
   `rowanflynnpilot.github.io` site, also used by the Meeting Tracker). Privacy-first,
   no cookie banner; CF groups by hostname, so filter the dashboard by page path

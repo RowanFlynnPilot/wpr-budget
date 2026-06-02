@@ -1,0 +1,29 @@
+{
+  "_README": "EDITORIAL chart annotations — curated by WPR, NOT extracted from budget PDFs. Keyed by entity id -> chart/section id -> array of markers. Each: x (the year/label on that chart's x-axis), tag (short on-chart label), note (one sentence shown below the chart), source (optional URL to WPR coverage or the official document; null hides the link). tag/note carry {en,es,hmn}. Hmong is AI-drafted, pending review. VERIFY dates/figures and add source links before relying on these publicly.",
+  "wausau-school": {
+    "overtime": [
+      {
+        "x": 2022,
+        "tag": { "en": "2022 referendum", "es": "Referéndum 2022", "hmn": "2022 referendum" },
+        "note": {
+          "en": "Voters approved a $99.99M referendum in 2022 — the source of most of the district's current debt and a factor in the mill rate.",
+          "es": "Los votantes aprobaron un referéndum de $99.99M en 2022 — el origen de la mayor parte de la deuda actual del distrito y un factor en la tasa por milaje.",
+          "hmn": "Cov pov npav pom zoo ib qho referendum $99.99M xyoo 2022 — qhov chaw ntawm feem ntau ntawm lub koog tsev kawm cov nuj nqis tam sim no thiab ib qho cuam tshuam rau tus nqi se."
+        },
+        "source": null
+      }
+    ],
+    "students": [
+      {
+        "x": "2024-25",
+        "tag": { "en": "Consolidation (DRAFT — verify year)", "es": "Consolidación (BORRADOR — verificar año)", "hmn": "Sib koom (DRAFT — kuaj xyoo)" },
+        "note": {
+          "en": "A sustained enrollment decline drove the district's 2025 school consolidation. (Draft — confirm the effective school year and add a source.)",
+          "es": "Un descenso sostenido de la matrícula impulsó la consolidación escolar del distrito en 2025. (Borrador — confirme el año escolar y agregue una fuente.)",
+          "hmn": "Cov tub ntxhais kawm poob ntev ua rau lub koog tsev kawm txoj kev sib koom xyoo 2025. (Draft — kuaj xyoo kawm thiab ntxiv qhov chaw.)"
+        },
+        "source": null
+      }
+    ]
+  }
+}
