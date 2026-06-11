@@ -17,13 +17,18 @@ advertiser-ready via a sponsor slot (built; hidden until enabled — see below).
 
 ## Architecture
 
-**Multi-entity suite.** The tool now serves more than one government. `App` reads
-`public/entities.json` (the manifest), then the active entity's data file, and
-routes to that entity's body component. A switcher in the chrome bar (and the URL
-hash, e.g. `#wausau-city`) chooses the entity. Each entity has its own extractor,
-data file, schema, and body — they deliberately do NOT share a schema, because a
-county (per-department tax levy) and a city (fund-based, no per-department levy)
-are structurally different governments.
+**Multi-entity suite.** The tool now serves more than one government. The entity
+manifest is bundled (`src/entities.json`, imported statically — no runtime
+fetch); `App` fetches the active entity's data file (through a session-level
+promise cache in `src/data.js`) and routes to that entity's lazy-loaded body.
+**The URL hash is the single source of truth for navigation**:
+`#<entity-id>[/<section>]` (e.g. `#wausau-city/debt`). The chrome-bar switcher,
+subnav section links, and browser back/forward all funnel through `hashchange`;
+the scroll-spy mirrors the reading position into the hash via `replaceState`,
+so the address bar is always a valid deep link. Each entity has its own
+extractor, data file, schema, and body — they deliberately do NOT share a
+schema, because a county (per-department tax levy) and a city (fund-based, no
+per-department levy) are structurally different governments.
 
 | Entity | kind | extractor | data file | body |
 |---|---|---|---|---|
@@ -46,10 +51,13 @@ Same pipeline pattern as the other WPR widgets, with one deliberate difference:
 ```
 official budget PDF (downloaded by hand)
   -> scripts/extract_budget.py / extract_wausau.py / extract_school.py  (pdfplumber, local, yearly)
+     (shared helpers + --cache page-text layer in scripts/lib.py;
+      scripts/verify.py re-extracts all three and byte-compares vs the committed JSON)
   -> public/<entity>.json        (committed to the repo)
-  -> src/App.jsx                 (React + Vite, fetches entities.json + the entity file)
-  -> GitHub Pages                (built + deployed by .github/workflows/deploy.yml)
-  -> WordPress iframe embed
+  -> src/App.jsx                 (React + Vite; bundled manifest, fetches the entity file)
+  -> GitHub Pages                (built + deployed by .github/workflows/deploy.yml;
+                                  npm run build also writes per-entity share-page stubs)
+  -> WordPress iframe embed      (auto-height postMessage — see Dev / deploy)
 ```
 
 **The difference: this is NOT a cron scraper.** Budget data changes once a year,
@@ -70,15 +78,26 @@ entirely, so **no Webshare proxy is needed**.
 pip install -r scripts/requirements.txt
 python scripts/extract_budget.py 2026-Annual-Budget.pdf public/marathon-county.json
 
+# ALL extractors take --cache: page texts are cached in gitignored sources/
+# (_pages_<stem>.json, keyed on the PDF's size+mtime), so re-runs take seconds
+# instead of minutes. Shared helpers live in scripts/lib.py (money, load_pages,
+# find_page/find_first/find_section, reconcile, write_json); parsers + schemas
+# stay per-entity by design.
+#
+# After ANY extractor/lib change, prove it safe with the regression harness —
+# it re-extracts all three entities from their canonical sources and
+# byte-compares against the committed JSON (non-zero exit on drift):
+python scripts/verify.py
+
 # Multi-year: pass prior-year "Adopted Budget" PDFs as trailing args. The FIRST
 # PDF drives every detailed section; each prior PDF contributes only the slice
 # `history` needs (its Appendix E/F tables) via extract_history_slice, keyed by
 # year. The committed county file is built from 2026 + 2025:
 python scripts/extract_budget.py 2026-Annual-Budget.pdf public/marathon-county.json \
-       2025-Annual-Budget.pdf
+       2025-Annual-Budget.pdf --cache
 
 # City of Wausau (separate extractor, separate schema — see extract_wausau.py):
-python scripts/extract_wausau.py "2026-Wausau-Budget.pdf" public/wausau-city.json
+python scripts/extract_wausau.py "2026-Wausau-Budget.pdf" public/wausau-city.json --cache
 
 # Wausau School District (separate extractor, separate schema — see extract_school.py).
 # Source = the district's "Annual Budget Book" PDF, linked from
@@ -210,21 +229,42 @@ for 2025-26) for a per-student denominator.
 
 ## Frontend
 
-- `src/App.jsx` — the ENTIRE UI in one file (~1,500 lines), one injected CSS
-  string (no Tailwind / CSS files). `App` loads `entities.json` + the active
-  entity's data (see Architecture) and routes to a body by kind: `Ledger`
-  (County), `CityLedger` (City), `SchoolLedger` (School), or `TaxBillOverview`
-  (the cross-entity Your-Tax-Bill view). **When no entity hash is set (bare URL /
-  `#home` / unknown), `activeId` is null and App renders `Landing`** — the suite front
-  door (hero + a "your whole tax bill ≈ $X" hook + a card per entity with its headline
-  figure + the open-data/Meeting-Tracker strip). Landing fetches every entity's data
-  file itself (deduped) for the card stats; cards call `onSelect(id)` to drill in, and
-  the `ChromeBar` Home button (`onSelect(null)`) returns to it. Direct deep links like
-  `#marathon-county` still skip the landing. `ChromeBar` is shared — a **two-tier** bar
-  (brand + Share/FY on top, the entity switcher as its own full-width row beneath, so
-  it scales past three entities), with a `navigator.share`-or-clipboard **Share**
-  button that emits a canonical `#<activeId>` deep link (no personal data in the URL).
-  Hooks are top-level in each body (no conditional hooks).
+- **Module layout** (split from the old single-file App.jsx in the 2026-06
+  performance refactor; the four bodies are `React.lazy` chunks so the landing
+  page / WP embed ships ~82 kB gzip instead of 211 kB — recharts loads only
+  when a body opens):
+  - `src/App.jsx` — slim hash router: parses `#<entity>[/<section>]`, listens to
+    `hashchange`, fetches data via the cache, renders Landing or a lazy body.
+  - `src/bodies/Ledger.jsx` (County) · `CityLedger.jsx` · `SchoolLedger.jsx` ·
+    `TaxBillOverview.jsx` — the four views, lazy-loaded.
+  - `src/ui.jsx` — chart-FREE shared components: SectionHead, Stat, Delta,
+    Balance, Spark, Highlights, SubNav, SponsorSlot, Methodology, ChartNotes/
+    resolveNotes, HomeValueCalc, TaxSplit (tax bar + tooltip + rows),
+    DivisorToggle, and the hooks `useScrollSpy`, `useAnchorOnMount`,
+    `useHomeValue`. **MUST stay free of recharts imports** — it's in the eager
+    bundle; anything chart-flavored goes in…
+  - `src/charts.jsx` — recharts-dependent shared pieces (BarTip, SankeyNode,
+    MoneyFlowSankey, DebtChart). Imported ONLY by lazy bodies.
+  - `src/ChromeBar.jsx`, `src/Landing.jsx`, `src/format.js` (usd/compact/pct/
+    downloadCSV), `src/data.js` (fetchData promise cache), `src/nav.js`
+    (pending-section handoff between App and body mounts).
+  - `src/styles.css` — a real stylesheet now (imported in main.jsx; minified +
+    cached separately). Fonts load from index.html `<link>` (preconnect), NOT
+    from CSS, so they fetch before React mounts.
+  - `src/entities.json` (manifest, bundled), `src/annotations.json`,
+    `src/sponsors.json`, `src/demographics.json` (all curated, not extracted).
+  - `vite.config.js` pins `react` and `recharts` vendor chunks (manualChunks
+    function form — the object form silently hoists React back into index).
+- **When no entity hash is set (bare URL / `#home` / unknown), App renders
+  `Landing`** — the suite front door (hero + a "your whole tax bill ≈ $X" hook +
+  a card per entity with its headline figure + the open-data/Meeting-Tracker
+  strip). Landing pulls every entity's data through the shared cache; cards call
+  `onSelect(id)`; the ChromeBar Home button returns. Direct deep links like
+  `#marathon-county` still skip the landing. `ChromeBar` is a **two-tier** bar
+  (brand + Share/FY on top, the entity switcher as its own full-width `<nav>`
+  with `aria-current` beneath), with a `navigator.share`-or-clipboard **Share**
+  button that emits a canonical `#<activeId>` deep link (no personal data in the
+  URL). Hooks are top-level in each body (no conditional hooks).
   Charts use `recharts`; icons `lucide-react`; sparklines, the Sankey nodes, and
   the tax-bill stacked bar are hand-rolled SVG/CSS.
 - Aesthetic: editorial / public-ledger. Fraunces (display) + Public Sans (data),
@@ -250,17 +290,22 @@ for 2025-26) for a per-student denominator.
   student; rendered only when the `enrollment` block is present) · Your Tax Bill
   (calculator + the school portion split across funds, same `taxbar` pattern as the
   City) · Debt · Methodology.
-- **Shared features:** the "Your Tax Bill" calculator (`homeValue` state →
-  estimated bill); the `Highlights` "What changed this year" lead band (rendered
-  between masthead and subnav by the three government bodies — each computes its own
-  3 items: levy/rate deltas + the biggest mover; the County mover EXCLUDES sign-flip
-  revenue-returning offices to avoid the reclassification artifact); the `Methodology`
-  component (JSON via link + CSV via `downloadCSV`) which also carries the `.suite-link`
-  cross-link to the Central Wisconsin Meeting Tracker (`MEETING_TRACKER_URL`);
+- **Shared features:** the "Your Tax Bill" calculator (`useHomeValue()` —
+  persists across bodies/sessions in localStorage, NEVER in URLs/shares); the
+  **per-resident / per-household toggle** (`DivisorToggle`) on the County + City
+  Where-It-Goes bars, denominators curated in `src/demographics.json` (2020
+  Census counts with source URLs; School keeps per-student from WISEdash); the
+  `Highlights` "What changed this year" lead band (rendered between masthead and
+  subnav by the three government bodies — each computes its own 3 items:
+  levy/rate deltas + the biggest mover; the County mover EXCLUDES sign-flip
+  revenue-returning offices to avoid the reclassification artifact); the
+  `Methodology` component (JSON via link + CSV via `downloadCSV`) which also
+  carries the `.suite-link` cross-link to the Central Wisconsin Meeting Tracker
+  (`MEETING_TRACKER_URL`); a print stylesheet (chrome/nav/controls drop out);
   accessibility (`:focus-visible`, `prefers-reduced-motion`, `aria-pressed` on
-  toggles/chips, `role="img"` on the Sankey). Tax-levy values render in full dollars
-  everywhere EXCEPT the levy chart y-axes ($M); the County dept-ledger levy uses
-  compact on mobile via `.lg-only`/`.sm-only`.
+  toggles/chips, `role="img"` on the Sankey, `aria-current` on the switcher).
+  Tax-levy values render in full dollars everywhere EXCEPT the levy chart y-axes
+  ($M); the County dept-ledger levy uses compact on mobile via `.lg-only`/`.sm-only`.
 
 ### Sponsor surface (BUILT — hidden until enabled)
 
@@ -277,15 +322,36 @@ UI unchanged. Keep it tasteful and clearly labeled; never interleave with data.
 
 ```bash
 npm install
-npm run dev      # local dev (BASE_URL = /)
-npm run build    # production build to dist/ (BASE_URL = /wpr-budget/)
+npm run dev      # local dev
+npm run build    # vite build + scripts/entity-pages.mjs (per-entity share stubs) -> dist/
 ```
 
 - `vite.config.js` `base` must equal the Pages repo path (`/wpr-budget/`). It is
-  the only place the repo name appears; the data fetch uses `import.meta.env.BASE_URL`.
+  the only place the repo name appears in src; the data fetch uses
+  `import.meta.env.BASE_URL`. (`scripts/entity-pages.mjs` carries the absolute
+  Pages origin for OG tags — update it too if the repo/site ever moves.)
 - Pushing to `main` triggers `.github/workflows/deploy.yml` (build + deploy to
   Pages). Enable Pages → "GitHub Actions" in repo settings once.
-- Embed on WordPress via iframe pointing at the Pages URL.
+- **WordPress embed (auto-height):** the app posts
+  `{type:"wpr-budget:height", height}` to its parent on every layout change
+  (`src/main.jsx`), so the iframe can match the content exactly — no inner
+  scrollbar in any language. Host-page snippet:
+
+  ```html
+  <iframe id="ftm" src="https://rowanflynnpilot.github.io/wpr-budget/"
+          style="width:100%;border:0" scrolling="no" title="Follow the Money"></iframe>
+  <script>
+  addEventListener("message", (e) => {
+    if (e.origin === "https://rowanflynnpilot.github.io" && e.data && e.data.type === "wpr-budget:height")
+      document.getElementById("ftm").style.height = e.data.height + "px";
+  });
+  </script>
+  ```
+
+  The bare URL opens the landing; embed a fixed view via its hash
+  (`…/wpr-budget/#marathon-county`). For share links with entity-specific
+  social cards, use the static stubs (`…/wpr-budget/<entity-id>/`) — they carry
+  per-entity OG tags and instantly redirect into the hash route.
 
 ## Design principles (house style)
 
@@ -295,26 +361,31 @@ data; separation of concerns. Match the existing editorial aesthetic.
 
 ## Current state (as of last session — read this first)
 
-Everything below is **built, committed, pushed to `main`, and deployed** (working
-tree clean as of hand-off; `npm run build` clean; last Pages deploy green). `main`
-is the source of truth; pushing auto-deploys. The site has FOUR switcher views
-(Marathon County, City of Wausau, Wausau School District, + the "Your Tax Bill"
-overview) behind a suite **landing page** (the default front door), in **three
-languages** (EN / ES / Hmoob). Raw source files (gitignored, in `sources/` + repo
-root) needed to re-run extractors: `2026-Annual-Budget.pdf` + `2025-…` (County),
+The 2026-06-10 session ran a full front+back audit and implemented it in six
+local commits on `main` (extractor hardening → hash routing → code-split
+refactor → extractor lib/verify → reader enhancements → docs). **Committed
+locally; push to deploy when ready.** `npm run build` clean;
+`python scripts/verify.py` proves all three extractors reproduce the committed
+JSON byte-for-byte. The site has FOUR switcher views (Marathon County, City of
+Wausau, Wausau School District, + the "Your Tax Bill" overview) behind a suite
+**landing page** (the default front door), in **three languages** (EN / ES /
+Hmoob). Raw source files (gitignored, in `sources/` + repo root) needed to
+re-run extractors: `2026-Annual-Budget.pdf` + `2025-…` (County),
 `2026-Wausau-Budget.pdf` (City), `sources/2026-Wausau-School-Budget.pdf` +
-`sources/enrollment_certified_<yr>.zip` ×5 (School).
+`sources/enrollment_certified_<yr>.zip` ×5 (School); page-text caches live
+beside them as `sources/_pages_*.json`.
 
 > **Next session — start here.** No half-finished code; the open items are
 > WPR/editorial actions, not bugs: (1) a **fluent-speaker review of the Hmong** (it's
 > AI-drafted, shipped behind a beta banner — corrections go in the `HMN` table of
-> `src/i18n.jsx`); (2) **verify the chart-annotation seeds** (`src/annotations.json` —
-> the School enrollment "consolidation" marker is DRAFT: confirm the year, add source
-> URLs to both seeds); (3) the **sponsor surface** is built but hidden — flip
-> `src/sponsors.json` `enabled:true` to go live. The only remaining un-built *idea*
-> from the backlog is the **per-capita / per-household toggle**. Live at
-> https://rowanflynnpilot.github.io/wpr-budget/ — verify the WordPress iframe embed
-> still points where intended (the bare URL now opens the landing, not the County).
+> `src/i18n.jsx`; the new `pc.*` keys are AI-drafted too); (2) **verify the
+> chart-annotation seeds** (`src/annotations.json` — the School enrollment
+> "consolidation" marker is DRAFT: confirm the year, add source URLs to both
+> seeds); (3) the **sponsor surface** is built but hidden — flip
+> `src/sponsors.json` `enabled:true` to go live; (4) **add the auto-height
+> snippet to the WordPress embed** (see Dev / deploy) and decide whether the
+> embed should point at the landing or a fixed entity hash. Live at
+> https://rowanflynnpilot.github.io/wpr-budget/ once pushed.
 
 Done and shipped:
 - ✅ County entity (FY2026) + 2025 history (department trend + total-budget delta).
@@ -374,6 +445,27 @@ Done and shipped:
   `rowanflynnpilot.github.io` site, also used by the Meeting Tracker). Privacy-first,
   no cookie banner; CF groups by hostname, so filter the dashboard by page path
   (`/wpr-budget/`) to isolate this tool from the other suite projects.
+- ✅ 2026-06-10 audit implementation, part 1 — correctness: City jurisdiction rate
+  years parsed from the table's own header (was hardcoded — next year's book would
+  have shipped silently mislabeled rates); County debt + GF-summary reconciliations
+  added; hash-driven routing (`#entity/section`, back/forward works, section deep
+  links, scroll-spy URL mirroring); entity-switch fetch race closed; data-driven
+  County chart axis domains (were hardcoded windows next year's rates would clip
+  out of); locale-aware adopted-date formatting.
+- ✅ 2026-06-10 audit implementation, part 2 — performance: code-split modules
+  (see Frontend) — landing first-load 211 kB → ~82 kB gzip, recharts lazy; real
+  stylesheet; fonts from index.html; shared TaxSplit/HomeValueCalc/DebtChart/
+  Sankey components (was 3-4 pasted copies each); stable `t()`.
+- ✅ 2026-06-10 audit implementation, part 3 — pipeline: `scripts/lib.py`,
+  `--cache` page-text layer (re-runs in seconds), `scripts/verify.py` byte-diff
+  regression harness, annual-trap hardening across all three extractors
+  (check.py/dump.py retired).
+- ✅ 2026-06-10 audit implementation, part 4 — reader features: per-resident /
+  per-household toggle (County+City, trilingual, curated 2020-Census denominators
+  in `src/demographics.json`); WordPress-embed auto-height postMessage;
+  per-entity share pages with their own OG cards (`scripts/entity-pages.mjs`);
+  home value persists across calculators (localStorage); print stylesheet;
+  schema.org Dataset markup; favicon.
 
 ## Next steps / backlog
 
@@ -397,16 +489,34 @@ Done and shipped:
 - **Editorial follow-ups (not code/bugs):** human review of the Hmong (`HMN` table in
   `src/i18n.jsx`); verify chart-annotation seeds + add source URLs (`src/annotations.json`);
   decide whether to enable the sponsor surface (`src/sponsors.json`).
-- Enhancements floated but NOT built: **per-capita / per-household toggle** (the main
-  remaining one); County money-flow Sankey; City personnel beyond the chart; treemap.
-  (Recharts 2.x→3.x migration is optional, nothing broken.) DONE since first floated:
-  "what changed this year", chart annotations, multilingual, landing page, sponsor
-  surface, tax-bill unifier, share/social, analytics.
+- Enhancements floated but NOT built: County money-flow Sankey; City personnel
+  beyond the chart; treemap; self-hosted fonts (woff2 — would cut the one
+  remaining third-party request to Google Fonts). (Recharts 2.x→3.x migration is
+  optional, nothing broken.) DONE since first floated: "what changed this year",
+  chart annotations, multilingual, landing page, sponsor surface, tax-bill
+  unifier, share/social, analytics, **per-capita/per-household toggle**, embed
+  auto-height, per-entity share cards, print CSS, Dataset markup.
 
 ## Gotchas for the next session
 
-- **Extractors are SLOW** (60–120s+; they re-scan the whole PDF). When iterating,
-  cache page text to a temp JSON and develop parsers against that.
+- **Extractor speed:** the cost is the FIRST pdfplumber text pass (~0.5 s/page on
+  the chart-heavy county book — ~116 s for 2026; repeats are lru-cached and
+  free). Always run with `--cache` when iterating: page texts land in
+  `sources/_pages_*.json` (keyed on PDF size+mtime) and re-runs take seconds.
+  Run `python scripts/verify.py` after ANY extractor/lib change — byte-identical
+  output is the regression contract.
+- **`src/ui.jsx` must never import recharts** (directly or transitively): it's
+  in the eager bundle, and one import drags the ~560 kB recharts chunk into the
+  landing page's first load (vite emits a `modulepreload` for it — check
+  `dist/index.html` if unsure). Chart-flavored shared components go in
+  `src/charts.jsx`, which only lazy bodies import.
+- **Programmatic scrolls are `behavior:"instant"` on purpose.** Smooth
+  programmatic scrolling gets canceled by chart reflows/re-renders (observed
+  not moving at all); same-entity section scrolls also deliberately bypass
+  React state (`App.jsx` onHash) so no re-render interrupts them. Don't "fix"
+  either back to smooth/state-driven.
+- **manualChunks must stay the function form** in vite.config.js — the object
+  form silently hoists React back into the index chunk via jsx-runtime.
 - **City book quirks:** mixed-case decorative headers (`find_page` is
   case-insensitive); long names shortened for the Sankey (`SANKEY_SHORT`); some
   pages reverse-render decorative text — target the clean data lines.
@@ -415,11 +525,12 @@ Done and shipped:
   so it uses `find_section` (contiguous run from the first `FUND 10`+title hit), not
   `find_page`. The book has small source-rounding artifacts: salary/benefit line
   items sum $1 off their printed subtotal, and the debt "total" column a few dollars
-  off — handled by `reconcile_within(tol)`, while the integrity anchors (by-object →
+  off — handled by `reconcile(tol=...)`, while the integrity anchors (by-object →
   GF total; debt principal) reconcile EXACTLY. Salary lines carry a trailing budget
   flag ("Teachers E", "…Teachers R") that gets stripped. The current rate-history
   row has a `***` footnote between year and rate (regex allows it) — miss it and
-  `budget_year` comes out a year low. The valuation-history page splits the leading
+  `budget_year` comes out a year low (now caught loud: budget_year is
+  cross-checked against the levy-page bridge label). The valuation-history page splits the leading
   digit off every value ("5 24,920,300" = 524,920,300) and lays two columns side by
   side — the token-walking parser rejoins them and the latest year is cross-checked
   against the levy page's "New Valuation". `find_page` needles for the rate-history
@@ -429,12 +540,19 @@ Done and shipped:
   briefly gets the other entity's schema and crashes — already handled, keep it.
 - **recharts Sankey** link tooltip data is nested at `payload[0].payload.payload`
   (source/target are resolved node objects there).
-- One CSS file, injected as a string — search the `CSS` template literal.
-- **Social cards / OG:** this is a client-rendered SPA on GitHub Pages, so crawlers
-  only read the static `index.html` meta — per-page OG images can't vary without
-  prerendering. There's ONE suite card at `public/og-image.png` (a 1200×630 editorial
-  card generated locally with PIL — regenerate with the same script if branding
-  changes). `og:image`/`twitter:image` use absolute Pages URLs.
+- Styles live in `src/styles.css` (a real stylesheet since the refactor — no
+  more injected template literal). `.toggle` dividers use `button + button`
+  border-left (supports the 3-button DivisorToggle).
+- **Social cards / OG:** crawlers only read static HTML, so the SPA's
+  `index.html` carries the suite card, and `scripts/entity-pages.mjs` (runs in
+  `npm run build`) writes per-entity stubs at `/<entity-id>/` with their own
+  OG text (shared `public/og-image.png`, a 1200×630 editorial card generated
+  locally with PIL — regenerate with the same script if branding changes).
+  `og:image`/`twitter:image` use absolute Pages URLs.
+- **`src/demographics.json` is curated, not extracted** (like annotations.json):
+  2020 decennial Census population/households for the per-capita toggle, source
+  URLs inside. Update at the next decennial; don't silently swap in rolling
+  estimates (the on-page note names the basis).
 - **Tax-bill unifier scope:** `TaxBillOverview` is specifically a *City of Wausau*
   resident's bill (that's whose `tax_by_jurisdiction` the City book carries). Other
   municipalities/towns in the county would need their own jurisdiction splits — a
