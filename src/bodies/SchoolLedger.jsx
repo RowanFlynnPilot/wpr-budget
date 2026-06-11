@@ -3,7 +3,7 @@ import {
   ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, ComposedChart, Line, Area, ReferenceLine,
 } from "recharts";
 import { useLang, useStrings } from "../i18n";
-import { usd, compact } from "../format";
+import { usd, compact, pct } from "../format";
 import {
   ENTITY_LOGOS, SectionHead, Stat, Delta, Highlights, SubNav, SponsorSlot, Methodology,
   HomeValueCalc, TaxSplit, ChartNotes, resolveNotes, useScrollSpy, useAnchorOnMount, useHomeValue,
@@ -119,6 +119,10 @@ export default function SchoolLedger({ b, chrome }) {
 
   const debt = b.debt;
 
+  // The prior fiscal year's label ("2024-25"), derived from the current one.
+  const startYr = parseInt(b.meta.fiscal_label.slice(0, 4), 10);
+  const priorFy = `${startYr - 1}-${String(startYr).slice(2)}`;
+
   // Enrollment trend + per-student general-fund spending for the two fiscal
   // years the budget book reports (current + prior Fund 10). Earlier years
   // would need DPI per-member finance data (Phase 2c) — never divide one
@@ -126,29 +130,35 @@ export default function SchoolLedger({ b, chrome }) {
   const enrSeries = useMemo(() => {
     if (!enr) return [];
     const gfFund = b.funds.find((f) => f.fund_no === 10);
-    const startYr = parseInt(b.meta.fiscal_label.slice(0, 4), 10);
-    const priorLabel = `${startYr - 1}-${String(startYr).slice(2)}`;
-    const gfByLabel = { [b.meta.fiscal_label]: gfFund.expenditures, [priorLabel]: gfFund.prior_expenditures };
+    const gfByLabel = { [b.meta.fiscal_label]: gfFund.expenditures, [priorFy]: gfFund.prior_expenditures };
     return enr.labels.map((label, i) => ({
       label,
       count: enr.counts[i],
       perStudent: gfByLabel[label] ? Math.round(gfByLabel[label] / enr.counts[i]) : null,
     }));
-  }, [enr, b.funds, b.meta.fiscal_label]);
+  }, [enr, b.funds, b.meta.fiscal_label, priorFy]);
   const enrNow = enr ? enr.counts[enr.counts.length - 1] : 0;
   const enrThen = enr ? enr.counts[0] : 0;
   const enrChange = enrNow - enrThen;
   const perStudentGF = enr ? Math.round(b.gf_expenditures.total / enrNow) : 0;
   const perStudentAll = enr ? Math.round(b.meta.net_expenditures / enrNow) : 0;
 
+  // The levy and mill-rate items use words, not arrow icons: this year the
+  // district held the total levy flat to the dollar (the book prints the
+  // change as $0 / 0.00%), and a directional arrow on that — or a red arrow
+  // on a falling mill rate — manufactures alarm. Data-driven: a future year
+  // with a real levy change reverts to the normal delta.
   const changed = useMemo(() => ([
-    { label: t("wc.schoolLevy"), value: usd(b.meta.total_levy), delta: levyPct },
-    { label: t("wc.millRate"), value: "$" + b.meta.mill_rate.toFixed(2), delta: millPct, invert: true },
+    levyPct === 0
+      ? { label: t("wc.schoolLevy"), value: usd(b.meta.total_levy), note: t("wc.levyFlatNote", priorFy) }
+      : { label: t("wc.schoolLevy"), value: usd(b.meta.total_levy), delta: levyPct },
+    { label: t("wc.millRate"), value: "$" + b.meta.mill_rate.toFixed(2),
+      note: t("wc.rateVsNote", pct(millPct), bridge.base_rate.toFixed(2), priorFy) },
     enr && {
       label: t("wc.enrollment"), value: enrNow.toLocaleString(),
       note: t("wc.enrollNote", enrChange, enr.labels[0]),
     },
-  ]), [t, b.meta, levyPct, millPct, enr, enrNow, enrChange]);
+  ]), [t, b.meta, levyPct, millPct, bridge, priorFy, enr, enrNow, enrChange]);
 
   return (
     <div className="ftm">
@@ -170,8 +180,10 @@ export default function SchoolLedger({ b, chrome }) {
         <p className="dek">{t("s.dek", b.meta.entity)}</p>
         <div className="stat-strip">
           <Stat icon="💰" label={t("stat.totalBudget")} value={compact(b.meta.net_expenditures)} sub={t("s.stat.allFundsNet")} />
-          <Stat icon="🏛️" label={t("s.stat.schoolLevy")} value={usd(b.meta.total_levy)} sub={<Delta value={levyPct} />} />
-          <Stat icon="🏠" label={t("stat.millRate")} value={b.meta.mill_rate.toFixed(2)} sub={<Delta value={millPct} invertColor />} />
+          <Stat icon="🏛️" label={t("s.stat.schoolLevy")} value={usd(b.meta.total_levy)}
+            sub={levyPct === 0 ? t("s.stat.levyFlat", priorFy) : <Delta value={levyPct} />} />
+          <Stat icon="🏠" label={t("stat.millRate")} value={b.meta.mill_rate.toFixed(2)}
+            sub={t("s.stat.vsPrior", pct(millPct), priorFy)} />
         </div>
       </header>
 
@@ -386,6 +398,9 @@ export default function SchoolLedger({ b, chrome }) {
 
       <footer className="foot">
         <p><b>{t("foot.sourceLabel")}</b> {t("s.foot.source", b.meta.entity, b.meta.fiscal_label)} {t("foot.amended")}</p>
+        {levyPct === 0 && (
+          <p className="muted">{t("s.foot.levyFlat", usd(b.meta.total_levy), priorFy, b.meta.fiscal_label)}</p>
+        )}
         <p className="muted">{t("s.foot.builtBy")}</p>
       </footer>
     </div>

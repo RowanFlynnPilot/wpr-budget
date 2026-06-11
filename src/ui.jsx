@@ -70,6 +70,8 @@ export function useScrollSpy(sectionIds, entityId) {
 
 export function Delta({ value, invertColor = false, money = false, exact = false }) {
   if (value === null || value === undefined) return <span className="muted">—</span>;
+  // A directional arrow on "no change" reads as a glitch — render zero neutral.
+  if (value === 0) return <span className="delta muted">{money ? "$0" : pct(0)}</span>;
   const up = value > 0;
   const good = invertColor ? !up : up;
   const Icon = up ? ArrowUpRight : ArrowDownRight;
