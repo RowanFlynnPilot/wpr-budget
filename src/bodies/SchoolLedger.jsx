@@ -119,9 +119,22 @@ export default function SchoolLedger({ b, chrome }) {
 
   const debt = b.debt;
 
-  const enrSeries = useMemo(
-    () => enr ? enr.labels.map((label, i) => ({ label, count: enr.counts[i] })) : [],
-    [enr]);
+  // Enrollment trend + per-student general-fund spending for the two fiscal
+  // years the budget book reports (current + prior Fund 10). Earlier years
+  // would need DPI per-member finance data (Phase 2c) — never divide one
+  // year's dollars by another year's heads.
+  const enrSeries = useMemo(() => {
+    if (!enr) return [];
+    const gfFund = b.funds.find((f) => f.fund_no === 10);
+    const startYr = parseInt(b.meta.fiscal_label.slice(0, 4), 10);
+    const priorLabel = `${startYr - 1}-${String(startYr).slice(2)}`;
+    const gfByLabel = { [b.meta.fiscal_label]: gfFund.expenditures, [priorLabel]: gfFund.prior_expenditures };
+    return enr.labels.map((label, i) => ({
+      label,
+      count: enr.counts[i],
+      perStudent: gfByLabel[label] ? Math.round(gfByLabel[label] / enr.counts[i]) : null,
+    }));
+  }, [enr, b.funds, b.meta.fiscal_label]);
   const enrNow = enr ? enr.counts[enr.counts.length - 1] : 0;
   const enrThen = enr ? enr.counts[0] : 0;
   const enrChange = enrNow - enrThen;
@@ -248,19 +261,34 @@ export default function SchoolLedger({ b, chrome }) {
           {t("s.students.dek", enrNow.toLocaleString(), enr.labels[enr.labels.length - 1], enrChange, enrThen.toLocaleString(), usd(perStudentGF))}
         </SectionHead>
         <div className="chart-wrap">
+          <div className="chart-legend">
+            <span><i className="sw" style={{ background: "var(--accent)" }} /> {t("s.students.legendEnroll")}</span>
+            <span><i className="sw" style={{ background: "var(--gold)" }} /> {t("s.students.legendPerStudent")}</span>
+          </div>
           <ResponsiveContainer width="100%" height={280}>
             <ComposedChart data={enrSeries} margin={{ top: 8, right: 12, bottom: 4, left: 6 }}>
               <CartesianGrid stroke="var(--rule)" vertical={false} />
               <XAxis dataKey="label" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
-              <YAxis domain={["dataMin - 200", "dataMax + 200"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={44} tickFormatter={(v) => v.toLocaleString()} />
+              <YAxis yAxisId="enr" domain={["dataMin - 200", "dataMax + 200"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={44} tickFormatter={(v) => v.toLocaleString()} />
+              <YAxis yAxisId="ps" orientation="right" domain={["dataMin - 400", "dataMax + 400"]} tick={{ fill: "var(--gold)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={48} tickFormatter={(v) => "$" + (v / 1000).toFixed(1) + "K"} />
               <Tooltip content={({ active, payload, label }) => {
                 if (!active || !payload || !payload.length) return null;
-                return (<div className="tip"><div className="tip-year">{label}</div><div><i className="sw" style={{ background: "var(--accent)" }} /> {payload[0].value.toLocaleString()} {t("s.students.studentsLabel")}</div></div>);
+                const c = payload.find((p) => p.dataKey === "count");
+                const ps = payload.find((p) => p.dataKey === "perStudent");
+                return (
+                  <div className="tip">
+                    <div className="tip-year">{label}</div>
+                    {c && <div><i className="sw" style={{ background: "var(--accent)" }} /> {c.value.toLocaleString()} {t("s.students.studentsLabel")}</div>}
+                    {ps && ps.value != null && <div><i className="sw" style={{ background: "var(--gold)" }} /> {usd(ps.value)} {t("s.students.tipPerStudent")}</div>}
+                  </div>
+                );
               }} cursor={{ stroke: "var(--rule)" }} />
-              <Area type="monotone" dataKey="count" name="Enrollment" stroke="var(--accent)" strokeWidth={2.5}
+              <Area yAxisId="enr" type="monotone" dataKey="count" name="Enrollment" stroke="var(--accent)" strokeWidth={2.5}
                 fill="var(--accent)" fillOpacity={0.12} dot={{ r: 3, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
+              <Line yAxisId="ps" type="monotone" dataKey="perStudent" name="Per student" stroke="var(--gold)" strokeWidth={2.5}
+                connectNulls dot={{ r: 3.5, fill: "var(--gold)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
               {enrNotes.map((a) => (
-                <ReferenceLine key={a.x} x={a.x} stroke="var(--ink-soft)" strokeDasharray="3 3" strokeOpacity={0.75}
+                <ReferenceLine key={a.x} yAxisId="enr" x={a.x} stroke="var(--ink-soft)" strokeDasharray="3 3" strokeOpacity={0.75}
                   label={{ value: a.tag, position: "insideTopRight", fontSize: 10, fill: "var(--ink-soft)", fontFamily: "var(--sans)" }} />
               ))}
             </ComposedChart>
