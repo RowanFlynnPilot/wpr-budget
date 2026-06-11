@@ -215,11 +215,14 @@ def parse_debt(text):
 
     Targets the series -> balance summary in the current budget format, e.g.
     '2012A GENERAL OBLIGATIONS BONDS-AIRPORT 700,000'. The grand-total line ends
-    the list. (Years that publish only a per-year amortization schedule are not
-    handled; the current budget uses this summary.)
+    the list AND reconciles it: a series whose label drifts from the
+    'NNNNX GENERAL OBLIGATION...' pattern would otherwise be dropped silently,
+    understating county debt. (Years that publish only a per-year amortization
+    schedule are not handled; the current budget uses this summary.)
     """
     out = []
     capture = False
+    printed_total = None
     for line in text.split("\n"):
         s = line.strip()
         if "TOTAL DEBT" in s.upper():
@@ -231,7 +234,13 @@ def parse_debt(text):
         if m:
             out.append({"series": m.group(1).strip(), "outstanding": int(m.group(2).replace(",", ""))})
         elif re.match(r"^[\d,]{6,}$", s) and out:
+            printed_total = int(s.replace(",", ""))
             break  # grand-total line ends the list
+    if printed_total is None:
+        raise ValueError("debt grand-total line not found (no series parsed, or the summary format changed)")
+    calc = sum(d["outstanding"] for d in out)
+    if calc != printed_total:
+        raise ValueError(f"debt reconcile: parsed series sum {calc:,} vs printed total {printed_total:,}")
     return out
 
 
@@ -240,20 +249,26 @@ def parse_gf_summary(text):
 
     Each row: label + actual / budget / actual-through / estimate / proposed + pct.
     We keep actual (prior yr), budget (current yr), proposed (next yr), and pct.
+
+    The printed Total row of each block is parsed and reconciled against the sum
+    of its rows for all three kept dollar columns. That guards the two silent
+    failure modes of this positional parser: a wrapped row label dropping a row,
+    and an added/reordered column shifting `proposed_next` onto a different figure.
     """
     def block(start, stop):
         rows = []
+        totals = None
         capture = False
         for line in text.split("\n"):
             s = line.strip()
-            if start in s:
-                capture = True
-                continue
-            if capture and stop in s:
-                break
             if not capture:
+                if start in s:
+                    capture = True
                 continue
             nums = [n for n in re.findall(r"-?[\d,]+\.?\d*", s) if re.search(r"\d", n)]
+            if stop in s:
+                totals = nums
+                break
             label = re.sub(r"\s*-?[\d,].*$", "", s).strip()
             if label and len(nums) >= 6:
                 rows.append({
@@ -263,6 +278,15 @@ def parse_gf_summary(text):
                     "proposed_next": int(nums[4].replace(",", "")),
                     "pct_change": float(nums[5].replace(",", "")),
                 })
+        if totals is None:
+            raise ValueError(f"GF summary block '{start}'..'{stop}' not found")
+        if len(totals) < 6:
+            raise ValueError(f"GF summary '{stop}' row carries {len(totals)} numbers; expected the full 6-column layout")
+        for key, idx in (("actual_prior", 0), ("budget_current", 1), ("proposed_next", 4)):
+            calc = sum(r[key] for r in rows)
+            printed = int(totals[idx].replace(",", ""))
+            if calc != printed:
+                raise ValueError(f"GF summary reconcile failed on {key}: parsed {calc:,} vs printed {printed:,}")
         return rows
 
     return {

@@ -208,26 +208,40 @@ def parse_general_fund(text):
 def parse_tax_by_jurisdiction(text):
     """'Property Tax Allocation by Taxing Jurisdiction' — the property-tax rate
     split across City / college / county / school, for the three most recent
-    years. The per-jurisdiction rates sum to the printed Total Tax Rate."""
-    rows, total = [], None
+    years. The per-jurisdiction rates sum to the printed Total Tax Rate.
+
+    The year labels are read from the table's own column-header row (newest
+    first), never hardcoded: next year's book shifts every column forward a
+    year, and rates silently keyed to the wrong years would corrupt the City
+    tax-bill view AND the suite-wide Your-Tax-Bill overview."""
+    rows, total, years = [], None, None
     for line in text.split("\n"):
-        m = re.match(r"^(.+?)\s+\$?\s*([\d.]+)\s+\$?\s*([\d.]+)\s+\$?\s*([\d.]+)\b", line.strip())
+        s = line.strip()
+        if years is None:
+            # The column-header row carries the three years and no decimal rates.
+            my = re.search(r"(20\d{2})\s+(20\d{2})\s+(20\d{2})", s)
+            if my and not re.search(r"\d\.\d", s):
+                years = [my.group(1), my.group(2), my.group(3)]
+            continue  # rate rows before the header would be mislabeled — skip
+        m = re.match(r"^(.+?)\s+\$?\s*([\d.]+)\s+\$?\s*([\d.]+)\s+\$?\s*([\d.]+)\b", s)
         if not m:
             continue
         r1, r2, r3 = float(m.group(2)), float(m.group(3)), float(m.group(4))
-        if r1 > 100:  # the "2025 2024 2023" column-header row, not a rate
+        if r1 > 100:  # not a per-$1,000 rate (e.g. a stray dollar figure)
             continue
         label = re.sub(r"\*+$", "", m.group(1).strip()).strip()
         if label.lower().startswith("total tax rate"):
-            total = {"2025": r1, "2024": r2, "2023": r3}
+            total = {years[0]: r1, years[1]: r2, years[2]: r3}
             break
-        rows.append({"jurisdiction": label, "rates": {"2025": r1, "2024": r2, "2023": r3}})
+        rows.append({"jurisdiction": label, "rates": {years[0]: r1, years[1]: r2, years[2]: r3}})
+    if years is None:
+        raise ValueError("jurisdiction table column-header years (e.g. '2025 2024 2023') not found")
     if total is None:
         raise ValueError("no 'Total Tax Rate' row found")
-    calc = round(sum(r["rates"]["2025"] for r in rows), 2)
-    if calc != total["2025"]:
-        raise ValueError(f"jurisdiction rate reconcile: {calc} vs printed {total['2025']}")
-    return rows, total
+    calc = round(sum(r["rates"][years[0]] for r in rows), 2)
+    if calc != total[years[0]]:
+        raise ValueError(f"jurisdiction rate reconcile: {calc} vs printed {total[years[0]]}")
+    return rows, total, years
 
 
 def parse_debt(retire_text, limit_text):
@@ -276,7 +290,7 @@ def extract(pdf_path):
     general_fund, gf_exp_total, gf_rev_total = parse_general_fund(gf_text)
 
     juris_text = texts[find_page(texts, "PROPERTY TAX ALLOCATION BY TAXING JURISDICTION")]
-    tax_by_jurisdiction, juris_total = parse_tax_by_jurisdiction(juris_text)
+    tax_by_jurisdiction, juris_total, rate_years = parse_tax_by_jurisdiction(juris_text)
 
     # "Existing General Obligation Debt" is unique to the GO retirement page; the
     # sewer/water revenue-bond pages share the "Annual Retirement" header.
@@ -304,7 +318,7 @@ def extract(pdf_path):
         "expenditure_categories": categories,
         "general_fund": general_fund,
         "levy_history": levy_history,
-        "tax_by_jurisdiction": {"rate_years": ["2025", "2024", "2023"], "rows": tax_by_jurisdiction, "total": juris_total},
+        "tax_by_jurisdiction": {"rate_years": rate_years, "rows": tax_by_jurisdiction, "total": juris_total},
         "debt": debt,
         "personnel": personnel,
         "tif": tif,
