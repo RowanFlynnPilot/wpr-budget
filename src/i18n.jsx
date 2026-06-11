@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
 
 // Lightweight i18n for the "Follow the Money" suite. Semantic dotted keys; each
 // language provides overrides and falls back to English so nothing ever renders
@@ -828,9 +828,10 @@ export function useLang() {
 // and calls the entry if it's a function (interpolation).
 export function useStrings() {
   const { lang } = useContext(LangContext);
-  return (key, ...args) => {
+  // Stable per language, so memos that list `t` in their deps actually hold.
+  return useMemo(() => (key, ...args) => {
     const entry = (TABLES[lang] && TABLES[lang][key] !== undefined) ? TABLES[lang][key] : EN[key];
     if (entry === undefined) return key; // surfaces a missing key loudly in the UI
     return typeof entry === "function" ? entry(...args) : entry;
-  };
+  }, [lang]);
 }
