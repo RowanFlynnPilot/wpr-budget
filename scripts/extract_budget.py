@@ -10,7 +10,7 @@ scheduled scraper. Run it on the official PDF you've downloaded by hand -- that
 sidesteps the county site's Akamai datacenter-IP block entirely, so no proxy is
 needed.
 
-    python extract_budget.py 2026-Annual-Budget.pdf budget.json
+    python scripts/extract_budget.py 2026-Annual-Budget.pdf public/marathon-county.json [2025-Annual-Budget.pdf ...] [--cache]
 
 Design notes:
 - One parser serves both the by-fund (Appendix E) and by-department (Appendix F)
@@ -21,11 +21,10 @@ Design notes:
 - Reconciliation asserts that parsed rows sum to the printed total. A mismatch
   raises immediately rather than emitting silently-wrong data.
 """
-import sys
 import re
-import json
+import argparse
 
-import pdfplumber
+from lib import money, load_pages, find_page, find_first, reconcile, write_json
 
 MONEY = r"\$\s?\(?[\d,]+\)?"
 
@@ -55,16 +54,6 @@ SIX_COLS = [
 HEADER_TOKENS = ("Tax Levy", "Revenues", "Expenditures", "Difference", "Department", "Fund")
 
 
-def money(token):
-    """'$(203,880)' -> -203880 ; '$ 1,714,258' -> 1714258 ; '' -> None."""
-    neg = "(" in token
-    digits = re.sub(r"[^\d]", "", token)
-    if digits == "":
-        return None
-    value = int(digits)
-    return -value if neg else value
-
-
 def clean(text):
     """Repair pdfplumber's number spacing in this budget's tables.
 
@@ -74,28 +63,8 @@ def clean(text):
     non-numeric character, so space-separated prose and columns are untouched),
     then turn the '$-' zero marker into '$0'.
     """
-    text = re.sub(r"\$[ \t\d,()\-\u2212]+", lambda m: re.sub(r"[ \t]+", "", m.group(0)), text)
-    return text.replace("$-", "$0").replace("$\u2212", "$0")
-
-
-def find_one(pdf, *needles):
-    """Index of the single page containing all needles (case-insensitive). Fail fast otherwise."""
-    hits = [i for i, pg in enumerate(pdf.pages)
-            if all(n.lower() in (pg.extract_text() or "").lower() for n in needles)]
-    if len(hits) != 1:
-        raise ValueError(f"expected exactly one page for {needles}, found pages {hits}")
-    return hits[0]
-
-
-def find_first(pdf, *needles):
-    """Index of the first page containing all needles. Some summaries (the public-
-    hearing notice, the homeowner table) are reprinted on several pages; the first
-    copy is authoritative. Fail fast only if none is found."""
-    for i, pg in enumerate(pdf.pages):
-        t = (pg.extract_text() or "").lower()
-        if all(n.lower() in t for n in needles):
-            return i
-    raise ValueError(f"no page found for {needles}")
+    text = re.sub(r"\$[ \t\d,()\-−]+", lambda m: re.sub(r"[ \t]+", "", m.group(0)), text)
+    return text.replace("$-", "$0").replace("$−", "$0")
 
 
 def split_label_and_numbers(line):
@@ -147,8 +116,11 @@ def parse_six_col_table(text, is_fund):
             fund_no = re.match(r"(\d{3})", full_label)
             if not fund_no:
                 continue  # stray line, not a fund row
-            record["fund_no"] = fund_no.group(1)
-            record["name"] = FUND_NAMES[fund_no.group(1)]
+            no = fund_no.group(1)
+            if no not in FUND_NAMES:
+                raise ValueError(f"unknown fund number {no} in Appendix E — add its canonical name to FUND_NAMES")
+            record["fund_no"] = no
+            record["name"] = FUND_NAMES[no]
         else:
             record["department"] = re.sub(r"\s+", " ", full_label)
         rows.append(record)
@@ -156,13 +128,6 @@ def parse_six_col_table(text, is_fund):
     if total is None:
         raise ValueError("no Total row found in six-column table")
     return rows, total
-
-
-def reconcile(rows, total, key="tax_levy"):
-    """Fail fast if parsed rows don't sum to the printed total."""
-    calc = sum(r[key] for r in rows if r[key] is not None)
-    if calc != total[key]:
-        raise ValueError(f"reconciliation failed on {key}: parsed {calc:,} vs printed {total[key]:,}")
 
 
 def parse_levy_history(text):
@@ -190,6 +155,9 @@ def parse_homeowner_impact(text):
     Anchored on the full column pattern (year, $value, $inc, %inc, $rate, %chg,
     $amount, ...) so debt-schedule rows that also start with a year never match.
     The tax amount carries cents, so it is parsed as a float rather than money().
+    Each row must satisfy tax_amount ≈ avg_value/1000 × tax_rate (the table's own
+    arithmetic, within a few dollars of print rounding) — that catches chart-axis
+    bleed corrupting a column without any visible parse failure.
     """
     row = re.compile(
         r"^(20\d{2})\s+\$([\d,]+)\s+\(?\$?[\d,]+\)?\s+-?[\d.]+%\s+\$([\d.]+)\s+-?[\d.]+%\s+\$([\d.]+)\s"
@@ -200,13 +168,17 @@ def parse_homeowner_impact(text):
         if not m:
             continue
         year = int(m.group(1))
-        by_year.setdefault(year, {
+        rec = {
             "year": year,
             "avg_value": int(m.group(2).replace(",", "")),
             "tax_rate": float(m.group(3)),
             "tax_amount": float(m.group(4)),
             "pct_change_bill": float(re.findall(r"-?[\d.]+%", line)[-1].rstrip("%")),
-        })
+        }
+        if abs(rec["avg_value"] / 1000 * rec["tax_rate"] - rec["tax_amount"]) > 5:
+            raise ValueError(f"homeowner row {year}: amount {rec['tax_amount']} inconsistent with "
+                             f"value {rec['avg_value']:,} × rate {rec['tax_rate']} — column bleed?")
+        by_year.setdefault(year, rec)
     return [by_year[y] for y in sorted(by_year)]
 
 
@@ -238,9 +210,7 @@ def parse_debt(text):
             break  # grand-total line ends the list
     if printed_total is None:
         raise ValueError("debt grand-total line not found (no series parsed, or the summary format changed)")
-    calc = sum(d["outstanding"] for d in out)
-    if calc != printed_total:
-        raise ValueError(f"debt reconcile: parsed series sum {calc:,} vs printed total {printed_total:,}")
+    reconcile(out, printed_total, "outstanding", "debt series")
     return out
 
 
@@ -283,10 +253,7 @@ def parse_gf_summary(text):
         if len(totals) < 6:
             raise ValueError(f"GF summary '{stop}' row carries {len(totals)} numbers; expected the full 6-column layout")
         for key, idx in (("actual_prior", 0), ("budget_current", 1), ("proposed_next", 4)):
-            calc = sum(r[key] for r in rows)
-            printed = int(totals[idx].replace(",", ""))
-            if calc != printed:
-                raise ValueError(f"GF summary reconcile failed on {key}: parsed {calc:,} vs printed {printed:,}")
+            reconcile(rows, int(totals[idx].replace(",", "")), key, f"GF summary {start}")
         return rows
 
     return {
@@ -304,12 +271,15 @@ def build_meta(fund_total, levy_history, full_text):
 
     Budget year and rate come from the (latest) levy-history row; the levy and
     all-funds spending come from the by-fund total; the adoption date is parsed
-    from the approval sentence.
+    from the approval sentence (the masthead renders it, so its absence is an
+    error, not a None).
     """
     year = max((l["year"] for l in levy_history), default=None)
     rate = next((l["rate"] for l in levy_history if l["year"] == year), None)
     m = re.search(r"(" + "|".join(MONTHS) + r")\s+(\d{1,2}),\s+(20\d{2}),?\s+the Marathon County Board", full_text)
-    adopted = f"{m.group(3)}-{MONTHS.index(m.group(1)) + 1:02d}-{int(m.group(2)):02d}" if m else None
+    if not m:
+        raise ValueError("adoption-date sentence ('... the Marathon County Board') not found")
+    adopted = f"{m.group(3)}-{MONTHS.index(m.group(1)) + 1:02d}-{int(m.group(2)):02d}"
     return {
         "entity": "Marathon County",
         "budget_year": year,
@@ -374,7 +344,7 @@ def build_history(extractions):
     }
 
 
-def extract(latest_pdf, prior_pdfs=()):
+def extract(latest_pdf, prior_pdfs=(), cache=False):
     """Full extraction for the latest budget, plus a multi-year `history` block.
 
     The latest PDF drives every detailed single-year section. Each prior PDF
@@ -383,28 +353,33 @@ def extract(latest_pdf, prior_pdfs=()):
     the General Fund summary / debt / levy / homeowner parsers, whose formats
     drift in older books and which `history` does not use.
     """
-    latest = extract_one(latest_pdf)
-    priors = [extract_history_slice(p) for p in prior_pdfs]
+    latest = extract_one(latest_pdf, cache=cache)
+    priors = [extract_history_slice(p, cache=cache) for p in prior_pdfs]
     latest["history"] = build_history([latest, *priors])
     return latest
 
 
-def extract_history_slice(pdf_path):
+# The by-fund (E) and by-department (F) summary tables share this column header.
+# Pairing it with the appendix marker isolates the summary-table page even when
+# the appendix spans several pages of per-line account detail.
+TABLE = "Expenditures Expenditures Tax Levy Difference"
+
+
+def extract_history_slice(pdf_path, cache=False):
     """Minimal prior-year parse for the `history` block: the Appendix E/F summary
     tables plus the budget year, with the same loud reconciliation as the full
     extractor. Books that lack these appendices (the pre-2025 format) fail here
     with a clear missing-section error rather than emitting partial data.
     """
-    pdf = pdfplumber.open(pdf_path)
-    TABLE = "Expenditures Expenditures Tax Levy Difference"
+    texts = load_pages(pdf_path, cache=cache)
 
-    fund_text = clean(pdf.pages[find_one(pdf, "APPENDIX E:", TABLE)].extract_text() or "")
+    fund_text = clean(texts[find_page(texts, "APPENDIX E:", TABLE)])
     funds, fund_total = parse_six_col_table(fund_text, is_fund=True)
-    reconcile(funds, fund_total)
+    reconcile(funds, fund_total["tax_levy"], "tax_levy", "Appendix E funds")
 
-    dept_raw = pdf.pages[find_one(pdf, "APPENDIX F:", TABLE)].extract_text() or ""
+    dept_raw = texts[find_page(texts, "APPENDIX F:", TABLE)]
     departments, dept_total = parse_six_col_table(clean(dept_raw), is_fund=False)
-    reconcile(departments, dept_total)
+    reconcile(departments, dept_total["tax_levy"], "tax_levy", "Appendix F departments")
 
     m = re.search(r"APPENDIX F:\s*(20\d{2})", dept_raw)
     if not m:
@@ -423,30 +398,25 @@ def extract_history_slice(pdf_path):
     }
 
 
-def extract_one(pdf_path):
-    pdf = pdfplumber.open(pdf_path)
-
-    # The by-fund (E) and by-department (F) summary tables share this column
-    # header. Pairing it with the appendix marker isolates the summary-table page
-    # even when the appendix spans several pages of per-line account detail.
-    TABLE = "Expenditures Expenditures Tax Levy Difference"
+def extract_one(pdf_path, cache=False):
+    texts = load_pages(pdf_path, cache=cache)
 
     # Only the appendix tables suffer pdfplumber's in-number spacing, so clean()
     # is applied there alone. The early-page tables are already clean, and cleaning
     # them would merge a levy with the first digit of its rate.
-    fund_text = clean(pdf.pages[find_one(pdf, "APPENDIX E:", TABLE)].extract_text() or "")
+    fund_text = clean(texts[find_page(texts, "APPENDIX E:", TABLE)])
     funds, fund_total = parse_six_col_table(fund_text, is_fund=True)
-    reconcile(funds, fund_total)
+    reconcile(funds, fund_total["tax_levy"], "tax_levy", "Appendix E funds")
 
-    dept_text = clean(pdf.pages[find_one(pdf, "APPENDIX F:", TABLE)].extract_text() or "")
+    dept_text = clean(texts[find_page(texts, "APPENDIX F:", TABLE)])
     departments, dept_total = parse_six_col_table(dept_text, is_fund=False)
-    reconcile(departments, dept_total)
+    reconcile(departments, dept_total["tax_levy"], "tax_levy", "Appendix F departments")
 
     # The consolidated General Fund summary, located by its function-row labels.
-    gf_text = pdf.pages[find_first(pdf, "General Government", "Capital Outlay", "Other Financing Uses")].extract_text() or ""
+    gf_text = texts[find_first(texts, "General Government", "Capital Outlay", "Other Financing Uses")]
     general_fund = parse_gf_summary(gf_text)
 
-    full_text = "\n".join((pg.extract_text() or "") for pg in pdf.pages)
+    full_text = "\n".join(texts)
     levy_history = parse_levy_history(full_text)
     # The homeowner row pattern is distinctive enough to find anywhere in the
     # document; the parser de-duplicates the table's reprinted copies by year.
@@ -464,14 +434,18 @@ def extract_one(pdf_path):
 
 
 def main():
-    if len(sys.argv) < 3:
-        sys.exit("usage: python extract_budget.py <latest.pdf> <budget.json> [<prior.pdf> ...]")
-    latest_pdf, out_path, prior_pdfs = sys.argv[1], sys.argv[2], sys.argv[3:]
-    data = extract(latest_pdf, prior_pdfs)
-    with open(out_path, "w") as f:
-        json.dump(data, f, indent=2)
+    ap = argparse.ArgumentParser(description="Extract the Marathon County annual-budget book to JSON.")
+    ap.add_argument("pdf", help="the latest Approved/Adopted Budget PDF (downloaded by hand)")
+    ap.add_argument("out", help="output JSON path (public/marathon-county.json)")
+    ap.add_argument("priors", nargs="*",
+                    help="prior-year Adopted Budget PDFs; each contributes only its Appendix E/F slice to `history`")
+    ap.add_argument("--cache", action="store_true",
+                    help="cache page texts in sources/ keyed on the PDF's size+mtime (fast re-runs)")
+    args = ap.parse_args()
+    data = extract(args.pdf, args.priors, cache=args.cache)
+    write_json(args.out, data)
     m = data["meta"]
-    print(f"wrote {out_path}: {m['entity']} {m['budget_year']} | "
+    print(f"wrote {args.out}: {m['entity']} {m['budget_year']} | "
           f"{len(data['departments'])} departments, {len(data['funds'])} funds, "
           f"{len(data['levy_history'])} levy yrs, {len(data['homeowner_impact'])} homeowner yrs, "
           f"{len(data['debt'])} debt series | history years {data['history']['years']}")

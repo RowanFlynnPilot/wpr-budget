@@ -22,89 +22,16 @@ vs. the state average, and enrollment/membership history. DPI blocks datacenter 
 (same Akamai class as the county site), so those are a manual download.
 
 Usage:
-    python scripts/extract_school.py sources/2026-Wausau-School-Budget.pdf public/wausau-school.json
+    python scripts/extract_school.py sources/2026-Wausau-School-Budget.pdf public/wausau-school.json \
+        [enrollment_certified_<yr>.zip ...] [--cache]
 """
-import sys
 import re
 import io
 import csv
-import json
 import zipfile
-import pdfplumber
+import argparse
 
-
-# ---------- helpers ----------
-def money(token):
-    """Parse a budget figure: strips $ and commas, treats (x) as negative, a bare
-    dash as zero. pdfplumber sometimes splits the leading digit off a large number
-    ('9 4,388,547'), so internal spaces are stripped too. Returns int/float or None."""
-    t = token.strip().replace("$", "").replace(" ", "").replace(",", "").strip()
-    if t in ("-", "–", "—", ""):
-        return 0
-    neg = t.startswith("(") and t.endswith(")")
-    t = t.strip("()")
-    if not re.fullmatch(r"-?\d+(\.\d+)?", t):
-        return None
-    v = float(t) if "." in t else int(t)
-    return -v if neg else v
-
-
-def page_texts(pdf):
-    return [p.extract_text() or "" for p in pdf.pages]
-
-
-def find_page(texts, *needles):
-    """Exactly-one page locator (robust to page-number drift year to year)."""
-    needles = [n.lower() for n in needles]
-    hits = [i for i, t in enumerate(texts) if all(n in t.lower() for n in needles)]
-    if len(hits) != 1:
-        raise ValueError(f"expected exactly one page for {needles}, found {hits}")
-    return hits[0]
-
-
-def find_section(texts, *needles):
-    """Combine the contiguous run of pages, starting at the first match, where every
-    needle is present. Fund detail tables (revenue/expenditure) span several pages and
-    repeat the same subtotal labels across funds, so we slice to one fund's run."""
-    needles = [n.lower() for n in needles]
-    hits = [i for i, t in enumerate(texts) if all(n in t.lower() for n in needles)]
-    if not hits:
-        raise ValueError(f"no page found for {needles}")
-    start = end = hits[0]
-    for i in hits[1:]:
-        if i == end + 1:
-            end = i
-        else:
-            break
-    return "\n".join(texts[start:end + 1])
-
-
-def reconcile(rows, total, key, label):
-    calc = sum(r[key] for r in rows)
-    if calc != total:
-        raise ValueError(f"reconciliation failed on {label} ({key}): parsed {calc:,} vs printed {total:,}")
-
-
-def reconcile_within(rows, total, key, label, tol):
-    """Like reconcile() but tolerates a small rounding gap. Used only for descriptive
-    line-item detail whose own printed subtotal in the book rounds (the district
-    prints, e.g., a $56,987,028 salaries subtotal whose 22 line items sum to
-    $56,987,027). The authoritative figure is the printed subtotal, which itself
-    reconciles exactly into the by-object grand total; this guards the detail without
-    failing on the source's own $1 rounding."""
-    calc = sum(r[key] for r in rows)
-    if abs(calc - total) > tol:
-        raise ValueError(f"reconciliation failed on {label} ({key}): parsed {calc:,} vs printed {total:,} (tol {tol})")
-
-
-def two_nums(rest):
-    """First two signed comma-numbers in a string -> (current, prior)."""
-    nums = re.findall(r"\(?-?\$?[\d,]+\)?", rest)
-    vals = [money(n) for n in nums]
-    vals = [v for v in vals if v is not None]
-    if len(vals) < 2:
-        raise ValueError(f"expected >=2 numbers in: {rest!r}")
-    return vals[0], vals[1]
+from lib import money, load_pages, find_page, find_section, reconcile, two_nums, write_json
 
 
 # ---------- parsers ----------
@@ -236,8 +163,10 @@ def parse_gf_expenditures(text, gf_total):
 
     salary_lines = parse_object_lines(text, "K1 SALARIES", ["K TOTAL SALARIES"])
     benefit_lines = parse_object_lines(text, "L1 BENEFITS", ["L TOTAL BENEFITS"])
-    reconcile_within(salary_lines, sal_c, "amount", "salary lines", 1)
-    reconcile_within(benefit_lines, ben_c, "amount", "benefit lines", 1)
+    # tol=1: the book's own printed subtotals round $1 off their line items; the
+    # authoritative subtotal itself reconciles exactly into the by-object total.
+    reconcile(salary_lines, sal_c, "amount", "salary lines", tol=1)
+    reconcile(benefit_lines, ben_c, "amount", "benefit lines", tol=1)
 
     return {
         "total": gf_total,
@@ -381,7 +310,7 @@ def parse_debt(text):
     # Principal is the integrity anchor (reconciles exactly); the per-year total
     # column carries cents-rounding in the source, so it sums a few dollars off.
     reconcile(retire, totals["principal"], "principal", "debt")
-    reconcile_within(retire, totals["total"], "total", "debt", 5)
+    reconcile(retire, totals["total"], "total", "debt", tol=5)
     return {
         "outstanding_principal": totals["principal"],
         "total_interest_remaining": totals["interest"],
@@ -420,9 +349,8 @@ def parse_enrollment(zip_paths):
 
 
 # ---------- assembly ----------
-def extract(pdf_path, enrollment_zips=()):
-    pdf = pdfplumber.open(pdf_path)
-    texts = page_texts(pdf)
+def extract(pdf_path, enrollment_zips=(), cache=False):
+    texts = load_pages(pdf_path, cache=cache)
 
     funds, fund_totals = parse_funds(
         texts[find_page(texts, "REVENUES AND EXPENDITURES - ALL FUNDS", "GROSS TOTAL EXPENDITURES")])
@@ -456,9 +384,18 @@ def extract(pdf_path, enrollment_zips=()):
         raise ValueError(f"valuation cross-check: history latest {valuation_history[-1]['value']:,} "
                          f"vs levy-page New Valuation {new_val:,}")
 
-    debt = parse_debt(texts[find_page(texts, "Total Debt Service Requirements", "TOTAL 2025-2042")])
+    # Year-agnostic second needle ("TOTAL 20…" matches any future span) — it only
+    # needs to beat the table-of-contents line, not encode this book's years.
+    debt = parse_debt(texts[find_page(texts, "Total Debt Service Requirements", "TOTAL 20")])
 
     budget_year = rate_history[-1]["year"]
+    # Two independent spots in the book must agree on the budget year: the rate
+    # history's newest row (which a missed footnote marker would silently drop,
+    # leaving budget_year a year low) and the levy page's bridge endpoint.
+    mfy = re.search(r"(\d{4}-\d{2})", mill_bridge["result_label"])
+    if not mfy or fy_end(mfy.group(1)) != budget_year:
+        raise ValueError(f"budget-year cross-check: rate history ends {rate_history[-1]['label']!r}, "
+                         f"but the levy-page bridge result is {mill_bridge['result_label']!r}")
     meta = {
         "entity": "Wausau School District",
         "kind": "school",
@@ -490,14 +427,17 @@ def extract(pdf_path, enrollment_zips=()):
 
 
 def main():
-    if len(sys.argv) < 3:
-        sys.exit("usage: python extract_school.py <school-budget.pdf> <out.json> "
-                 "[enrollment_certified_<yr>.zip ...]")
-    data = extract(sys.argv[1], sys.argv[3:])
-    with open(sys.argv[2], "w") as f:
-        json.dump(data, f, indent=2)
+    ap = argparse.ArgumentParser(description="Extract the Wausau School District annual budget book to JSON.")
+    ap.add_argument("pdf", help="the Annual Budget Book PDF (downloaded by hand)")
+    ap.add_argument("out", help="output JSON path (public/wausau-school.json)")
+    ap.add_argument("zips", nargs="*", help="WISEdash enrollment_certified_<yr>.zip files (one per year)")
+    ap.add_argument("--cache", action="store_true",
+                    help="cache page texts in sources/ keyed on the PDF's size+mtime (fast re-runs)")
+    args = ap.parse_args()
+    data = extract(args.pdf, args.zips, cache=args.cache)
+    write_json(args.out, data)
     m = data["meta"]
-    print(f"wrote {sys.argv[2]}: {m['entity']} FY{m['budget_year']} ({m['fiscal_label']}) | "
+    print(f"wrote {args.out}: {m['entity']} FY{m['budget_year']} ({m['fiscal_label']}) | "
           f"levy ${m['total_levy']:,} @ {m['mill_rate']} mills | "
           f"all-funds ${m['gross_expenditures']:,} gross / ${m['net_expenditures']:,} net | "
           f"GF rev ${m['gf_revenues']:,} / exp ${m['gf_expenditures']:,} | "

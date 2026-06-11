@@ -13,49 +13,12 @@ Like the County extractor, every parsed table is reconciled against the book's
 own printed total and raises loudly on a mismatch.
 
 Usage:
-    python scripts/extract_wausau.py "2026 Adopted Budget - Wausau.pdf" public/wausau-city.json
+    python scripts/extract_wausau.py "2026 Adopted Budget - Wausau.pdf" public/wausau-city.json [--cache]
 """
-import sys
 import re
-import json
-import pdfplumber
+import argparse
 
-
-# ---------- helpers ----------
-def money(token):
-    """Parse a budget figure: strips $ and commas, treats (x) as negative,
-    and a bare dash as zero. Returns int (or None if not a number)."""
-    t = token.strip().replace("$", "").replace(",", "").strip()
-    if t in ("-", "–", "—", ""):
-        return 0
-    neg = t.startswith("(") and t.endswith(")")
-    t = t.strip("()")
-    if not re.fullmatch(r"-?\d+(\.\d+)?", t):
-        return None
-    v = float(t) if "." in t else int(t)
-    return -v if neg else v
-
-
-def page_texts(pdf):
-    """Extract every page's text once — the book is 267 pp, so we never want to
-    re-scan it per parser (the County extractor's repeated scans are slow)."""
-    return [p.extract_text() or "" for p in pdf.pages]
-
-
-def find_page(texts, *needles):
-    # Case-insensitive: the City book styles some section headers in alternating
-    # case (e.g. "ANNUAL RetIReMeNt oF eXIStING", "CoMpUtAtIoN oF deBt LIMIt").
-    needles = [n.lower() for n in needles]
-    hits = [i for i, t in enumerate(texts) if all(n in t.lower() for n in needles)]
-    if len(hits) != 1:
-        raise ValueError(f"expected exactly one page for {needles}, found {hits}")
-    return hits[0]
-
-
-def reconcile(rows, total, key):
-    calc = sum(r[key] for r in rows)
-    if calc != total:
-        raise ValueError(f"reconciliation failed on {key}: parsed {calc:,} vs printed {total:,}")
+from lib import money, load_pages, find_page, reconcile, write_json
 
 
 # ---------- parsers ----------
@@ -81,7 +44,7 @@ def parse_category(text):
             rows.append({"category": label, "current": cur, "prior": prior})
     if total is None:
         raise ValueError("no Total row found in expenditure-category table")
-    reconcile(rows, total["current"], "current")
+    reconcile(rows, total["current"], "current", "expenditure categories")
     return rows, total
 
 
@@ -109,7 +72,8 @@ def parse_levy_limit(text):
 def parse_personnel(text):
     """Personnel summary: FTE by department across ~11 years, reconciled to the
     printed Grand Total. Wrapped department names (e.g. 'Community\\nDevelopment')
-    are stitched back together."""
+    are stitched back together. The UI contract is newest-first arrays, so the
+    year header must read newest-first — assert it rather than trust it."""
     lines = text.split("\n")
     years = None
     for ln in lines:
@@ -119,6 +83,8 @@ def parse_personnel(text):
             break
     if years is None:
         raise ValueError("personnel year header not found")
+    if years[0] != max(years):
+        raise ValueError(f"personnel years not newest-first ({years[:3]}…) — the schema/UI contract is newest-first")
     rows, total, pending = [], None, ""
     for ln in lines:
         s = ln.strip()
@@ -162,11 +128,15 @@ def parse_tif(text):
     md = re.search(r"levy decrease of\s*\$\s*([\d,]+)", text)
     if not growth:
         raise ValueError("TIF valuation-growth list not found")
+    if md is None:
+        # No silent None: the UI renders this figure in prose. If the TID levy
+        # rose this year, the wording changed — update schema/UI consciously.
+        raise ValueError("TIF 'levy decrease of $X' phrase not found in the budget message")
     growth.sort(key=lambda r: r["tid"])
     return {
         "valuation_growth": growth,
         "developer_payments": payments,
-        "levy_decrease": money(md.group(1)) if md else None,
+        "levy_decrease": money(md.group(1)),
     }
 
 
@@ -178,7 +148,21 @@ GF_ROW = re.compile(
 
 def parse_general_fund(text):
     """General Fund 'Combined Statement of Expenditures' — department spending
-    then revenue sources, each ending in a reconciling Total row."""
+    then revenue sources, each ending in a reconciling Total row.
+
+    Column meaning is anchored on the page's own printed headers rather than
+    assumed: the year line ('2025 2026 BUDGET') fixes which years the columns
+    carry, and the ADOPTED/MODIFIED/ESTIMATED line fixes that column 1 is the
+    prior year's ADOPTED budget. A reordered or added column raises instead of
+    silently shifting figures — the Total rows shift identically, so the
+    reconcile alone cannot catch that class of drift."""
+    my = re.search(r"^(20\d{2})\s+(20\d{2})\s+BUDGET\s*$", text, re.M)
+    if not my or int(my.group(2)) != int(my.group(1)) + 1:
+        raise ValueError("GF statement year header ('<prior> <budget> BUDGET') not found or years not consecutive")
+    if not re.search(r"^ADOPTED\s+MODIFIED\s+ESTIMATED\b", text, re.M):
+        raise ValueError("GF statement column order is not ADOPTED/MODIFIED/ESTIMATED — re-anchor the row regex")
+    years = (int(my.group(1)), int(my.group(2)))
+
     exp, rev, mode = [], [], "exp"
     exp_total = rev_total = None
     for line in text.split("\n"):
@@ -200,9 +184,9 @@ def parse_general_fund(text):
             {"category": label, "prior": prior, "proposed": proposed, "pct_change": pct})
     if exp_total is None or rev_total is None:
         raise ValueError("General Fund Total Expenditures/Revenues rows not found")
-    reconcile(exp, exp_total, "proposed")
-    reconcile(rev, rev_total, "proposed")
-    return {"expenditures": exp, "revenues": rev}, exp_total, rev_total
+    reconcile(exp, exp_total, "proposed", "GF expenditures")
+    reconcile(rev, rev_total, "proposed", "GF revenues")
+    return {"expenditures": exp, "revenues": rev}, exp_total, rev_total, years
 
 
 def parse_tax_by_jurisdiction(text):
@@ -247,7 +231,8 @@ def parse_tax_by_jurisdiction(text):
 def parse_debt(retire_text, limit_text):
     """General-obligation debt: the annual retirement schedule (principal +
     interest by year, reconciled to the printed totals) and the outstanding
-    total from the debt-limit computation."""
+    total from the debt-limit computation. Every figure is parsed or the run
+    fails — no soft fallbacks."""
     retire, printed = [], None
     for line in retire_text.split("\n"):
         s = line.strip()
@@ -263,22 +248,25 @@ def parse_debt(retire_text, limit_text):
             break
     if printed is None:
         raise ValueError("debt retirement totals row not found")
-    reconcile(retire, printed["principal"], "principal")
-    reconcile(retire, printed["total"], "total")
+    reconcile(retire, printed["principal"], "principal", "debt retirement")
+    reconcile(retire, printed["total"], "total", "debt retirement")
     mo = re.search(r"Outstanding GO Debt\s+\$\s*[\d,]+\s+\$\s*([\d,]+)", limit_text)
+    if not mo:
+        raise ValueError("debt-limit 'Outstanding GO Debt' line not found")
     mu = re.search(r"% Utilized\s+[\d.]+%\s+([\d.]+)%", limit_text)
+    if not mu:
+        raise ValueError("debt-limit '% Utilized' line not found")
     return {
-        "outstanding": money(mo.group(1)) if mo else printed["principal"],
+        "outstanding": money(mo.group(1)),
         "total_interest_remaining": printed["interest"],
-        "pct_of_limit": float(mu.group(1)) if mu else None,
+        "pct_of_limit": float(mu.group(1)),
         "retirement": retire,
     }
 
 
 # ---------- assembly ----------
-def extract(pdf_path):
-    pdf = pdfplumber.open(pdf_path)
-    texts = page_texts(pdf)
+def extract(pdf_path, cache=False):
+    texts = load_pages(pdf_path, cache=cache)
 
     cat_text = texts[find_page(texts, "Budget By Expenditure Category")]
     categories, cat_total = parse_category(cat_text)
@@ -287,7 +275,7 @@ def extract(pdf_path):
     levy_history = parse_levy_limit(levy_text)
 
     gf_text = texts[find_page(texts, "COMBINED STATEMENT OF EXPENDITURES - GENERAL FUND")]
-    general_fund, gf_exp_total, gf_rev_total = parse_general_fund(gf_text)
+    general_fund, gf_exp_total, gf_rev_total, gf_years = parse_general_fund(gf_text)
 
     juris_text = texts[find_page(texts, "PROPERTY TAX ALLOCATION BY TAXING JURISDICTION")]
     tax_by_jurisdiction, juris_total, rate_years = parse_tax_by_jurisdiction(juris_text)
@@ -302,6 +290,9 @@ def extract(pdf_path):
     tif = parse_tif(texts[find_page(texts, "Valuation growth within the tax increment")])
 
     latest = max(l["year"] for l in levy_history)
+    # Two independent spots in the book must agree on the budget year.
+    if gf_years[1] != latest:
+        raise ValueError(f"budget-year cross-check: GF statement says {gf_years[1]}, levy-limit table says {latest}")
 
     meta = {
         "entity": "City of Wausau",
@@ -326,13 +317,16 @@ def extract(pdf_path):
 
 
 def main():
-    if len(sys.argv) != 3:
-        sys.exit("usage: python extract_wausau.py <wausau.pdf> <out.json>")
-    data = extract(sys.argv[1])
-    with open(sys.argv[2], "w") as f:
-        json.dump(data, f, indent=2)
+    ap = argparse.ArgumentParser(description="Extract the City of Wausau adopted-budget book to JSON.")
+    ap.add_argument("pdf", help="the adopted-budget PDF (downloaded by hand)")
+    ap.add_argument("out", help="output JSON path (public/wausau-city.json)")
+    ap.add_argument("--cache", action="store_true",
+                    help="cache page texts in sources/ keyed on the PDF's size+mtime (fast re-runs)")
+    args = ap.parse_args()
+    data = extract(args.pdf, cache=args.cache)
+    write_json(args.out, data)
     m = data["meta"]
-    print(f"wrote {sys.argv[2]}: {m['entity']} {m['budget_year']} | "
+    print(f"wrote {args.out}: {m['entity']} {m['budget_year']} | "
           f"total ${m['total_expenditures']:,} | levy ${m['tax_levy']:,} | "
           f"{len(data['expenditure_categories'])} categories | "
           f"GF {len(data['general_fund']['expenditures'])} depts / {len(data['general_fund']['revenues'])} rev sources | "
