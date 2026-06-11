@@ -19,13 +19,15 @@ import extract_school
 # Each entity's committed file and the exact inputs it was built from.
 ENROLLMENT_ZIPS = [f"sources/enrollment_certified_{y}.zip"
                    for y in ("2021-22", "2022-23", "2023-24", "2024-25", "2025-26")]
+SCHOOL_PRIOR_BOOKS = ["sources/2025-Wausau-School-Budget.pdf", "sources/2024-Wausau-School-Budget.pdf"]
 BUILDS = [
     ("public/marathon-county.json",
      lambda: extract_budget.extract("2026-Annual-Budget.pdf", ["2025-Annual-Budget.pdf"], cache=True)),
     ("public/wausau-city.json",
      lambda: extract_wausau.extract("2026-Wausau-Budget.pdf", cache=True)),
     ("public/wausau-school.json",
-     lambda: extract_school.extract("sources/2026-Wausau-School-Budget.pdf", ENROLLMENT_ZIPS, cache=True)),
+     lambda: extract_school.extract("sources/2026-Wausau-School-Budget.pdf", ENROLLMENT_ZIPS,
+                                    SCHOOL_PRIOR_BOOKS, cache=True)),
 ]
 
 

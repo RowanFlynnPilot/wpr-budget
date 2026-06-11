@@ -113,6 +113,22 @@ python scripts/extract_school.py sources/2026-Wausau-School-Budget.pdf public/wa
        sources/enrollment_certified_2021-22.zip sources/enrollment_certified_2022-23.zip \
        sources/enrollment_certified_2023-24.zip sources/enrollment_certified_2024-25.zip \
        sources/enrollment_certified_2025-26.zip
+# --prior-book (repeatable) = a prior year's Annual Budget Book; each extends the
+# `gf_history` block (per-student spending line) two more years on the own-book
+# ADOPTED basis (newer books restate the prior year — e.g. the 2025-26 book prints
+# a revised $119.3M for 2024-25 vs that year's own adopted $118.6M; own-book wins,
+# a later book's prior column only fills the earliest year). Prior books found via
+# the district site (only current + one prior hosted) and the Wayback Machine's
+# snapshot of /about-wsd/annual-budget-book (the 2023-24 edition's finalsite CDN
+# URL still serves). The 2022-23 edition was NOT recoverable online — that's why
+# gf_history starts at 2022-23 (from the 2023-24 book's prior column) and the
+# per-student line has no 2021-22 point. THE COMMITTED FILE is built with:
+python scripts/extract_school.py sources/2026-Wausau-School-Budget.pdf public/wausau-school.json \
+       sources/enrollment_certified_2021-22.zip sources/enrollment_certified_2022-23.zip \
+       sources/enrollment_certified_2023-24.zip sources/enrollment_certified_2024-25.zip \
+       sources/enrollment_certified_2025-26.zip \
+       --prior-book sources/2025-Wausau-School-Budget.pdf \
+       --prior-book sources/2024-Wausau-School-Budget.pdf --cache
 ```
 
 **Prior-year format limitation.** Only the **2025 and 2026** books use the
@@ -195,6 +211,9 @@ meta:           { entity, kind:"school", budget_year, fiscal_label, total_levy, 
 funds[]:        { fund_no, name, revenues, expenditures, prior_revenues, prior_expenditures }
                 # all-funds summary (Fund 10/27/20/38/39/49/50/73/80); reconciled to GROSS totals
 gf_revenues[]:  { source, amount, prior }    # General Fund by source; sums to gf_revenues
+gf_history:     { "<fy-label>": fund10_budget }  # adopted GF budget per fiscal year, one figure
+                # per budget book (own-book adopted basis; earliest year from a prior column).
+                # Drives the Students chart's per-student spending line: gf_history[label]/enrollment.
 gf_expenditures:{ total, by_object[], salary_lines[], benefit_lines[] }
                 # by_object: {object, amount, prior} = Salaries/Benefits/Non-Salary Operating/
                 # Transfers — sums EXACTLY to total. salary_lines/benefit_lines: {label, amount,
@@ -372,16 +391,19 @@ Wausau, Wausau School District, + the "Your Tax Bill" overview) behind a suite
 Hmoob). Raw source files (gitignored, in `sources/` + repo root) needed to
 re-run extractors: `2026-Annual-Budget.pdf` + `2025-…` (County),
 `2026-Wausau-Budget.pdf` (City), `sources/2026-Wausau-School-Budget.pdf` +
+prior books `sources/2025-…` and `sources/2024-Wausau-School-Budget.pdf` +
 `sources/enrollment_certified_<yr>.zip` ×5 (School); page-text caches live
 beside them as `sources/_pages_*.json`.
 
 > **Next session — start here.** No half-finished code; the open items are
 > WPR/editorial actions, not bugs: (1) a **fluent-speaker review of the Hmong** (it's
 > AI-drafted, shipped behind a beta banner — corrections go in the `HMN` table of
-> `src/i18n.jsx`; the new `pc.*` keys are AI-drafted too); (2) **verify the
-> chart-annotation seeds** (`src/annotations.json` — the School enrollment
-> "consolidation" marker is DRAFT: confirm the year, add source URLs to both
-> seeds); (3) the **sponsor surface** is built but hidden — flip
+> `src/i18n.jsx`; the new `pc.*` keys are AI-drafted too); (2) the School
+> enrollment **consolidation annotation is now VERIFIED + sourced** (board voted
+> unanimously Jan 8, 2025 to close Hewitt-Texas/Hawthorn Hills/Grant/Lincoln,
+> effective 2025-26 — WPR's own 2025-01-09 article is the source link); the
+> **2022-referendum seed still needs its source URL**; (3) the **sponsor
+> surface** is built but hidden — flip
 > `src/sponsors.json` `enabled:true` to go live; (4) **add the auto-height
 > snippet to the WordPress embed** (see Dev / deploy) and decide whether the
 > embed should point at the landing or a fixed entity hash. Live at

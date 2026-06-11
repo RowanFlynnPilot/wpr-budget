@@ -139,7 +139,7 @@ const EN = {
     `The district enrolls ${now} students in ${year}` +
     (chg < 0 ? `, down ${Math.abs(chg).toLocaleString()} from ${then} five years ago` : chg > 0 ? `, up ${chg.toLocaleString()} over five years` : ", flat over five years") +
     `. That works out to about ${per} of general-fund spending per student.`,
-  "s.students.note": (y0, y1, perGF, perAll) => `Districtwide certified enrollment (headcount), ${y0}–${y1}. Source: Wisconsin DPI WISEdash. Per-student figures use this enrollment: ${perGF} from the general fund, or ${perAll} counting all funds (net of transfers). The spending line covers the two years the budget book reports; a statewide comparison will be added when DPI's per-member finance data is available.`,
+  "s.students.note": (y0, y1, perGF, perAll) => `Districtwide certified enrollment (headcount), ${y0}–${y1}. Source: Wisconsin DPI WISEdash. Per-student figures use this enrollment: ${perGF} from the general fund, or ${perAll} counting all funds (net of transfers). The spending line divides each year's adopted general-fund budget, from that year's budget book, by that year's enrollment; a statewide comparison will be added when DPI's per-member finance data is available.`,
   "s.students.studentsLabel": "students",
   "s.students.legendEnroll": "Students enrolled",
   "s.students.legendPerStudent": "General-fund spending per student",
@@ -416,7 +416,7 @@ const ES = {
     `El distrito matricula ${now} estudiantes en ${year}` +
     (chg < 0 ? `, ${Math.abs(chg).toLocaleString()} menos que ${then} hace cinco años` : chg > 0 ? `, ${chg.toLocaleString()} más en cinco años` : ", estable en cinco años") +
     `. Eso equivale a unos ${per} de gasto del fondo general por estudiante.`,
-  "s.students.note": (y0, y1, perGF, perAll) => `Matrícula certificada de todo el distrito (recuento), ${y0}–${y1}. Fuente: Wisconsin DPI WISEdash. Las cifras por estudiante usan esta matrícula: ${perGF} del fondo general, o ${perAll} contando todos los fondos (neto de transferencias). La línea de gasto cubre los dos años que reporta el libro presupuestario; se añadirá una comparación estatal cuando estén disponibles los datos por miembro de DPI.`,
+  "s.students.note": (y0, y1, perGF, perAll) => `Matrícula certificada de todo el distrito (recuento), ${y0}–${y1}. Fuente: Wisconsin DPI WISEdash. Las cifras por estudiante usan esta matrícula: ${perGF} del fondo general, o ${perAll} contando todos los fondos (neto de transferencias). La línea de gasto divide el presupuesto adoptado del fondo general de cada año, del libro presupuestario de ese año, entre la matrícula de ese año; se añadirá una comparación estatal cuando estén disponibles los datos por miembro de DPI.`,
   "s.students.studentsLabel": "estudiantes",
   "s.students.legendEnroll": "Estudiantes matriculados",
   "s.students.legendPerStudent": "Gasto del fondo general por estudiante",
@@ -689,7 +689,7 @@ const HMN = {
     `Lub koog tsev kawm muaj ${now} tus tub ntxhais kawm xyoo ${year}` +
     (chg < 0 ? `, poob ${Math.abs(chg).toLocaleString()} ntawm ${then} tsib xyoos dhau los` : chg > 0 ? `, nce ${chg.toLocaleString()} hauv tsib xyoos` : ", tsis hloov hauv tsib xyoos") +
     `. Qhov no kwv yees li ${per} ntawm general fund rau ib tug tub ntxhais kawm.`,
-  "s.students.note": (y0, y1, perGF, perAll) => `Cov tub ntxhais kawm tag nrho lub koog tsev kawm (suav cov taub hau), ${y0}–${y1}. Qhov chaw: Wisconsin DPI WISEdash. Cov lej ib tug siv cov tub ntxhais no: ${perGF} ntawm general fund, los yog ${perAll} suav txhua nyiaj (net tom qab cov hloov). Txoj kab kev siv nyiaj npog ob xyoos uas phau ntawv nyiaj txiag qhia; yuav ntxiv kev sib piv thoob xeev thaum DPI cov ntaub ntawv nyiaj ib tug muaj.`,
+  "s.students.note": (y0, y1, perGF, perAll) => `Cov tub ntxhais kawm tag nrho lub koog tsev kawm (suav cov taub hau), ${y0}–${y1}. Qhov chaw: Wisconsin DPI WISEdash. Cov lej ib tug siv cov tub ntxhais no: ${perGF} ntawm general fund, los yog ${perAll} suav txhua nyiaj (net tom qab cov hloov). Txoj kab kev siv nyiaj muab txhua xyoo daim nyiaj txiag pom zoo ntawm general fund, los ntawm phau ntawv xyoo ntawd, faib los ntawm cov tub ntxhais kawm xyoo ntawd; yuav ntxiv kev sib piv thoob xeev thaum DPI cov ntaub ntawv nyiaj ib tug muaj.`,
   "s.students.studentsLabel": "tus tub ntxhais",
   "s.students.legendEnroll": "Cov tub ntxhais kawm",
   "s.students.legendPerStudent": "Nyiaj siv general fund rau ib tus tub kawm",

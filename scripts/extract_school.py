@@ -43,10 +43,13 @@ FUND_EXP = ("EXPENDITURES & OTHER FINANCING USES", "NET EXPENDITURES & OTHER FIN
 FUND_HDR = re.compile(r"^(?:OTHER\s+)?FUND\s+(\d+)\s*[-:]\s*(.+)$")
 
 
-def parse_funds(text):
+def parse_funds(text, tol=0):
     """All-funds summary: per-fund revenue and expenditure (current + prior),
     summing the fund's revenue-side and expenditure-side lines. Reconciles to the
-    book's printed GROSS TOTAL REVENUES / GROSS TOTAL EXPENDITURES."""
+    book's printed GROSS TOTAL REVENUES / GROSS TOTAL EXPENDITURES. tol is 0 for
+    the current book (which reconciles exactly); prior books pass tol=1 because
+    e.g. the 2024-25 edition prints a gross total $1 off its own line items —
+    the same source-rounding class as the salary subtotals."""
     funds, cur, gross_rev, gross_exp, net_exp = [], None, None, None, None
     for raw in text.split("\n"):
         s = raw.strip()
@@ -78,8 +81,8 @@ def parse_funds(text):
             net_exp = two_nums(s[len("NET TOTAL EXPENDITURES"):])[0]
     if gross_rev is None or gross_exp is None or net_exp is None:
         raise ValueError("all-funds gross/net total rows not found")
-    reconcile(funds, gross_rev, "revenues", "funds")
-    reconcile(funds, gross_exp, "expenditures", "funds")
+    reconcile(funds, gross_rev, "revenues", "funds", tol=tol)
+    reconcile(funds, gross_exp, "expenditures", "funds", tol=tol)
     return funds, {"gross_revenues": gross_rev, "gross_expenditures": gross_exp, "net_expenditures": net_exp}
 
 
@@ -348,8 +351,33 @@ def parse_enrollment(zip_paths):
     }
 
 
+def fiscal_labels(full_text, source_name):
+    """(current, prior) fiscal labels — e.g. ("2025-26", "2024-25") — read from
+    the book's own 'PROPOSED <yyyy>-<yyyy> TAX LEVY' header."""
+    m = re.search(r"PROPOSED\s+(\d{4})-(\d{4})\s+TAX\s+LEVY", full_text)
+    if not m:
+        raise ValueError(f"{source_name}: 'PROPOSED <yyyy>-<yyyy> TAX LEVY' header not found")
+    y1 = int(m.group(1))
+    return f"{y1}-{str(int(m.group(2)))[2:]}", f"{y1 - 1}-{str(y1)[2:]}"
+
+
+def extract_gf_history_slice(pdf_path, cache=False):
+    """Fund 10 budget totals from a PRIOR year's Annual Budget Book, for the
+    per-student spending history: ((label, adopted), (prior_label, prior_col)).
+    Reuses parse_funds, so the slice carries the same gross-total
+    reconciliation as the full extraction — a prior book that doesn't
+    reconcile fails loud."""
+    texts = load_pages(pdf_path, cache=cache)
+    funds, _ = parse_funds(
+        texts[find_page(texts, "REVENUES AND EXPENDITURES - ALL FUNDS", "GROSS TOTAL EXPENDITURES")],
+        tol=1)
+    gf = next(f for f in funds if f["fund_no"] == 10)
+    cur_label, prior_label = fiscal_labels("\n".join(texts), pdf_path)
+    return (cur_label, gf["expenditures"]), (prior_label, gf["prior_expenditures"])
+
+
 # ---------- assembly ----------
-def extract(pdf_path, enrollment_zips=(), cache=False):
+def extract(pdf_path, enrollment_zips=(), prior_books=(), cache=False):
     texts = load_pages(pdf_path, cache=cache)
 
     funds, fund_totals = parse_funds(
@@ -409,11 +437,34 @@ def extract(pdf_path, enrollment_zips=(), cache=False):
         "gf_revenues": gf["revenues"],
     }
 
+    # General-fund budget history for the per-student spending line. Each
+    # year's figure comes from its own book's current-year column — the
+    # adopted basis, the same apples-to-apples rule as the County's history —
+    # because newer books RESTATE the prior year (the 2025-26 book prints a
+    # revised $119.3M for 2024-25 vs the $118.6M that year's own book
+    # adopted). A book's prior-year column only fills years with no own book
+    # (the earliest year in the series). Two books claiming the same CURRENT
+    # year is a real error and raises.
+    cur_label, prior_label = fiscal_labels("\n".join(texts), pdf_path)
+    if cur_label != meta["fiscal_label"]:
+        raise ValueError(f"levy-page fiscal year {cur_label} != rate-history fiscal year {meta['fiscal_label']}")
+    adopted = {cur_label: gf["expenditures"]}
+    prior_col = {prior_label: gf["prior_expenditures"]}
+    for pb in prior_books:
+        (c_label, c_amt), (p_label, p_amt) = extract_gf_history_slice(pb, cache=cache)
+        if c_label in adopted and adopted[c_label] != c_amt:
+            raise ValueError(f"two books claim fiscal year {c_label}: "
+                             f"{adopted[c_label]:,} vs {c_amt:,} from {pb}")
+        adopted[c_label] = c_amt
+        prior_col.setdefault(p_label, p_amt)
+    gf_history = {**prior_col, **adopted}  # own-book adopted figures win
+
     out = {
         "meta": meta,
         "funds": funds,
         "gf_revenues": gf_revenues,
         "gf_expenditures": gf_expenditures,
+        "gf_history": {k: gf_history[k] for k in sorted(gf_history)},
         "levy_by_fund": levy_by_fund,
         "levy_total": levy_total,
         "mill_bridge": mill_bridge,
@@ -431,10 +482,12 @@ def main():
     ap.add_argument("pdf", help="the Annual Budget Book PDF (downloaded by hand)")
     ap.add_argument("out", help="output JSON path (public/wausau-school.json)")
     ap.add_argument("zips", nargs="*", help="WISEdash enrollment_certified_<yr>.zip files (one per year)")
+    ap.add_argument("--prior-book", action="append", default=[], dest="prior_books", metavar="PDF",
+                    help="a prior year's Annual Budget Book; extends gf_history two more years (repeatable)")
     ap.add_argument("--cache", action="store_true",
                     help="cache page texts in sources/ keyed on the PDF's size+mtime (fast re-runs)")
     args = ap.parse_args()
-    data = extract(args.pdf, args.zips, cache=args.cache)
+    data = extract(args.pdf, args.zips, args.prior_books, cache=args.cache)
     write_json(args.out, data)
     m = data["meta"]
     print(f"wrote {args.out}: {m['entity']} FY{m['budget_year']} ({m['fiscal_label']}) | "
@@ -444,6 +497,7 @@ def main():
           f"{len(data['funds'])} funds | {len(data['gf_revenues'])} revenue sources | "
           f"{len(data['gf_expenditures']['salary_lines'])} salary + {len(data['gf_expenditures']['benefit_lines'])} benefit lines | "
           f"{len(data['levy_by_fund'])} levy funds | {len(data['mill_bridge']['factors'])} bridge factors | "
+          f"GF history {min(data['gf_history'])}-{max(data['gf_history'])} ({len(data['gf_history'])} yrs) | "
           f"{len(data['rate_history'])} rate-history yrs ({data['rate_history'][0]['label']}-{data['rate_history'][-1]['label']}) | "
           f"{len(data['valuation_history'])} valuation yrs (latest ${data['valuation_history'][-1]['value']:,}) | "
           f"debt ${data['debt']['outstanding_principal']:,} principal, {len(data['debt']['retirement'])} retirement yrs"

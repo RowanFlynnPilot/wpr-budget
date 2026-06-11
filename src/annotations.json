@@ -16,13 +16,13 @@
     "students": [
       {
         "x": "2024-25",
-        "tag": { "en": "Consolidation (DRAFT — verify year)", "es": "Consolidación (BORRADOR — verificar año)", "hmn": "Sib koom (DRAFT — kuaj xyoo)" },
+        "tag": { "en": "Closure vote", "es": "Voto de cierre", "hmn": "Pov npav kaw" },
         "note": {
-          "en": "A sustained enrollment decline drove the district's 2025 school consolidation. (Draft — confirm the effective school year and add a source.)",
-          "es": "Un descenso sostenido de la matrícula impulsó la consolidación escolar del distrito en 2025. (Borrador — confirme el año escolar y agregue una fuente.)",
-          "hmn": "Cov tub ntxhais kawm poob ntev ua rau lub koog tsev kawm txoj kev sib koom xyoo 2025. (Draft — kuaj xyoo kawm thiab ntxiv qhov chaw.)"
+          "en": "After years of declining enrollment, the school board voted unanimously in January 2025 to close four elementary schools — Hewitt-Texas, Hawthorn Hills, Grant and Lincoln — effective 2025-26.",
+          "es": "Tras años de matrícula en descenso, la junta escolar votó por unanimidad en enero de 2025 cerrar cuatro escuelas primarias — Hewitt-Texas, Hawthorn Hills, Grant y Lincoln — con efecto en 2025-26.",
+          "hmn": "Tom qab ntau xyoo cov tub ntxhais kawm poob, pawg thawj coj tsev kawm pov npav ib suab thaum Lub Ib Hlis 2025 kaw plaub lub tsev kawm theem pib — Hewitt-Texas, Hawthorn Hills, Grant thiab Lincoln — pib siv rau 2025-26."
         },
-        "source": null
+        "source": "https://wausaupilotandreview.com/2025/01/09/wausau-to-close-4-elementary-schools/"
       }
     ]
   }

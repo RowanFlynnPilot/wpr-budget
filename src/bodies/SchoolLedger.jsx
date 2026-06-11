@@ -123,20 +123,18 @@ export default function SchoolLedger({ b, chrome }) {
   const startYr = parseInt(b.meta.fiscal_label.slice(0, 4), 10);
   const priorFy = `${startYr - 1}-${String(startYr).slice(2)}`;
 
-  // Enrollment trend + per-student general-fund spending for the two fiscal
-  // years the budget book reports (current + prior Fund 10). Earlier years
-  // would need DPI per-member finance data (Phase 2c) — never divide one
-  // year's dollars by another year's heads.
+  // Enrollment trend + per-student general-fund spending: each year's adopted
+  // Fund 10 budget (gf_history — one figure per budget book, own-book adopted
+  // basis) divided by that year's enrollment. Years without a budget book
+  // stay null — never divide one year's dollars by another year's heads.
   const enrSeries = useMemo(() => {
     if (!enr) return [];
-    const gfFund = b.funds.find((f) => f.fund_no === 10);
-    const gfByLabel = { [b.meta.fiscal_label]: gfFund.expenditures, [priorFy]: gfFund.prior_expenditures };
     return enr.labels.map((label, i) => ({
       label,
       count: enr.counts[i],
-      perStudent: gfByLabel[label] ? Math.round(gfByLabel[label] / enr.counts[i]) : null,
+      perStudent: b.gf_history[label] ? Math.round(b.gf_history[label] / enr.counts[i]) : null,
     }));
-  }, [enr, b.funds, b.meta.fiscal_label, priorFy]);
+  }, [enr, b.gf_history]);
   const enrNow = enr ? enr.counts[enr.counts.length - 1] : 0;
   const enrThen = enr ? enr.counts[0] : 0;
   const enrChange = enrNow - enrThen;
