@@ -140,7 +140,7 @@ html{scroll-behavior:smooth;}
   background:var(--paper); color:var(--ink); border:none; cursor:pointer;
   transition:background .18s ease, color .18s ease;}
 .toggle button.on{background:var(--ink); color:var(--paper);}
-.toggle button:first-child{border-right:1px solid var(--ink);}
+.toggle button + button{border-left:1px solid var(--ink);}
 
 /* bars */
 .bars{display:flex; flex-direction:column; gap:2px;}
@@ -409,6 +409,17 @@ html{scroll-behavior:smooth;}
 @keyframes rise{from{opacity:0; transform:translateY(8px);}to{opacity:1; transform:translateY(0);}}
 
 .sm-only{display:none;}
+
+/* print: drop the chrome/nav/controls, keep the ledger — this is journalism,
+   people print these pages. */
+@media print {
+  .chrome-bar, .beta-banner, .subnav, .downloads, .suite-link, .lp-hook,
+  .lp-card-cta, .wf-pick { display: none !important; }
+  .ftm { max-width: none; padding: 0 0 20px; }
+  .masthead { padding-top: 12px; }
+  .bar-row, .jrow, .ledger-item, .fund-row, .debt-row, .cmp-row, .chg-row,
+  .stat, .callout, .balance { break-inside: avoid; }
+}
 
 @media(max-width:680px){
   .ftm{padding:0 16px 60px;}

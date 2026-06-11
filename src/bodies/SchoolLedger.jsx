@@ -6,7 +6,7 @@ import { useLang, useStrings } from "../i18n";
 import { usd, compact } from "../format";
 import {
   ENTITY_LOGOS, SectionHead, Stat, Delta, Highlights, SubNav, SponsorSlot, Methodology,
-  HomeValueCalc, TaxSplit, ChartNotes, resolveNotes, useScrollSpy, useAnchorOnMount,
+  HomeValueCalc, TaxSplit, ChartNotes, resolveNotes, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import { MoneyFlowSankey, DebtChart } from "../charts";
 import ChromeBar from "../ChromeBar";
@@ -31,7 +31,7 @@ export default function SchoolLedger({ b, chrome }) {
   const enrNotes = resolveNotes(chrome, lang, "students");
   const [gfFlow, setGfFlow] = useState("expenditures");
   const [showPeople, setShowPeople] = useState(false);
-  const [homeValue, setHomeValue] = useState(200000);
+  const [homeValue, setHomeValue] = useHomeValue();
   useAnchorOnMount();
 
   // Enrollment & per-student (Phase 2b — present when the WISEdash enrollment files

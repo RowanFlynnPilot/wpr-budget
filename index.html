@@ -27,6 +27,44 @@
     <meta name="twitter:description" content="Where your Wausau-area tax dollars go: county, city and school district budgets, and what they mean for your tax bill." />
     <meta name="twitter:image" content="https://rowanflynnpilot.github.io/wpr-budget/og-image.png" />
 
+    <!-- Open-data discovery: the suite's reconciled budget extracts, one JSON
+         per entity (the same files the Methodology sections link). -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      "name": "Follow the Money — Wausau-area government budget data",
+      "description": "Reconciled, machine-readable extracts of the adopted budgets of Marathon County, the City of Wausau, and the Wausau School District: general-fund detail, departments and funds, tax levies, mill rates, and outstanding debt. Every figure is extracted from the official budget PDFs and checked against their printed totals.",
+      "url": "https://rowanflynnpilot.github.io/wpr-budget/",
+      "isAccessibleForFree": true,
+      "creator": {
+        "@type": "NewsMediaOrganization",
+        "name": "Wausau Pilot & Review",
+        "url": "https://wausaupilotandreview.com"
+      },
+      "distribution": [
+        {
+          "@type": "DataDownload",
+          "name": "Marathon County adopted budget (JSON)",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://rowanflynnpilot.github.io/wpr-budget/marathon-county.json"
+        },
+        {
+          "@type": "DataDownload",
+          "name": "City of Wausau adopted budget (JSON)",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://rowanflynnpilot.github.io/wpr-budget/wausau-city.json"
+        },
+        {
+          "@type": "DataDownload",
+          "name": "Wausau School District adopted budget (JSON)",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://rowanflynnpilot.github.io/wpr-budget/wausau-school.json"
+        }
+      ]
+    }
+    </script>
+
     <!-- Cloudflare Web Analytics (privacy-first, no cookies). Token is the shared
          rowanflynnpilot.github.io site, also used by the Meeting Tracker. -->
     <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "bf2a64bffc704ba3955e187571628430"}'></script>

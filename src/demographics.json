@@ -1,0 +1,15 @@
+{
+  "_README": "CURATED denominators for the per-resident / per-household toggle — NOT extracted from budget PDFs. 2020 decennial census counts (population + households), chosen over rolling estimates so the basis is a single citable figure. Update when the next decennial lands. The School body does not use this file: it already shows per-student figures from WISEdash enrollment.",
+  "marathon-county": {
+    "population": 138013,
+    "households": 56517,
+    "basis": "2020 Census",
+    "source": "https://www.census.gov/quickfacts/marathoncountywisconsin"
+  },
+  "wausau-city": {
+    "population": 39994,
+    "households": 17420,
+    "basis": "2020 Census",
+    "source": "https://www.census.gov/quickfacts/wausaucitywisconsin"
+  }
+}

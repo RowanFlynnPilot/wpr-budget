@@ -6,10 +6,11 @@ import { useStrings } from "../i18n";
 import { usd, compact } from "../format";
 import {
   ENTITY_LOGOS, SectionHead, Stat, Delta, Highlights, SubNav, SponsorSlot, Methodology,
-  HomeValueCalc, TaxSplit, useScrollSpy, useAnchorOnMount,
+  HomeValueCalc, TaxSplit, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import { BarTip, MoneyFlowSankey, DebtChart } from "../charts";
 import ChromeBar from "../ChromeBar";
+import demographics from "../demographics.json";
 
 // Shorter labels for the Sankey (the full names are too long to fit beside nodes).
 const SANKEY_SHORT = {
@@ -33,9 +34,16 @@ export default function CityLedger({ b, chrome }) {
   const [wfDept, setWfDept] = useState(
     () => [...b.personnel.rows].sort((a, c) => c.fte[0] - a.fte[0])[0].department
   );
-  const [homeValue, setHomeValue] = useState(200000);
+  const [homeValue, setHomeValue] = useHomeValue();
+  const [divisor, setDivisor] = useState("total");
   useAnchorOnMount();
   const active = useScrollSpy(SECTIONS, chrome.activeId);
+
+  // Per-resident / per-household view of the GF bars (curated 2020 Census
+  // denominators in src/demographics.json).
+  const demo = demographics[chrome.activeId];
+  const perDiv = divisor === "resident" ? demo.population : divisor === "household" ? demo.households : 1;
+  const showVal = (n) => (divisor === "total" ? compact(n) : usd(Math.round(n / perDiv)));
 
   // Both tabs (departments / revenue) sorted by amount, largest first.
   const gfRows = useMemo(() => {
@@ -155,18 +163,22 @@ export default function CityLedger({ b, chrome }) {
           <button aria-pressed={gfFlow === "departments"} className={gfFlow === "departments" ? "on" : ""} onClick={() => setGfFlow("departments")}>{t("btn.byDepartment")}</button>
           <button aria-pressed={gfFlow === "revenues"} className={gfFlow === "revenues" ? "on" : ""} onClick={() => setGfFlow("revenues")}>{t("btn.revenue")}</button>
         </div>
+        <DivisorToggle divisor={divisor} onChange={setDivisor} />
         <div className="bars">
           {gfRows.map((r, i) => (
             <div className="bar-row no-spark" key={r.category} style={{ animationDelay: `${i * 40}ms` }}>
               <div className="bar-label">{r.category}</div>
               <div className="bar-track"><div className="bar-fill" style={{ width: `${(r.proposed / gfMax) * 100}%` }} /></div>
-              <div className="bar-val">{compact(r.proposed)}</div>
+              <div className="bar-val">{showVal(r.proposed)}</div>
               <div className="bar-share">{((r.proposed / gfTotal) * 100).toFixed(0)}%</div>
               <div className="bar-delta"><Delta value={r.pct_change} invertColor={gfFlow === "departments"} /></div>
             </div>
           ))}
         </div>
         <p className="note">{gfFlow === "departments" ? t("c.where.noteDept") : t("c.where.noteRev")}</p>
+        {divisor !== "total" && (
+          <p className="note">{t("pc.note", demo.population.toLocaleString("en-US"), demo.households.toLocaleString("en-US"), demo.basis)}</p>
+        )}
       </section>
 
       {/* MONEY FLOW — General Fund Sankey */}

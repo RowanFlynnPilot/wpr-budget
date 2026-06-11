@@ -7,9 +7,10 @@ import { useLang, useStrings } from "../i18n";
 import { usd, compact, pct, deptSpend } from "../format";
 import {
   ENTITY_LOGOS, SectionHead, Stat, Delta, Balance, Spark, Highlights, SubNav, SponsorSlot,
-  Methodology, HomeValueCalc, useScrollSpy, useAnchorOnMount,
+  Methodology, HomeValueCalc, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
+import demographics from "../demographics.json";
 
 const SECTIONS = ["where", "departments", "trends", "bill", "funds", "debt", "methodology"];
 
@@ -24,9 +25,16 @@ export default function Ledger({ b, chrome }) {
   const [sortDir, setSortDir] = useState("desc");
   const [open, setOpen] = useState(null);
   const [deptView, setDeptView] = useState("amount");
-  const [homeValue, setHomeValue] = useState(200000);
+  const [homeValue, setHomeValue] = useHomeValue();
+  const [divisor, setDivisor] = useState("total");
   useAnchorOnMount();
   const active = useScrollSpy(SECTIONS, chrome.activeId);
+
+  // Per-resident / per-household view of the GF bars (curated 2020 Census
+  // denominators in src/demographics.json).
+  const demo = demographics[chrome.activeId];
+  const perDiv = divisor === "resident" ? demo.population : divisor === "household" ? demo.households : 1;
+  const showVal = (n) => (divisor === "total" ? compact(n) : usd(Math.round(n / perDiv)));
 
   // Both tabs sorted by amount, largest first.
   const gfRows = useMemo(() => [...b.general_fund[flow]].sort((a, c) => c.proposed_next - a.proposed_next), [flow, b.general_fund]);
@@ -163,6 +171,7 @@ export default function Ledger({ b, chrome }) {
           <button aria-pressed={flow === "expenditures"} className={flow === "expenditures" ? "on" : ""} onClick={() => setFlow("expenditures")}>{t("btn.spending")}</button>
           <button aria-pressed={flow === "revenues"} className={flow === "revenues" ? "on" : ""} onClick={() => setFlow("revenues")}>{t("btn.revenue")}</button>
         </div>
+        <DivisorToggle divisor={divisor} onChange={setDivisor} />
 
         <div className="bars">
           {gfRows.map((r, i) => (
@@ -174,13 +183,16 @@ export default function Ledger({ b, chrome }) {
               <Spark className="hide-sm"
                 values={[r.actual_prior, r.budget_current, r.proposed_next]}
                 tone={(r.proposed_next >= r.actual_prior) === (flow === "revenues") ? "pos" : "neg"} />
-              <div className="bar-val">{compact(r.proposed_next)}</div>
+              <div className="bar-val">{showVal(r.proposed_next)}</div>
               <div className="bar-share">{((r.proposed_next / gfTotal) * 100).toFixed(0)}%</div>
               <div className="bar-delta"><Delta value={r.pct_change} invertColor={flow === "expenditures"} /></div>
             </div>
           ))}
         </div>
         <p className="note">{t("co.where.note", flow)}</p>
+        {divisor !== "total" && (
+          <p className="note">{t("pc.note", demo.population.toLocaleString("en-US"), demo.households.toLocaleString("en-US"), demo.basis)}</p>
+        )}
       </section>
 
       {/* DEPARTMENTS */}

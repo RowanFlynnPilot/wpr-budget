@@ -85,6 +85,13 @@ const EN = {
   // shared calculator
   "calc.estProperty": "Estimated annual property tax",
 
+  // per-resident / per-household divisor toggle (County + City "Where It Goes")
+  "pc.total": "Total dollars",
+  "pc.perResident": "Per resident",
+  "pc.perHousehold": "Per household",
+  "pc.note": (pop, hh, basis) =>
+    `Per-resident and per-household figures divide each amount by the area's ${basis} count: ${pop} residents, ${hh} households.`,
+
   // shared footer
   "foot.amended": "Figures are as adopted and may be amended during the year.",
   "foot.sourceLabel": "Source:",
@@ -350,6 +357,12 @@ const ES = {
 
   "calc.estProperty": "Impuesto anual estimado a la propiedad",
 
+  "pc.total": "Dólares totales",
+  "pc.perResident": "Por residente",
+  "pc.perHousehold": "Por hogar",
+  "pc.note": (pop, hh, basis) =>
+    `Las cifras por residente y por hogar dividen cada monto entre el conteo del ${basis} de la zona: ${pop} residentes, ${hh} hogares.`,
+
   "foot.amended": "Las cifras son las adoptadas y pueden modificarse durante el año.",
   "foot.sourceLabel": "Fuente:",
 
@@ -607,6 +620,12 @@ const HMN = {
   "suite.linkBody": "Daim nyiaj txiag no raug sib tham thiab pom zoo hauv cov rooj sib tham pej xeem — taug qab lawv hauv WPR Central Wisconsin Meeting Tracker.",
 
   "calc.estProperty": "Kwv yees se vaj tse txhua xyoo",
+
+  "pc.total": "Tag nrho cov nyiaj",
+  "pc.perResident": "Rau ib tus neeg",
+  "pc.perHousehold": "Rau ib yig neeg",
+  "pc.note": (pop, hh, basis) =>
+    `Cov lej rau ib tus neeg thiab rau ib yig neeg muab txhua tus nqi faib los ntawm ${basis} cov suav hauv cheeb tsam: ${pop} tus neeg, ${hh} yig neeg.`,
 
   "foot.amended": "Cov lej yog raws li pom zoo thiab tej zaum yuav hloov thaum nruab xyoo.",
   "foot.sourceLabel": "Qhov chaw:",

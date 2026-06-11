@@ -223,7 +223,43 @@ export function SponsorSlot({ entityId }) {
     : <span className="sponsor-slot">{inner}</span>;
 }
 
+/* ---------- per-capita divisor toggle ---------- */
+
+// Total / per-resident / per-household chips for the "Where It Goes" bars
+// (County + City; the School body already shows per-student figures).
+export function DivisorToggle({ divisor, onChange }) {
+  const t = useStrings();
+  const opts = [["total", "pc.total"], ["resident", "pc.perResident"], ["household", "pc.perHousehold"]];
+  return (
+    <div className="toggle" role="group" aria-label="Amount basis" style={{ marginLeft: 10 }}>
+      {opts.map(([key, label]) => (
+        <button key={key} aria-pressed={divisor === key} className={divisor === key ? "on" : ""}
+          onClick={() => onChange(key)}>{t(label)}</button>
+      ))}
+    </div>
+  );
+}
+
 /* ---------- tax-bill building blocks ---------- */
+
+// The home value persists across bodies and sessions (localStorage only —
+// never in URLs or shares), so a reader who typed their home's value into one
+// calculator finds it waiting in the others.
+const HOME_VALUE_KEY = "wpr-budget-homeval";
+export function useHomeValue() {
+  const [value, setValue] = useState(() => {
+    try {
+      const saved = parseInt(localStorage.getItem(HOME_VALUE_KEY), 10);
+      if (saved > 0) return saved;
+    } catch (e) { /* localStorage unavailable */ }
+    return 200000;
+  });
+  const set = (v) => {
+    setValue(v);
+    try { localStorage.setItem(HOME_VALUE_KEY, String(v)); } catch (e) { /* ignore */ }
+  };
+  return [value, set];
+}
 
 // The "what's your home worth" input + estimated-bill output. Controlled: the
 // body owns the value because the tax split below derives from it too.

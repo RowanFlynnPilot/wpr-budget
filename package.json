@@ -6,7 +6,7 @@
   "description": "Follow the Money - Marathon County budget explorer (Wausau Pilot & Review)",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/entity-pages.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

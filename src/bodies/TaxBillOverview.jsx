@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { useStrings } from "../i18n";
 import { usd } from "../format";
-import { SectionHead, Stat, SponsorSlot, HomeValueCalc, TaxSplit, useAnchorOnMount } from "../ui";
+import { SectionHead, Stat, SponsorSlot, HomeValueCalc, TaxSplit, useAnchorOnMount, useHomeValue } from "../ui";
 import ChromeBar from "../ChromeBar";
 
 // Cross-entity overview: a City of Wausau homeowner's COMPLETE local property-
@@ -22,7 +22,7 @@ function billEntityFor(name) {
 
 export default function TaxBillOverview({ b, chrome }) {
   const t = useStrings();
-  const [homeValue, setHomeValue] = useState(200000);
+  const [homeValue, setHomeValue] = useHomeValue();
   useAnchorOnMount();
 
   const j = b.tax_by_jurisdiction;
