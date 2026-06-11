@@ -5,6 +5,7 @@ import {
 } from "recharts";
 import { ChevronDown, ArrowUpRight, ArrowDownRight, Receipt, Share2, Check, Home } from "lucide-react";
 import { LANGS, LangProvider, useLang, useStrings } from "./i18n";
+import entities from "./entities.json";
 import annotations from "./annotations.json";
 import sponsors from "./sponsors.json";
 import logoUrl from "./assets/logo-32.png";
@@ -207,10 +208,7 @@ function Landing({ entities, chrome }) {
 
   useEffect(() => {
     const files = [...new Set(entities.map((e) => e.data))];
-    Promise.all(files.map((f) =>
-      fetch(import.meta.env.BASE_URL + f)
-        .then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-        .then((j) => [f, j])))
+    Promise.all(files.map((f) => fetchData(f).then((j) => [f, j])))
       .then((pairs) => setByFile(Object.fromEntries(pairs)))
       .catch((e) => setErr(String(e.message || e)));
   }, [entities]);
@@ -287,43 +285,100 @@ function Landing({ entities, chrome }) {
 }
 
 /* ---------- main ---------- */
-// "Follow the Money" is a multi-entity suite. App loads the entity manifest,
-// picks the active entity (from the URL hash, else the first), fetches its data
-// file, and routes to the body for that entity's kind. The body components own
-// all the section logic; App owns only entity selection + the shared chrome.
+// "Follow the Money" is a multi-entity suite. The entity manifest is bundled
+// (src/entities.json); the URL hash is the single source of truth for
+// navigation — "#<entity-id>[/<section>]". Entity switches, subnav section
+// links, and browser back/forward all funnel through hashchange. App fetches
+// the active entity's data file and routes to the body for that entity's kind;
+// the body components own all the section logic.
+
+// Each data file is fetched once per session and reused across entity switches
+// and the landing page's card stats. The cached value is the fetch promise, so
+// concurrent consumers share one request; a failure evicts itself for retry.
+const dataCache = new Map();
+function fetchData(file) {
+  if (!dataCache.has(file)) {
+    dataCache.set(file, fetch(import.meta.env.BASE_URL + file)
+      .then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .catch((e) => { dataCache.delete(file); throw e; }));
+  }
+  return dataCache.get(file);
+}
+
+// Parse "#<entity-id>[/<section>]". Anything that isn't a known entity id
+// (bare URL, "#home", unknown) means the suite landing page (id === null).
+function parseHash() {
+  const [id, section] = window.location.hash.slice(1).split("/");
+  const ent = entities.find((e) => e.id === id);
+  return { id: ent ? ent.id : null, section: (ent && section) || null };
+}
+
 export default function App() {
-  const [entities, setEntities] = useState(null);
-  const [activeId, setActiveId] = useState(null);
+  const [activeId, setActiveId] = useState(() => parseHash().id);
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
+  // Section waiting for its body to mount (deep links + cross-entity links).
+  const pendingSection = useRef(parseHash().section);
+  const activeIdRef = useRef(activeId);
+  activeIdRef.current = activeId;
 
   useEffect(() => {
-    fetch(import.meta.env.BASE_URL + "entities.json")
-      .then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then((list) => {
-        setEntities(list);
-        // A specific entity hash deep-links to that body; anything else (bare URL,
-        // "#home", unknown) lands on the suite overview (activeId === null).
-        const fromHash = list.find((e) => e.id === window.location.hash.slice(1));
-        setActiveId(fromHash ? fromHash.id : null);
-      })
-      .catch((e) => setErr(String(e.message || e)));
+    const onHash = () => {
+      const r = parseHash();
+      if (r.id === activeIdRef.current) {
+        // Same view: scroll only, no state change. Instant, not smooth —
+        // smooth programmatic scrolls are unreliably canceled by chart
+        // reflows (and were observed not to move at all in testing).
+        // (Without a section, the browser's own history scroll restoration
+        // does the right thing.)
+        if (r.section) document.getElementById(r.section)?.scrollIntoView({ behavior: "instant", block: "start" });
+        return;
+      }
+      pendingSection.current = r.section;
+      setActiveId(r.id);
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
+  // Fetch the active entity's data. The stale flag closes a race: switching
+  // A->B while A's (slower) fetch is in flight must not let A's late response
+  // overwrite B's data — with the activeId gate below, that would strand the
+  // view on the loading screen.
   useEffect(() => {
-    if (!entities || !activeId) return;
+    if (!activeId) return;
     const ent = entities.find((e) => e.id === activeId);
-    fetch(import.meta.env.BASE_URL + ent.data)
-      .then((r) => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then((payload) => setData({ id: activeId, payload }))
-      .catch((e) => setErr(String(e.message || e)));
-  }, [entities, activeId]);
+    let stale = false;
+    fetchData(ent.data)
+      .then((payload) => { if (!stale) setData({ id: activeId, payload }); })
+      .catch((e) => { if (!stale) setErr(String(e.message || e)); });
+    return () => { stale = true; };
+  }, [activeId]);
 
-  // null id => the suite overview (the landing page).
-  const onSelect = (id) => { window.location.hash = id || "home"; setActiveId(id || null); };
+  // Position the viewport once a navigation's target view is mounted: a deep-
+  // linked section jumps straight to its target, anything else starts at the
+  // top. "instant" bypasses the CSS smooth-scroll, which Chrome cancels when
+  // the freshly mounted charts reflow mid-animation. The key guard makes the
+  // effect idempotent (StrictMode double-runs, unrelated re-renders).
+  const positioned = useRef(null);
+  useEffect(() => {
+    if (activeId && (!data || data.id !== activeId)) return; // body not up yet
+    const key = (activeId || "home") + "::" + (data ? data.id : "");
+    if (positioned.current === key) return;
+    positioned.current = key;
+    if (pendingSection.current) {
+      document.getElementById(pendingSection.current)?.scrollIntoView({ behavior: "instant", block: "start" });
+      pendingSection.current = null;
+    } else {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [activeId, data?.id]);
+
+  // null id => the suite overview (the landing page). hashchange drives the
+  // actual route update.
+  const onSelect = (id) => { window.location.hash = id || "home"; };
 
   if (err) return (<div className="ftm load"><style>{CSS}</style><p>Could not load budget data &mdash; {err}</p></div>);
-  if (!entities) return (<div className="ftm load"><style>{CSS}</style><p>Loading the ledger&hellip;</p></div>);
 
   const chrome = { entities, activeId, onSelect, annotations };
   // No entity selected → the suite landing page.
@@ -676,7 +731,14 @@ function CityLedger({ b, chrome }) {
   useEffect(() => {
     const els = sections.map(([id]) => document.getElementById(id)).filter(Boolean);
     const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) setActive(e.target.id); }),
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) {
+          setActive(e.target.id);
+          // Track reading position in the URL (no history entry, no hashchange)
+          // so the address bar always holds a valid deep link.
+          history.replaceState(null, "", "#" + chrome.activeId + "/" + e.target.id);
+        }
+      }),
       { rootMargin: "-45% 0px -50% 0px" }
     );
     els.forEach((el) => obs.observe(el));
@@ -713,7 +775,7 @@ function CityLedger({ b, chrome }) {
 
       <nav className="subnav">
         {sections.map(([id, label]) => (
-          <a key={id} href={"#" + id} className={active === id ? "active" : ""}>{t("nav." + id)}</a>
+          <a key={id} href={"#" + chrome.activeId + "/" + id} className={active === id ? "active" : ""}>{t("nav." + id)}</a>
         ))}
       </nav>
 
@@ -1102,7 +1164,14 @@ function SchoolLedger({ b, chrome }) {
   useEffect(() => {
     const els = sections.map(([id]) => document.getElementById(id)).filter(Boolean);
     const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) setActive(e.target.id); }),
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) {
+          setActive(e.target.id);
+          // Track reading position in the URL (no history entry, no hashchange)
+          // so the address bar always holds a valid deep link.
+          history.replaceState(null, "", "#" + chrome.activeId + "/" + e.target.id);
+        }
+      }),
       { rootMargin: "-45% 0px -50% 0px" }
     );
     els.forEach((el) => obs.observe(el));
@@ -1139,7 +1208,7 @@ function SchoolLedger({ b, chrome }) {
 
       <nav className="subnav">
         {sections.map(([id, label]) => (
-          <a key={id} href={"#" + id} className={active === id ? "active" : ""}>{t("nav." + id)}</a>
+          <a key={id} href={"#" + chrome.activeId + "/" + id} className={active === id ? "active" : ""}>{t("nav." + id)}</a>
         ))}
       </nav>
 
@@ -1429,6 +1498,7 @@ function SchoolLedger({ b, chrome }) {
 
 function Ledger({ b, chrome }) {
   const t = useStrings();
+  const { lang } = useLang();
   const [flow, setFlow] = useState("expenditures");
   const [sortKey, setSortKey] = useState("spend");
   const [sortDir, setSortDir] = useState("desc");
@@ -1544,7 +1614,14 @@ function Ledger({ b, chrome }) {
   useEffect(() => {
     const els = sections.map(([id]) => document.getElementById(id)).filter(Boolean);
     const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) setActive(e.target.id); }),
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) {
+          setActive(e.target.id);
+          // Track reading position in the URL (no history entry, no hashchange)
+          // so the address bar always holds a valid deep link.
+          history.replaceState(null, "", "#" + chrome.activeId + "/" + e.target.id);
+        }
+      }),
       { rootMargin: "-45% 0px -50% 0px" }
     );
     els.forEach((el) => obs.observe(el));
@@ -1572,7 +1649,7 @@ function Ledger({ b, chrome }) {
           )}
         </div>
         <h1>Follow the Money</h1>
-        <p className="dek">{t("co.dek", b.meta.entity, new Date(b.meta.adopted + "T00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }))}</p>
+        <p className="dek">{t("co.dek", b.meta.entity, new Date(b.meta.adopted + "T00:00").toLocaleDateString(lang === "es" ? "es" : "en-US", { month: "long", day: "numeric", year: "numeric" }))}</p>
 
         <div className="stat-strip">
           <Stat icon="💰" label={t("stat.totalBudget")} value={compact(b.meta.total_expenditures)} sub={budgetPctChange != null ? <Delta value={budgetPctChange} /> : null} />
@@ -1585,7 +1662,7 @@ function Ledger({ b, chrome }) {
 
       <nav className="subnav">
         {sections.map(([id, label]) => (
-          <a key={id} href={"#" + id} className={active === id ? "active" : ""}>{t("nav." + id)}</a>
+          <a key={id} href={"#" + chrome.activeId + "/" + id} className={active === id ? "active" : ""}>{t("nav." + id)}</a>
         ))}
       </nav>
 
@@ -1695,7 +1772,7 @@ function Ledger({ b, chrome }) {
               <CartesianGrid stroke="var(--rule)" vertical={false} />
               <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
               <YAxis yAxisId="levy" tick={{ fill: "var(--gold)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
-              <YAxis yAxisId="rate" orientation="right" domain={[3, 5.5]} tick={{ fill: "var(--accent)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(1)} width={42} />
+              <YAxis yAxisId="rate" orientation="right" domain={["dataMin - 0.25", "dataMax + 0.25"]} tick={{ fill: "var(--accent)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(1)} width={42} />
               <Tooltip content={<LevyTip />} cursor={{ fill: "var(--paper-2)" }} />
               <Bar yAxisId="levy" dataKey="levy" fill="var(--gold)" fillOpacity={0.82} radius={[2, 2, 0, 0]} maxBarSize={34} />
               <Line yAxisId="rate" type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
@@ -1792,8 +1869,8 @@ function Ledger({ b, chrome }) {
             <LineChart data={trend} margin={{ top: 8, right: 16, bottom: 4, left: 4 }}>
               <CartesianGrid stroke="var(--rule)" vertical={false} />
               <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
-              <YAxis yAxisId="rate" domain={[3, 5.5]} tick={{ fill: "var(--accent)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(1)} width={42} />
-              <YAxis yAxisId="bill" orientation="right" domain={[650, 900]} tick={{ fill: "var(--gold)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v} width={48} />
+              <YAxis yAxisId="rate" domain={["dataMin - 0.25", "dataMax + 0.25"]} tick={{ fill: "var(--accent)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(1)} width={42} />
+              <YAxis yAxisId="bill" orientation="right" domain={["dataMin - 25", "dataMax + 25"]} tick={{ fill: "var(--gold)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + Math.round(v)} width={48} />
               <Tooltip content={<BillTip />} />
               <Line yAxisId="rate" type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
               <Line yAxisId="bill" type="monotone" dataKey="bill" stroke="var(--gold)" strokeWidth={2.5} strokeDasharray="5 3" dot={false} activeDot={{ r: 4 }} />
