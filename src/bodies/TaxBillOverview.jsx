@@ -2,7 +2,8 @@ import React, { useMemo, useState } from "react";
 import { useStrings } from "../i18n";
 import { usd } from "../format";
 import { track } from "../analytics";
-import { muniSlug, netBill, stateCredits } from "../taxmath";
+import { billDollars, muniSlug, netBill, stateCredits } from "../taxmath";
+import { countyShares, cityShares, schoolShares, itemize } from "../receipt";
 import {
   SponsorSlot, SourceLink, SectionHead, HomeValueCalc, TaxSplit, MuniPicker, SchoolPicker, billRates, billExtremes, placeLabel,
   PrimaryHomeToggle, useAnchorOnMount, useHomeValue, useMuniChoice, useSchoolChoice, usePrimaryHome, WAUSAU_CITY_DOR,
@@ -39,6 +40,59 @@ function ShareTown({ muni, where }) {
     <button type="button" className="table-toggle share-town" onClick={share}>
       {copied ? t("tb.shareCopied") : t("tb.shareTown", where)}
     </button>
+  );
+}
+
+// "Your tax receipt": the bill above, line by line down to what each
+// government's share pays for — split the way each one's own budget spends its
+// property tax (src/receipt.js). The county is itemized for every home; the
+// City of Wausau and the Wausau School District where the home is in them (the
+// suite has their budgets); any other municipality or district stays one line.
+const DETAIL = {
+  "marathon-county": (bud) => countyShares(bud.county),
+  "wausau-city": (bud) => cityShares(bud.city),
+  "wausau-school": (bud) => schoolShares(bud.school),
+};
+function Receipt({ rows, homeValue, credits, where, school, year, budgets }) {
+  const t = useStrings();
+  const bill = billDollars(rows.map((r) => r.rate), homeValue, credits); // the same dollars as the bill above
+  return (
+    <section id="receipt" className="block">
+      <SectionHead kicker={t("rc.kick")} title={t("rc.title")}>{t("rc.dek", usd(bill.net))}</SectionHead>
+      <div className="receipt">
+        <div className="receipt-head">
+          <b>{t("rc.head")}</b>
+          <span>{t("rc.meta", where, school.name, usd(homeValue), year)}</span>
+        </div>
+        <table>
+          <caption className="sr-only">{t("rc.title")}</caption>
+          {rows.map((r, i) => {
+            const amount = bill.lines[i];
+            const detail = r.drillId && DETAIL[r.drillId];
+            return (
+              <tbody key={r.key}>
+                <tr className="rc-gov"><th scope="row">{r.label}</th><td>{usd(amount)}</td></tr>
+                {detail
+                  ? itemize(detail(budgets), amount).map((it) => (
+                    <tr className="rc-item" key={it.key || it.label}>
+                      <th scope="row">{it.key ? t(it.key) : it.label}</th><td>{usd(it.amount)}</td>
+                    </tr>))
+                  : r.key !== "college" && <tr className="rc-note"><td colSpan={2}>
+                    {t("rc.noDetail", r.key === "school" ? `${school.name} School District` : r.label)}
+                  </td></tr>}
+              </tbody>
+            );
+          })}
+          <tfoot>
+            <tr><th scope="row">{t("tb.leviedRow")}</th><td>{usd(bill.levied)}</td></tr>
+            {credits.lottery > 0 && <tr className="rc-credit"><th scope="row">{t("tb.credit.lottery")}</th><td>{"\u2212" + usd(bill.lottery)}</td></tr>}
+            <tr className="rc-credit"><th scope="row">{t("tb.credit.first")}</th><td>{"\u2212" + usd(bill.firstDollar)}</td></tr>
+            <tr className="rc-total"><th scope="row">{t("rc.pay")}</th><td>{usd(bill.net)}</td></tr>
+          </tfoot>
+        </table>
+      </div>
+      <p className="note">{t("rc.note")}</p>
+    </section>
   );
 }
 
@@ -107,7 +161,7 @@ function Ranking({ municipalities, muni, school, homeValue, credits, primary, on
   );
 }
 
-export default function TaxBillOverview({ b, chrome }) {
+export default function TaxBillOverview({ b, extra, chrome }) {
   const t = useStrings();
   const [homeValue, setHomeValue] = useHomeValue();
   const [muniCode, setMuniCode] = useMuniChoice();
@@ -167,6 +221,9 @@ export default function TaxBillOverview({ b, chrome }) {
         </details>
         <ShareTown muni={muni} where={bill.where} />
       </section>
+
+      <Receipt rows={splitRows} homeValue={homeValue} credits={credits}
+        where={bill.where} school={bill.school} year={year} budgets={extra} />
 
       <Ranking municipalities={b.municipalities} muni={muni} school={bill.school.code} homeValue={homeValue}
         credits={cr} primary={primary}

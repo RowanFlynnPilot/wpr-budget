@@ -3,6 +3,18 @@
 // so the landing page and embeds ship English alone. Same keys as EN —
 // scripts/check-data.mjs fails the deploy on any missing or extra key.
 export default {
+  "rc.kick": "Koj daim ntawv txais se",
+  "rc.title": "Koj daim nqi se them rau dab tsi",
+  "rc.dek": (total) => `Cov ${total} saum toj no, ib kab zuj zus: txhua lub koom haum feem, faib raws li nws daim nyiaj txiag siv nws cov se vaj tse.`,
+  "rc.head": "Daim ntawv txais se vaj tse",
+  "rc.meta": (where, school, value, year) => `${where} \u00b7 ${school} cov tsev kawm ntawv \u00b7 ib lub tsev ${value} \u00b7 se xyoo ${year}, them xyoo ${year + 1}`,
+  "rc.else": "Tag nrho lwm yam",
+  "rc.cityOther": "Kev them nuj nqis thiab lub nroog lwm cov nyiaj",
+  "rc.schoolDebt": "Kev them nuj nqis",
+  "rc.schoolCommunity": "Cov kev pab cuam zej zog",
+  "rc.noDetail": (name) => `${name}: nws daim nyiaj txiag tseem tsis tau nyob hauv qhov cuab yeej no.`,
+  "rc.pay": "Koj them",
+  "rc.note": "Cov kab raug faib li cas: Marathon County feem raws li fund, thiab hauv nws general fund raws li txhua lub department cov se; City of Wausau feem raws li general fund department, thiab nws cov se seem mus rau kev them nuj nqis thiab lwm cov nyiaj; Wausau School District feem raws li fund, thiab hauv nws general fund raws li qhov nws yuav. Se muag khoom thiab lub xeev cov nyiaj pab kuj them ntau yam kev pab no; qhov no tsuas faib koj cov se vaj tse xwb.",
   "tb.primary": "Nws yog tus tswv lub tsev nyob tseem ceeb (yog li nws tau lottery & gaming credit)",
   "tb.leviedRow": "Cov se sau",
   "tb.netRow": "Koj daim nqi tom qab lub xeev cov credit",

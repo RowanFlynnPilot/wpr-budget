@@ -3,6 +3,18 @@
 // so the landing page and embeds ship English alone. Same keys as EN —
 // scripts/check-data.mjs fails the deploy on any missing or extra key.
 export default {
+  "rc.kick": "Su recibo de impuestos",
+  "rc.title": "Lo que paga su factura",
+  "rc.dek": (total) => `Los ${total} de arriba, línea por línea: la parte de cada gobierno, dividida como su propio presupuesto gasta su impuesto a la propiedad.`,
+  "rc.head": "Recibo del impuesto a la propiedad",
+  "rc.meta": (where, school, value, year) => `${where} \u00b7 escuelas de ${school} \u00b7 una casa de ${value} \u00b7 impuestos de ${year}, pagados en ${year + 1}`,
+  "rc.else": "Todo lo demás",
+  "rc.cityOther": "Pagos de deuda y otros fondos de la ciudad",
+  "rc.schoolDebt": "Pagos de deuda",
+  "rc.schoolCommunity": "Programas de servicio comunitario",
+  "rc.noDetail": (name) => `${name}: su presupuesto todavía no está en esta herramienta.`,
+  "rc.pay": "Usted paga",
+  "rc.note": "Cómo se dividen las líneas: la parte del condado de Marathon por fondo y, dentro de su fondo general, según el impuesto de cada departamento; la de la Ciudad de Wausau por departamento del fondo general, y el resto de su impuesto va a deuda y otros fondos; la del Distrito Escolar de Wausau por fondo y, dentro de su fondo general, según lo que compra. El impuesto sobre las ventas y la ayuda estatal también pagan muchos de estos servicios; esto divide solo su impuesto a la propiedad.",
   "tb.primary": "Es la residencia principal del dueño (así recibe el crédito de lotería y juegos)",
   "tb.leviedRow": "Impuestos gravados",
   "tb.netRow": "Su factura después de los créditos estatales",

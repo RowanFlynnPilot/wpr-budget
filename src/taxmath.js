@@ -37,6 +37,28 @@ export function stateCredits(sd, credits, value, primaryHome = true) {
 export const netBill = (muni, sd, credits, value, primaryHome = true) =>
   Math.max(0, (value / 1000) * billTotal(muni, sd) - stateCredits(sd, credits, value, primaryHome).total);
 
+// A bill in whole dollars that adds up, as a printed bill does: each line's
+// dollars (rates per $1,000, in order) rounded so the lines sum to the rounded
+// levy — the largest remainders take the odd dollars — and, given the credits,
+// the credits rounded so levied − credits is the rounded net, the figure every
+// headline shows. (Rounding each line alone left a third of the county's bills
+// $1 off themselves.) The first-dollar credit is what it is with or without the
+// lottery credit; the lottery credit, shown only for a primary home, takes the
+// odd dollar.
+export function billDollars(rates, value, credits) {
+  const exact = rates.map((r) => (value / 1000) * r);
+  const sum = exact.reduce((s, x) => s + x, 0);
+  const levied = Math.round(sum);
+  const lines = exact.map(Math.floor);
+  const short = levied - lines.reduce((s, x) => s + x, 0);
+  [...exact.keys()].sort((a, c) => (exact[c] - lines[c]) - (exact[a] - lines[a]))
+    .slice(0, short).forEach((i) => { lines[i] += 1; });
+  if (!credits) return { lines, levied };
+  const firstDollar = levied - Math.round(Math.max(0, sum - credits.firstDollar));
+  const net = Math.round(Math.max(0, sum - credits.lottery - credits.firstDollar));
+  return { lines, levied, lottery: levied - net - firstDollar, firstDollar, net };
+}
+
 // Where the Tax Bill view keeps the reader's municipality (localStorage only);
 // a town share page writes it before opening the view.
 export const MUNI_KEY = "wpr-budget-muni";

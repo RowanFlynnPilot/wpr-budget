@@ -96,6 +96,11 @@
     "source": {
       "title": "Wisconsin Department of Revenue, Town, Village and City Taxes",
       "url": "https://www.revenue.wi.gov/Pages/Report/tvc-bulletin.aspx"
+    },
+    "with": {
+      "county": "marathon-county.json",
+      "city": "wausau-city.json",
+      "school": "wausau-school.json"
     }
   }
 ]

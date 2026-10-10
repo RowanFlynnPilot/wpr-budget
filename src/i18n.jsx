@@ -16,6 +16,18 @@ const STORAGE_KEY = "wpr-budget-lang";
 // ---- string tables -------------------------------------------------------
 // Keys are grouped by area. Values are strings, or functions for interpolation.
 const EN = {
+  "rc.kick": "Your tax receipt",
+  "rc.title": "What your bill pays for",
+  "rc.dek": (total) => `The ${total} above, line by line: each government's share, split the way its own budget spends its property tax.`,
+  "rc.head": "Property tax receipt",
+  "rc.meta": (where, school, value, year) => `${where} \u00b7 ${school} schools \u00b7 a ${value} home \u00b7 ${year} taxes, paid in ${year + 1}`,
+  "rc.else": "Everything else",
+  "rc.cityOther": "Debt payments and the city's other funds",
+  "rc.schoolDebt": "Debt payments",
+  "rc.schoolCommunity": "Community service programs",
+  "rc.noDetail": (name) => `${name}: its own budget isn't in this tool yet.`,
+  "rc.pay": "You pay",
+  "rc.note": "How the lines are split: Marathon County's share by fund, and within its general fund by each department's tax levy; the City of Wausau's by general-fund department, with the rest of its levy going to debt and other funds; the Wausau School District's by fund, and within its general fund by what it buys. Sales tax and state aid also pay for many of these services; this divides only your property tax.",
   "tb.primary": "It's the owner's primary home (so it gets the lottery & gaming credit)",
   "tb.leviedRow": "Taxes levied",
   "tb.netRow": "Your bill after state credits",

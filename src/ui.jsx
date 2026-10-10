@@ -5,7 +5,7 @@ import sponsors from "./sponsors.json";
 import { usd, compact, pct, downloadCSV, fmtDate } from "./format";
 import { consumePendingSection } from "./nav";
 import { track, currentView } from "./analytics";
-import { billParts, netBill, MUNI_KEY } from "./taxmath";
+import { billParts, billDollars, netBill, MUNI_KEY } from "./taxmath";
 import marathonLogo from "./assets/marathon-county.jpg";
 import wausauLogo from "./assets/wausau-city.jpg";
 import schoolLogo from "./assets/wausau-school.jpg";
@@ -783,6 +783,7 @@ export function TaxSplit({ rows, total, homeValue, totalLabel, exploreLabel, onD
   const t = useStrings();
   const [tip, setTip] = useState(null);
   const barRef = useRef(null);
+  const bill = billDollars(rows.map((r) => r.rate), homeValue, credits); // whole dollars that add up
   return (
     <>
       <div className="taxbar" ref={barRef} onMouseLeave={() => setTip(null)}>
@@ -805,7 +806,7 @@ export function TaxSplit({ rows, total, homeValue, totalLabel, exploreLabel, onD
           return (
             <div className="taxbar-tip" style={{ left: Math.max(90, Math.min(tip.x, tip.w - 90)) }}>
               <div className="tip-year">{r.label}</div>
-              <div>{usd(Math.round((homeValue / 1000) * r.rate))} &middot; {share.toFixed(1)}% &middot; ${r.rate.toFixed(2)}/$1k</div>
+              <div>{usd(bill.lines[tip.i])} &middot; {share.toFixed(1)}% &middot; ${r.rate.toFixed(2)}/$1k</div>
             </div>
           );
         })()}
@@ -824,7 +825,7 @@ export function TaxSplit({ rows, total, homeValue, totalLabel, exploreLabel, onD
                 {r.label}
                 {go && <span className="jrow-go">{exploreLabel} <ArrowUpRight size={12} strokeWidth={2.5} /></span>}
               </span>
-              <span className="jrow-amt">{usd(Math.round((homeValue / 1000) * r.rate))}</span>
+              <span className="jrow-amt">{usd(bill.lines[i])}</span>
               <span className="jrow-share">{((r.rate / total) * 100).toFixed(0)}%</span>
             </div>
           );
@@ -832,7 +833,7 @@ export function TaxSplit({ rows, total, homeValue, totalLabel, exploreLabel, onD
         <div className="jrow total">
           <span className="jrow-sw" />
           <span className="jrow-name">{totalLabel}</span>
-          <span className="jrow-amt">{usd(Math.round((homeValue / 1000) * total))}</span>
+          <span className="jrow-amt">{usd(bill.levied)}</span>
           <span className="jrow-share">100%</span>
         </div>
         {credits && (<>
@@ -840,14 +841,14 @@ export function TaxSplit({ rows, total, homeValue, totalLabel, exploreLabel, onD
             <div className="jrow credit" key={k}>
               <span className="jrow-sw" />
               <span className="jrow-name">{t(label)}</span>
-              <span className="jrow-amt">{"\u2212" + usd(Math.round(credits[k]))}</span>
+              <span className="jrow-amt">{"\u2212" + usd(bill[k])}</span>
               <span className="jrow-share" />
             </div>
           ))}
           <div className="jrow total net">
             <span className="jrow-sw" />
             <span className="jrow-name">{t("tb.netRow")}</span>
-            <span className="jrow-amt">{usd(Math.round(Math.max(0, (homeValue / 1000) * total - credits.lottery - credits.firstDollar)))}</span>
+            <span className="jrow-amt">{usd(bill.net)}</span>
             <span className="jrow-share" />
           </div>
         </>)}

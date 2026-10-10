@@ -5,7 +5,8 @@
 //
 //   node scripts/check-data.mjs      # exit 1 with every failure listed
 import { readFileSync, existsSync } from "node:fs";
-import { billTotal, muniSlug, netBill } from "../src/taxmath.js";
+import { billDollars, billParts, billTotal, muniSlug, netBill, stateCredits } from "../src/taxmath.js";
+import { countyShares, cityShares, schoolShares } from "../src/receipt.js";
 
 const failures = [];
 const fail = (where, msg) => failures.push(`${where}: ${msg}`);
@@ -130,6 +131,18 @@ for (const file of [countyEnt.data, ...(countyEnt.editions || []).map((ed) => ed
     if (!(s.credit_rate > 0 && s.credit_rate < 0.03)) fail(`marathon-tax-districts.json ${m.name}`, `${s.name}: credit_rate ${s.credit_rate}`);
     // the bill after credits on a typical home is still a bill
     if (!(netBill(m, s, c, 200000) > 0)) fail(`marathon-tax-districts.json ${m.name}`, `${s.name}: no bill left after credits`);
+    // the bill in whole dollars adds up, comes to the headline figure, and its
+    // first-dollar line doesn't move when the primary-home box is ticked
+    for (const v of [87500, 200000, 455555]) {
+      const [own, other] = [true, false].map((primary) => {
+        const b = billDollars(Object.values(billParts(m, s)), v, stateCredits(s, c, v, primary));
+        if (b.lines.reduce((x, y) => x + y, 0) !== b.levied || b.levied - b.lottery - b.firstDollar !== b.net
+          || b.net !== Math.round(netBill(m, s, c, v, primary)) || b.lottery < 0 || b.firstDollar < 0
+          || (!primary && b.lottery !== 0)) fail(`marathon-tax-districts.json ${m.name}`, `${s.name}: $${v} bill doesn't add up`);
+        return b;
+      });
+      if (own.firstDollar !== other.firstDollar) fail(`marathon-tax-districts.json ${m.name}`, `${s.name}: first-dollar credit moves with the primary-home choice`);
+    }
   }
   // every municipality gets its own share page at /tax/<slug>/
   const slugs = d.municipalities.map(muniSlug);
@@ -159,6 +172,15 @@ for (const file of [countyEnt.data, ...(countyEnt.editions || []).map((ed) => ed
     const pct = Math.round((lh.at(-1).levy / lh.at(-2).levy - 1) * 1000) / 10;
     if (c.levy_pct !== pct || c.typical_bill !== Math.round(home.tax_amount) || c.typical_pct !== Math.round(home.pct_change_bill * 10) / 10
       || c.hearing !== ed.hearing || c.vote !== ed.vote || c.year !== ed.year) stale(slug, "figures or dates differ from the data");
+  }
+}
+
+// ---- the tax receipt: each budget's split of its property tax sums to the whole ----
+{
+  const budgets = { county: read("public/marathon-county.json"), city: read("public/wausau-city.json"), school: read("public/wausau-school.json") };
+  for (const [name, shares] of [["county", countyShares(budgets.county)], ["city", cityShares(budgets.city)], ["school", schoolShares(budgets.school)]]) {
+    const sum = shares.reduce((s, x) => s + x.share, 0);
+    if (Math.abs(sum - 1) > 1e-9 || shares.some((x) => !(x.share >= 0))) fail(`receipt ${name}`, `shares sum to ${sum} (or one is negative)`);
   }
 }
 
