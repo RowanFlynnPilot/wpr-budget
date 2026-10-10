@@ -3,6 +3,10 @@
 // so the landing page and embeds ship English alone. Same keys as EN —
 // scripts/check-data.mjs fails the deploy on any missing or extra key.
 export default {
+  "co.where.fundsKick": "Tag nrho daim nyiaj txiag",
+  "co.where.fundsDek": (hearing, prev) => `General fund daim ntawv faib raws hauj lwm yuav tuaj nrog lub county daim ntawv ceeb toom kev sib hais pej xeem, ua ntej lub rooj sib hais ${hearing}, thiab yuav tshwm ntawm no thaum ntawd. Lub sij hawm no, nov yog tag nrho daim nyiaj txiag npaj tseg, ib fund zuj zus, piv rau ${prev}.`,
+  "co.where.fundsNote": (prev, driver, change) => `Kev siv nyiaj raws fund (kev ua haujlwm ntxiv cov neeg ua haujlwm), piv rau daim nyiaj txiag xyoo ${prev} uas tau pom zoo.` + (driver ? ` Qhov hloov loj tshaj yog ${driver} (${change}).` : ""),
+  "co.where.newFund": "tshiab",
   "lp.rangeCaption": (lo, hi, n) => `Tib lub tsev nyob qhov twg hauv Marathon County: txij ${lo} mus txog ${hi}, thoob plaws tag nrho ${n} lub nroog, zos thiab town.`,
   "lp.seasonHead": "Lub caij npaj nyiaj txiag",
   "chg.title": "Kev hloov txij li qhov kev npaj",
@@ -344,7 +348,6 @@ export default {
   "co.stat.countyLevy": "Se hauv lub nroog",
   "co.stat.driver": (prev, fund, change, total) => `Tag nrho kev siv hloov ${total} piv rau ${prev}; qhov hloov loj tshaj yog ${fund} (${change}).`,
   "co.where.dek": "Lub nroog lub general fund them rau kev kav niaj hnub. Hloov los saib nws siv dab tsi — thiab cov nyiaj los qhov twg los ua ntej se vaj tse los txhaws qhov tsis txaus.",
-  "co.where.pending": (hearing) => `Daim ntawv faib general fund raws hauj lwm tsis nyob hauv phau npaj tseg — lub nroog luam nws rau hauv daim ntawv ceeb toom kev sib hais pej xeem (public hearing) ua ntej ${hearing}, thiab nws yuav tshwm ntawm no thaum ntawd. Tam sim no, daim ntawv chaw haujlwm hauv qab qhia general fund npaj tseg raws chaw haujlwm.`,
   "co.where.note": (flow, year, psShare) => (flow === "expenditures"
     ? `Qhov hloov piv rau xyoo ${year - 1} daim nyiaj txiag pom zoo.${psShare ? ` Kev ruaj ntseg pej xeem nkaus xwb yog ${psShare}% ntawm kev siv general fund.` : ""}`
     : `Qhov hloov piv rau xyoo ${year - 1} daim nyiaj txiag pom zoo. Yam cov chaw no tsis them, se vaj tse yog tus them.`) +

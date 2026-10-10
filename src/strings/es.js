@@ -3,6 +3,10 @@
 // so the landing page and embeds ship English alone. Same keys as EN —
 // scripts/check-data.mjs fails the deploy on any missing or extra key.
 export default {
+  "co.where.fundsKick": "Todo el presupuesto",
+  "co.where.fundsDek": (hearing, prev) => `El desglose del fondo general por función llega con el aviso de audiencia pública del condado, antes de la audiencia del ${hearing}, y aparecerá aquí entonces. Mientras tanto, este es todo el presupuesto propuesto, fondo por fondo, frente a ${prev}.`,
+  "co.where.fundsNote": (prev, driver, change) => `Gasto por fondo (operativo más personal), comparado con el presupuesto adoptado de ${prev}.` + (driver ? ` El mayor cambio individual es el ${driver} (${change}).` : ""),
+  "co.where.newFund": "nuevo",
   "lp.rangeCaption": (lo, hi, n) => `La misma casa en cualquier lugar del condado de Marathon: de ${lo} a ${hi}, entre sus ${n} ciudades, villas y pueblos.`,
   "lp.seasonHead": "Temporada de presupuestos",
   "chg.title": "Cambios desde la propuesta",
@@ -344,7 +348,6 @@ export default {
   "co.stat.countyLevy": "Impuesto del condado",
   "co.stat.driver": (prev, fund, change, total) => `El gasto total cambia ${total} respecto a ${prev}; el mayor cambio individual es el ${fund} (${change}).`,
   "co.where.dek": "El fondo general del condado paga el gobierno diario. Alterne para ver lo que gasta — y de dónde viene el dinero antes de que el impuesto a la propiedad cubra la diferencia.",
-  "co.where.pending": (hearing) => `El desglose del fondo general por función no figura en el libro propuesto por el Administrador: el condado lo imprime en el aviso de audiencia pública que publica antes de la audiencia del ${hearing}, y aparecerá aquí entonces. Mientras tanto, el registro de departamentos más abajo muestra el fondo general propuesto, departamento por departamento.`,
   "co.where.note": (flow, year, psShare) => (flow === "expenditures"
     ? `Cambio mostrado respecto al presupuesto adoptado de ${year - 1}.${psShare ? ` La seguridad pública por sí sola es el ${psShare}% del gasto del fondo general.` : ""}`
     : `Cambio mostrado respecto al presupuesto adoptado de ${year - 1}. Lo que estas fuentes no cubren lo aporta el impuesto a la propiedad.`) +

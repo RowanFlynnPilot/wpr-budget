@@ -48,6 +48,17 @@ export default function Ledger({ b, extra, chrome }) {
   const showVal = (n) => (divisor === "total" ? compact(n) : usd(Math.round(n / perDiv)));
 
   // Both tabs sorted by amount, largest first. (Empty for a proposed edition.)
+  // A PROPOSED book carries no general-fund-by-function summary yet (that comes
+  // with the hearing notice), so "Where it goes" shows the whole budget fund by
+  // fund instead, against the prior year's book — where the Highway Fund's jump shows.
+  const fundRows = useMemo(() => {
+    if (b.general_fund) return null;
+    const ys = b.history.years.map(String);
+    const [cur, prev] = [ys.at(-1), ys.at(-2)];
+    return b.history.funds.filter((f) => f.adopted[cur])
+      .map((f) => ({ name: f.name, cur: f.adopted[cur], prior: f.adopted[prev] ?? null }))
+      .sort((a, c) => c.cur - a.cur);
+  }, [b.general_fund, b.history]);
   const gfRows = useMemo(() => (b.general_fund ? [...b.general_fund[flow]] : [])
     .sort((a, c) => c.proposed_next - a.proposed_next), [flow, b.general_fund]);
   const gfTotal = useMemo(() => gfRows.reduce((s, r) => s + r.proposed_next, 0), [gfRows]);
@@ -222,13 +233,28 @@ export default function Ledger({ b, extra, chrome }) {
 
       {/* WHERE IT GOES */}
       <section id="where" className="block">
-        <SectionHead kicker={t("kick.generalFund")} title={t("title.whereDollarGoes")}>
-          {b.general_fund && t("co.where.dek")}
+        <SectionHead kicker={t(b.general_fund ? "kick.generalFund" : "co.where.fundsKick")} title={t("title.whereDollarGoes")}>
+          {b.general_fund ? t("co.where.dek") : t("co.where.fundsDek", fmtDate(chrome.edition.hearing, lang, false), prevYear)}
         </SectionHead>
 
-        {!b.general_fund ? (
-          <p className="callout-plain">{t("co.where.pending", chrome.edition && fmtDate(chrome.edition.hearing, lang, false))}</p>
-        ) : (<>
+        {!b.general_fund ? (() => {
+          const top = fundRows[0].cur;
+          const total = fundRows.reduce((s, r) => s + r.cur, 0);
+          return (<>
+            <div className="bars">
+              {fundRows.map((r, i) => (
+                <div className="bar-row no-spark" key={r.name} style={{ animationDelay: `${i * 40}ms` }}>
+                  <div className="bar-label">{r.name}</div>
+                  <div className="bar-track"><div className="bar-fill" style={{ width: `${(r.cur / top) * 100}%` }} /></div>
+                  <div className="bar-val">{compact(r.cur)}</div>
+                  <div className="bar-share">{((r.cur / total) * 100).toFixed(0)}%</div>
+                  <div className="bar-delta">{r.prior ? <Delta value={(r.cur / r.prior - 1) * 100} neutral /> : <span className="muted">{t("co.where.newFund")}</span>}</div>
+                </div>
+              ))}
+            </div>
+            <p className="note">{t("co.where.fundsNote", prevYear, budgetDriver && budgetDriver.name, budgetDriver && signedCompact(budgetDriver.change))}</p>
+          </>);
+        })() : (<>
         <div className="toggle" role="group" aria-label={t("aria.gfView")}>
           <button aria-pressed={flow === "expenditures"} className={flow === "expenditures" ? "on" : ""} onClick={() => setFlow("expenditures")}>{t("btn.spending")}</button>
           <button aria-pressed={flow === "revenues"} className={flow === "revenues" ? "on" : ""} onClick={() => setFlow("revenues")}>{t("btn.revenue")}</button>

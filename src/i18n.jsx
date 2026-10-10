@@ -16,6 +16,10 @@ const STORAGE_KEY = "wpr-budget-lang";
 // ---- string tables -------------------------------------------------------
 // Keys are grouped by area. Values are strings, or functions for interpolation.
 const EN = {
+  "co.where.fundsKick": "The whole budget",
+  "co.where.fundsDek": (hearing, prev) => `The general fund's breakdown by function comes with the county's public-hearing notice, ahead of the ${hearing} hearing, and will appear here then. Meanwhile, here is the whole proposed budget, fund by fund, against ${prev}.`,
+  "co.where.fundsNote": (prev, driver, change) => `Spending by fund (operating plus personnel), compared with the ${prev} adopted budget.` + (driver ? ` The biggest single change is the ${driver} (${change}).` : ""),
+  "co.where.newFund": "new",
   "lp.rangeCaption": (lo, hi, n) => `The same home anywhere in Marathon County: from the ${lo} to the ${hi}, across all ${n} cities, villages and towns.`,
   "lp.seasonHead": "Budget season",
   "chg.title": "Changes since the proposal",
@@ -367,7 +371,6 @@ const EN = {
   "co.stat.countyLevy": "County tax levy",
   "co.stat.driver": (prev, fund, change, total) => `Total spending is ${total} vs. ${prev}; the biggest single change is the ${fund} (${change}).`,
   "co.where.dek": "The county's general fund pays for day-to-day government. Toggle to see what it spends — and where the money comes from before the property-tax levy fills the gap.",
-  "co.where.pending": (hearing) => `The general fund's breakdown by function isn't in the Administrator's proposed book — the county prints it in the public-hearing notice it publishes ahead of the ${hearing} hearing, and it will appear here then. Meanwhile, the department ledger below shows the proposed general fund, department by department.`,
   "co.where.note": (flow, year, psShare) => (flow === "expenditures"
     ? `Change shown vs. the ${year - 1} adopted budget.${psShare ? ` Public safety alone is ${psShare}% of general-fund spending.` : ""}`
     : `Change shown vs. the ${year - 1} adopted budget. Whatever these sources don't cover is made up by the property-tax levy.`) +
