@@ -16,6 +16,7 @@ const STORAGE_KEY = "wpr-budget-lang";
 // ---- string tables -------------------------------------------------------
 // Keys are grouped by area. Values are strings, or functions for interpolation.
 const EN = {
+  "tb.business": "Own a business property? Wisconsin's constitution requires commercial property to be taxed at the same rate as homes, so enter its fair market value and the same math applies. Business equipment and other personal property have not been taxed since 2024. Of the two credits not subtracted here, a business gets only the first-dollar credit; the lottery credit is for an owner's primary home.",
   "nav.say": "Have your say",
   "ed.sayLink": "How to weigh in",
   "say.kick": "Before the vote",
@@ -445,6 +446,7 @@ const EN = {
 };
 
 const ES = {
+  "tb.business": "¿Tiene una propiedad comercial? La constitución de Wisconsin exige que la propiedad comercial pague la misma tasa que las casas, así que ingrese su valor de mercado y el cálculo es el mismo. El equipo y otros bienes muebles de los negocios no pagan impuestos desde 2024. De los dos créditos que aquí no se restan, un negocio solo recibe el de primer dólar; el crédito de lotería es para la residencia principal del dueño.",
   "nav.say": "Opine",
   "ed.sayLink": "Cómo participar",
   "say.kick": "Antes de la votación",
@@ -863,6 +865,7 @@ const ES = {
 
 // Hmong (Hmoob Dawb / RPA). BETA — AI-drafted, pending community review.
 const HMN = {
+  "tb.business": "Koj puas muaj ib qho chaw ua lag luam? Wisconsin txoj cai lij choj yuam kom cov vaj tse lag luam them tib tus nqi se li cov tsev nyob, yog li sau nws tus nqi lag luam thiab tib qho kev suav siv tau. Cov khoom siv ua lag luam thiab lwm yam khoom tsis tau them se txij li xyoo 2024. Ntawm ob qho credit uas tsis rho tawm ntawm no, ib lub lag luam tsuas tau first-dollar credit xwb; lottery credit yog rau tus tswv lub tsev nyob tseem ceeb.",
   "nav.say": "Hais koj lub tswv yim",
   "ed.sayLink": "Yuav koom li cas",
   "say.kick": "Ua ntej kev pov npav",
