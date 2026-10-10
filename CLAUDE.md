@@ -207,7 +207,7 @@ python scripts/extract_wausau.py "2026-Wausau-Budget.pdf" public/wausau-city.jso
 
 # Every Marathon County municipality's levies (DOR TVC workbook) + the state's
 # per-home credits (DOR's lottery and first-dollar "Credit Amount" reports):
-python scripts/extract_dor.py sources/dor-tvc25.xlsx sources/dor-2025lotcr.pdf        sources/dor-2025fdcred.pdf public/marathon-tax-districts.json --cache
+python scripts/extract_dor.py sources/dor-tvc25.xlsx sources/dor-2025lotcr.pdf \n       sources/dor-2025fdcred.pdf public/marathon-tax-districts.json --cache
 # then redraw the share cards (CI fails while their figures are stale):
 python scripts/og_cards.py
 
@@ -530,12 +530,12 @@ npm run build    # vite build + scripts/entity-pages.mjs (per-entity share stubs
   posts `{type:"wpr-budget:height"}` for hosts that can run a script.
 - **Share pages** (`scripts/entity-pages.mjs`, in `npm run build`): `/<entity>/`,
   `/<entity>-<edition>/`, `/about/`, and one per municipality `/tax/<slug>/`
-  ("Town of Ringle: $1,905 a year on a $200,000 home"; it writes the Tax Bill
+  ("Town of Ringle: $1,693 a year on a $200,000 home", after the state's credits; it writes the Tax Bill
   view's remembered municipality, then redirects — no reader data in the URL).
   Each uses its own card image when `scripts/og_cards.py` made one.
 - **Share cards with numbers:** `python scripts/og_cards.py` (Pillow; Georgia +
   Arial from the Windows font folder) draws og-image.png (suite: "the same
-  $200,000 home pays $1,905 … $3,683"), og-your-tax-bill.png (also every town
+  $200,000 home pays $1,693 … $3,372", after credits), og-your-tax-bill.png (also every town
   page) and og-<entity>-<edition>.png, and writes every figure to
   public/og-cards.json. check-data recomputes them with src/taxmath.js and
   **fails the deploy when a card is stale** — rerun after data changes.
