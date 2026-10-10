@@ -4,7 +4,8 @@ export const usd = (n) => (n < 0 ? "−$" : "$") + Math.abs(n).toLocaleString("e
 
 export const compact = (n) => {
   const a = Math.abs(n);
-  const s = a >= 1e6 ? "$" + (a / 1e6).toFixed(a >= 1e7 ? 0 : 1) + "M"
+  const s = a >= 1e9 ? "$" + (a / 1e9).toFixed(a >= 1e10 ? 0 : 1) + "B"
+    : a >= 1e6 ? "$" + (a / 1e6).toFixed(a >= 1e7 ? 0 : 1) + "M"
     : a >= 1e3 ? "$" + Math.round(a / 1e3) + "K" : "$" + a;
   return n < 0 ? "−" + s : s;
 };

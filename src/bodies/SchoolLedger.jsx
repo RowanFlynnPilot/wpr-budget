@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import {
-  ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, ComposedChart, Line, Area, ReferenceLine, BarChart, Bar, LabelList,
+  ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, AreaChart, Line, Area, ReferenceLine, BarChart, Bar, LabelList,
 } from "recharts";
 import { useLang, useStrings } from "../i18n";
 import { usd, compact, pct } from "../format";
@@ -330,39 +330,40 @@ export default function SchoolLedger({ b, chrome }) {
           {t("s.overtime.dek", ratePeak.toFixed(2), b.meta.mill_rate.toFixed(2), valGrowth, valFirst.year, compact(valLast.value), valLast.year)}
         </SectionHead>
         <div className="chart-wrap">
-          <div className="chart-legend">
-            <span><i className="sw" style={{ background: "var(--accent)" }} /> {t("s.overtime.legendRate")}</span>
-            <span><i className="sw" style={{ background: "var(--gold)" }} /> {t("s.overtime.legendVal")}</span>
-          </div>
+          {/* Two panels, each from zero, rather than two scales on one chart. */}
           <ChartFrame summary={overNote} table={{ columns: [{ key: "year", label: t("col.year") }, { key: "rate", label: t("tip.millRate"), fmt: (v) => "$" + v.toFixed(2) }, { key: "valuation", label: t("s.overtime.tipVal"), fmt: compact }], rows: overTime }}>
-          <ResponsiveContainer width="100%" height={320}>
-            <ComposedChart data={overTime} margin={{ top: 8, right: 14, bottom: 4, left: 6 }}>
-              <CartesianGrid stroke="var(--rule)" vertical={false} />
-              <XAxis dataKey="year" ticks={otTicks} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
-              <YAxis yAxisId="val" orientation="right" tick={{ fill: "var(--gold-ink)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={42} tickFormatter={(v) => "$" + (v / 1e9).toFixed(0) + "B"} />
-              <YAxis yAxisId="rate" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={34} tickFormatter={(v) => "$" + v} />
-              <Tooltip content={({ active, payload, label }) => {
-                if (!active || !payload || !payload.length) return null;
-                const r = payload.find((p) => p.dataKey === "rate");
-                const v = payload.find((p) => p.dataKey === "valuation");
-                return (
-                  <div className="tip">
-                    <div className="tip-year">{label}</div>
-                    {r && <div><i className="sw" style={{ background: "var(--accent)" }} /> {t("s.overtime.tipRate")} ${r.value.toFixed(2)}</div>}
-                    {v && v.value != null && <div><i className="sw" style={{ background: "var(--gold)" }} /> {t("s.overtime.tipVal")} {compact(v.value)}</div>}
-                  </div>
-                );
-              }} cursor={{ stroke: "var(--rule)" }} />
-              <Area yAxisId="val" type="monotone" dataKey="valuation" name="Equalized value" stroke="var(--gold)"
-                strokeWidth={1.5} fill="var(--gold)" fillOpacity={0.14} dot={false} connectNulls activeDot={{ r: 4 }} />
-              <Line yAxisId="rate" type="monotone" dataKey="rate" name="Mill rate" stroke="var(--accent)" strokeWidth={2.5}
-                dot={false} activeDot={{ r: 5 }} />
-              {overNotes.map((a) => (
-                <ReferenceLine key={a.x} yAxisId="rate" x={a.x} stroke="var(--ink-soft)" strokeDasharray="3 3" strokeOpacity={0.75}
-                  label={{ value: a.tag, position: "insideTopRight", fontSize: 10, fill: "var(--ink-soft)", fontFamily: "var(--sans)" }} />
-              ))}
-            </ComposedChart>
-          </ResponsiveContainer>
+          <div className="twin-charts">
+            <div>
+              <h3 className="twin-title">{t("s.overtime.legendRate")}</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={overTime} margin={{ top: 8, right: 10, bottom: 4, left: 0 }}>
+                  <CartesianGrid stroke="var(--rule)" vertical={false} />
+                  <XAxis dataKey="year" ticks={otTicks} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={34} tickFormatter={(v) => "$" + v} />
+                  <Tooltip cursor={{ stroke: "var(--rule)" }} content={({ active, payload }) => (active && payload && payload.length ? (
+                    <div className="tip"><div className="tip-year">{payload[0].payload.label}</div>{t("s.overtime.tipRate")} ${payload[0].value.toFixed(2)}</div>) : null)} />
+                  <Line type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
+                  {overNotes.map((a) => (
+                    <ReferenceLine key={a.x} x={a.x} stroke="var(--ink-soft)" strokeDasharray="3 3" strokeOpacity={0.75}
+                      label={{ value: a.tag, position: "insideTopRight", fontSize: 10, fill: "var(--ink-soft)", fontFamily: "var(--sans)" }} />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <div>
+              <h3 className="twin-title">{t("s.overtime.legendVal")}</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <AreaChart data={overTime.filter((d) => d.valuation != null)} margin={{ top: 8, right: 10, bottom: 4, left: 0 }}>
+                  <CartesianGrid stroke="var(--rule)" vertical={false} />
+                  <XAxis dataKey="year" ticks={otTicks.filter((y) => overTime.some((d) => d.year === y && d.valuation != null))} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={40} tickFormatter={(v) => "$" + (v / 1e9).toFixed(0) + "B"} />
+                  <Tooltip cursor={{ stroke: "var(--rule)" }} content={({ active, payload }) => (active && payload && payload.length ? (
+                    <div className="tip"><div className="tip-year">{payload[0].payload.label}</div>{t("s.overtime.tipVal")} {compact(payload[0].value)}</div>) : null)} />
+                  <Area type="monotone" dataKey="valuation" stroke="var(--gold)" strokeWidth={2} fill="var(--gold)" fillOpacity={0.16} dot={false} activeDot={{ r: 4 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
           </ChartFrame>
           <p className="note">{overNote}</p>
           <ChartNotes notes={overNotes} />
