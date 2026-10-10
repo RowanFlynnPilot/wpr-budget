@@ -136,15 +136,15 @@ for (const file of [countyEnt.data, ...(countyEnt.editions || []).map((ed) => ed
 }
 
 // ---- i18n: the three language tables carry exactly the same keys ----
+// (English lives in src/i18n.jsx; Spanish and Hmong in src/strings/, loaded on demand)
 {
-  const src = readFileSync("src/i18n.jsx", "utf8");
-  const table = (name) => {
-    const body = src.split(`const ${name} = {`)[1].split("\n};")[0];
+  const keys = (file, marker) => {
+    const body = readFileSync(file, "utf8").split(marker)[1].split("\n};")[0];
     return new Set([...body.matchAll(/^ {2}"([^"]+)":/gm)].map((x) => x[1]));
   };
-  const en = table("EN");
-  for (const lang of ["ES", "HMN"]) {
-    const t = table(lang);
+  const en = keys("src/i18n.jsx", "const EN = {");
+  for (const lang of ["es", "hmn"]) {
+    const t = keys(`src/strings/${lang}.js`, "export default {");
     const missing = [...en].filter((k) => !t.has(k));
     const extra = [...t].filter((k) => !en.has(k));
     if (missing.length) fail(`i18n ${lang}`, `missing ${missing.join(", ")}`);
