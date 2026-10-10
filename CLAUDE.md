@@ -459,10 +459,17 @@ beside them as `sources/_pages_*.json`.
 > of the 2026 book) once the extractor accepts the notice as an extra input.
 > County calendar: board Q&A Oct 15 & 20, **public hearing
 > Nov 2**, amendments due Nov 6, **adoption Nov 10**. The City's 2027 proposed
-> book (`sources/2027-Wausau-Budget-Proposed.pdf`) still fails: no
-> jurisdiction-split page in the proposed edition, personnel short a new "City
-> Administrator 1.00 - - -" row, debt $1 rounding. The School's 2026-27 book
-> isn't posted yet (final levy Oct 27).
+> book (`sources/2027-Wausau-Budget-Proposed.pdf`, wausauwi.gov
+> "2027_Proposed_Budget_Updated") now parses everywhere EXCEPT the
+> jurisdiction-split table, which the proposed edition doesn't print (only the
+> adopted book does) — a City edition needs `tax_by_jurisdiction: null` handling
+> in `CityLedger` plus Mayor/Common-Council edition wording, and `c.dev.note`
+> ("closure of District 6") is FY2026-specific prose. Fixed 2026-10-09:
+> personnel '-' cells (the new City Administrator row) + every row must match the
+> Grand Total's year count; debt year rows reconcile within the book's $1 row
+> rounding, anchored EXACTLY to the debt-limit page's outstanding figure; TIF
+> growth in parentheses is negative (was silently flipped positive). The
+> School's 2026-27 book isn't posted yet (final levy Oct 27).
 >
 > **Next session — start here.** No half-finished code; the open items are
 > WPR/editorial actions, not bugs: (1) a **fluent-speaker review of the Hmong** (it's

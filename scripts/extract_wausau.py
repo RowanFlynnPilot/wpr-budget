@@ -88,8 +88,11 @@ def parse_personnel(text):
     rows, total, pending = [], None, ""
     for ln in lines:
         s = ln.strip()
-        m = re.match(r"^(.+?)\s+((?:\d+\.\d{2}\s*)+)$", s)
-        if not m:
+        # A cell is an FTE figure or '-' (a position that didn't exist that year —
+        # the 2027 book's new "City Administrator 1.00 - - - …"). A row needs at
+        # least one figure; dash-only lines are rules, not rows.
+        m = re.match(r"^(.+?)\s+((?:(?:\d+\.\d{2}|-)\s*)+)$", s)
+        if not m or not re.search(r"\d+\.\d{2}", m.group(2)):
             if re.search(r"[A-Za-z]", s) and not re.search(r"\d", s) and len(s) < 40:
                 pending = (pending + " " + s).strip()
             else:
@@ -97,7 +100,7 @@ def parse_personnel(text):
             continue
         label = re.sub(r"\s+", " ", (pending + " " + m.group(1)).strip())
         pending = ""
-        fte = [float(x) for x in re.findall(r"\d+\.\d{2}", m.group(2))]
+        fte = [0.0 if x == "-" else float(x) for x in m.group(2).split()]
         if label.lower().startswith("grand total"):
             total = fte
         elif label.lower().startswith("city council"):
@@ -106,7 +109,10 @@ def parse_personnel(text):
             rows.append({"department": label, "fte": fte})
     if total is None:
         raise ValueError("personnel Grand Total row not found")
-    calc = round(sum(r["fte"][0] for r in rows if r["fte"]), 2)
+    short = [r["department"] for r in rows if len(r["fte"]) != len(total)]
+    if short:
+        raise ValueError(f"personnel rows with a different year count than Grand Total ({len(total)}): {short}")
+    calc = round(sum(r["fte"][0] for r in rows), 2)
     if calc != total[0]:
         raise ValueError(f"personnel reconcile (latest year): parsed {calc} vs printed {total[0]}")
     return {"years": years, "rows": rows, "total": total}
@@ -120,11 +126,16 @@ def parse_tif(text):
     for line in text.split("\n"):
         s = line.strip()
         mp = re.search(r"TID\s+(\d+)\s*\D{0,3}\s*\$\s*([\d,]+)\s+(.+)", s)
-        mg = re.search(r"TID\s+(\d+)\s*\D{0,3}\s*([\d.]+)%", s)
+        # 'TID 7 – 14.96%'; a shrinking district prints in parentheses,
+        # 'TID 3 –(1.74%)' (2027) — the dash is only the separator.
+        mg = re.search(r"TID\s+(\d+)\s*[–-]\s*(\()?\s*([\d.]+)%\s*(\))?", s)
         if mp:
             payments.append({"tid": int(mp.group(1)), "amount": money(mp.group(2)), "note": mp.group(3).strip()})
         elif mg:
-            growth.append({"tid": int(mg.group(1)), "growth": float(mg.group(2))})
+            if bool(mg.group(2)) != bool(mg.group(4)):
+                raise ValueError(f"unbalanced parentheses in TID growth line: {s!r}")
+            pct = float(mg.group(3))
+            growth.append({"tid": int(mg.group(1)), "growth": -pct if mg.group(2) else pct})
     md = re.search(r"levy decrease of\s*\$\s*([\d,]+)", text)
     if not growth:
         raise ValueError("TIF valuation-growth list not found")
@@ -248,11 +259,21 @@ def parse_debt(retire_text, limit_text):
             break
     if printed is None:
         raise ValueError("debt retirement totals row not found")
-    reconcile(retire, printed["principal"], "principal", "debt retirement")
-    reconcile(retire, printed["total"], "total", "debt retirement")
+    # The book rounds each year's row on its own (2027: three rows' principal +
+    # interest miss their total by $1), so the per-year detail reconciles to the
+    # printed Total within that rounding — $1 on principal, and on the total
+    # column the $1-per-row slips accumulate ($3 in 2027). The integrity anchor is
+    # exact and cross-page: the schedule's principal Total must equal the
+    # debt-limit page's outstanding GO debt (2026: $76,507,535 both; 2027:
+    # $78,201,125 both).
+    reconcile(retire, printed["principal"], "principal", "debt retirement", tol=1)
+    reconcile(retire, printed["total"], "total", "debt retirement", tol=3)
     mo = re.search(r"Outstanding GO Debt\s+\$\s*[\d,]+\s+\$\s*([\d,]+)", limit_text)
     if not mo:
         raise ValueError("debt-limit 'Outstanding GO Debt' line not found")
+    if money(mo.group(1)) != printed["principal"]:
+        raise ValueError(f"debt cross-check: schedule principal total {printed['principal']:,} vs "
+                         f"debt-limit outstanding {money(mo.group(1)):,}")
     mu = re.search(r"% Utilized\s+[\d.]+%\s+([\d.]+)%", limit_text)
     if not mu:
         raise ValueError("debt-limit '% Utilized' line not found")

@@ -284,8 +284,9 @@ export default function CityLedger({ b, chrome }) {
           {tifGrowth.map((g) => (
             <div className="gbar" key={g.tid}>
               <span className="gbar-name">District {g.tid}</span>
-              <span className="gbar-track"><i style={{ width: `${(g.growth / tifMaxGrowth) * 100}%` }} /></span>
-              <span className="gbar-val">+{g.growth.toFixed(2)}%</span>
+              {/* A shrinking district (negative growth) gets no bar, only its signed figure. */}
+              <span className="gbar-track"><i style={{ width: `${(Math.max(g.growth, 0) / tifMaxGrowth) * 100}%` }} /></span>
+              <span className="gbar-val">{(g.growth > 0 ? "+" : g.growth < 0 ? "−" : "") + Math.abs(g.growth).toFixed(2)}%</span>
             </div>
           ))}
         </div>
