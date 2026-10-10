@@ -33,7 +33,8 @@ BUILDS = [
      lambda: extract_wausau.extract("2026-Wausau-Budget.pdf", cache=True)),
     # Every Marathon County municipality's levies and school-district split (DOR).
     ("public/marathon-tax-districts.json",
-     lambda: extract_dor.extract("sources/dor-tvc25.xlsx")),
+     lambda: extract_dor.extract("sources/dor-tvc25.xlsx", "sources/dor-2025lotcr.pdf",
+                                 "sources/dor-2025fdcred.pdf", cache=True)),
     ("public/wausau-school.json",
      lambda: extract_school.extract("sources/2026-Wausau-School-Budget.pdf", ENROLLMENT_ZIPS,
                                     SCHOOL_PRIOR_BOOKS, cache=True)),

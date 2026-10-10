@@ -6,7 +6,7 @@
 // https://rowanflynnpilot.github.io/wpr-budget/<entity-id>/ when the preview
 // card should name the entity.
 import { readFileSync, mkdirSync, writeFileSync, existsSync } from "node:fs";
-import { billTotal, muniSlug, MUNI_KEY } from "../src/taxmath.js";
+import { netBill, muniSlug, MUNI_KEY } from "../src/taxmath.js";
 
 const BASE = "https://rowanflynnpilot.github.io/wpr-budget/";
 const entities = JSON.parse(readFileSync("src/entities.json", "utf8"));
@@ -56,12 +56,12 @@ pages.push({
 const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
 const townPages = dor.municipalities.map((m) => {
   const where = `${m.type} of ${m.name}`;
-  const bills = m.school_districts.map((sd) => 200 * billTotal(m, sd));
+  const bills = m.school_districts.map((sd) => netBill(m, sd, dor.meta.credits, 200000));
   const amount = bills.length > 1 ? `${usd(Math.min(...bills))}–${usd(Math.max(...bills))}` : usd(bills[0]);
   return {
     slug: "tax/" + muniSlug(m),
     title: `${where}: ${amount} a year on a $200,000 home — Follow the Money · Wausau Pilot & Review`,
-    desc: `What a $200,000 home in the ${where} pays in local property taxes at ${dor.meta.tax_year} rates${bills.length > 1 ? ", depending on its school district" : ""}, before the lottery and first-dollar credits — where every dollar goes, and how it compares with Marathon County's other ${munis - 1} cities, villages and towns.`,
+    desc: `What a $200,000 home in the ${where} pays in local property taxes at ${dor.meta.tax_year} rates${bills.length > 1 ? ", depending on its school district" : ""}, after the state's credits for a primary home — where every dollar goes, and how it compares with Marathon County's other ${munis - 1} cities, villages and towns.`,
     route: "your-tax-bill",
     image: "og-your-tax-bill.png",
     remember: m.code,

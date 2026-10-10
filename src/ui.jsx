@@ -5,7 +5,7 @@ import sponsors from "./sponsors.json";
 import { usd, compact, pct, downloadCSV, fmtDate } from "./format";
 import { consumePendingSection } from "./nav";
 import { track, currentView } from "./analytics";
-import { billParts, MUNI_KEY } from "./taxmath";
+import { billParts, netBill, MUNI_KEY } from "./taxmath";
 import marathonLogo from "./assets/marathon-county.jpg";
 import wausauLogo from "./assets/wausau-city.jpg";
 import schoolLogo from "./assets/wausau-school.jpg";
@@ -634,11 +634,36 @@ export function billRates(muni, code) {
 }
 
 // The cheapest and dearest place in the county for the same home: every
-// municipality x school district pairing, by total bill rate. Each: { m, sd, rate }.
-export function billExtremes(municipalities) {
-  const all = municipalities.flatMap((m) => m.school_districts.map((sd) => ({ m, sd, rate: billRates(m, sd.code).total })));
-  all.sort((a, c) => a.rate - c.rate);
+// municipality x school district pairing, by the bill after the state's
+// credits, in dollars. Each: { m, sd, bill }.
+export function billExtremes(municipalities, credits, value, primaryHome = true) {
+  const all = municipalities.flatMap((m) => m.school_districts.map((sd) => ({ m, sd, bill: netBill(m, sd, credits, value, primaryHome) })));
+  all.sort((a, c) => a.bill - c.bill);
   return { lo: all[0], hi: all[all.length - 1] };
+}
+
+// Is the home the owner's primary residence? Only then does the lottery &
+// gaming credit apply (a business, rental or cabin gets the first-dollar credit
+// alone). Remembered like the home value — this browser only, never in a URL.
+const PRIMARY_KEY = "wpr-budget-primary";
+export function usePrimaryHome() {
+  const [v, setV] = useState(() => {
+    try { return localStorage.getItem(PRIMARY_KEY) !== "0"; } catch (e) { return true; }
+  });
+  const set = (x) => {
+    setV(x);
+    try { localStorage.setItem(PRIMARY_KEY, x ? "1" : "0"); } catch (e) { /* ignore */ }
+  };
+  return [v, set];
+}
+export function PrimaryHomeToggle({ value, onChange }) {
+  const t = useStrings();
+  return (
+    <label className="primary-home">
+      <input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} />
+      <span>{t("tb.primary")}</span>
+    </label>
+  );
 }
 // "Town of Ringle, D.C. Everest Area schools" — the district named only where the place has more than one.
 export const placeLabel = (t, { m, sd }) => {
@@ -752,7 +777,10 @@ export function HomeValueCalc({ id, label, outLabel, outValue, value, onChange, 
 // with rate per $1,000 of home value; rows with a drillId become clickable
 // when onDrill is provided (the complete-bill overview). Hover state is local,
 // so mousemove re-renders only this component — not the chart-heavy body.
-export function TaxSplit({ rows, total, homeValue, totalLabel, exploreLabel, onDrill }) {
+// credits (optional): { lottery, firstDollar } in dollars — drawn after the
+// levies' total as the bill draws them, then the bill after credits.
+export function TaxSplit({ rows, total, homeValue, totalLabel, exploreLabel, onDrill, credits }) {
+  const t = useStrings();
   const [tip, setTip] = useState(null);
   const barRef = useRef(null);
   return (
@@ -807,6 +835,22 @@ export function TaxSplit({ rows, total, homeValue, totalLabel, exploreLabel, onD
           <span className="jrow-amt">{usd(Math.round((homeValue / 1000) * total))}</span>
           <span className="jrow-share">100%</span>
         </div>
+        {credits && (<>
+          {[["lottery", "tb.credit.lottery"], ["firstDollar", "tb.credit.first"]].filter(([k]) => credits[k] > 0).map(([k, label]) => (
+            <div className="jrow credit" key={k}>
+              <span className="jrow-sw" />
+              <span className="jrow-name">{t(label)}</span>
+              <span className="jrow-amt">{"\u2212" + usd(Math.round(credits[k]))}</span>
+              <span className="jrow-share" />
+            </div>
+          ))}
+          <div className="jrow total net">
+            <span className="jrow-sw" />
+            <span className="jrow-name">{t("tb.netRow")}</span>
+            <span className="jrow-amt">{usd(Math.round(Math.max(0, (homeValue / 1000) * total - credits.lottery - credits.firstDollar)))}</span>
+            <span className="jrow-share" />
+          </div>
+        </>)}
       </div>
     </>
   );

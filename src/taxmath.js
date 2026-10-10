@@ -21,6 +21,22 @@ export function billParts(muni, sd) {
 
 export const billTotal = (muni, sd) => Object.values(billParts(muni, sd)).reduce((s, r) => s + r, 0);
 
+// The state's two per-home credits on the same bills, in dollars: the school
+// district's equalized school tax rate (sd.credit_rate, from DOR's credit
+// reports) times the year's maximum credit value — or the home's value, if
+// less. The lottery & gaming credit is for an owner's primary residence; the
+// first-dollar credit for every parcel with a building, businesses included.
+// (The third state credit, the school levy credit, is already in the rate.)
+export function stateCredits(sd, credits, value, primaryHome = true) {
+  const lottery = primaryHome ? sd.credit_rate * Math.min(credits.lottery_max_value, value) : 0;
+  const firstDollar = sd.credit_rate * Math.min(credits.first_dollar_max_value, value);
+  return { lottery, firstDollar, total: lottery + firstDollar };
+}
+
+// What the bill comes to, in dollars: the levies at the bill rate, less the credits.
+export const netBill = (muni, sd, credits, value, primaryHome = true) =>
+  Math.max(0, (value / 1000) * billTotal(muni, sd) - stateCredits(sd, credits, value, primaryHome).total);
+
 // Where the Tax Bill view keeps the reader's municipality (localStorage only);
 // a town share page writes it before opening the view.
 export const MUNI_KEY = "wpr-budget-muni";

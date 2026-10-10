@@ -108,13 +108,28 @@ combined college levy, flagged. `TaxBillOverview` = a municipality select (61,
 grouped; split-county parts labeled) + a school-district toggle where needed;
 both choices persist in localStorage (never URLs). The City body's tax section
 and the Landing hook use the same function (City of Wausau, `WAUSAU_CITY_DOR`).
-Consequence: "a $200,000 home" now means market value — Wausau's hook reads
-~$3,609 (the City book's $18.94/assessed ≡ $18.04/market). The City book's
+Consequence: "a $200,000 home" now means market value. The City book's
 `tax_by_jurisdiction` is still extracted (published open data) but no longer
 drives the UI — which also means a City PROPOSED edition no longer needs it.
-Not subtracted (and said so): lottery & first-dollar credits; special-district
-taxes (sanitary/lake districts). Next: subtract the lottery/first-dollar credits
-(DOR 2025lotcr.pdf / 2025fdcred.pdf, per municipality × school district).
+
+**Every bill is the bill AFTER the state's credits (since 2026-10-10).** The
+school levy credit is in the rate (above); the other two come from DOR's
+"Credit Amount" reports for the same bills (`sources/dor-2025lotcr.pdf`,
+`sources/dor-2025fdcred.pdf`, from https://www.revenue.wi.gov/Pages/Report/lgc-mcv.aspx
+and fdc-mcv.aspx, posted each Nov. 20): each school district carries
+`credit_rate` (DOR's equalized school tax rate, levy / TIF-out value, district-
+wide) and `meta.credits` the year's maximum credit values ($27,000 lottery &
+gaming, $9,000 first-dollar for bills payable 2026). Credit = credit_rate ×
+min(max value, home value); the lottery credit only for a primary home
+(`usePrimaryHome`, a checkbox on both full tax-bill views; the #card and the
+landing assume one), the first-dollar credit for any parcel with a building.
+`netBill`/`stateCredits` in src/taxmath.js. The extractor proves every printed
+rate is levy/value, every printed credit is rate × max to the cent, both reports
+agree, and every municipality / district pair has a line. Wausau's $200,000
+home: $3,609 levied − $178 lottery − $59 first-dollar = **$3,372**; with credits
+the dearest place for that home is the City of Wausau and the cheapest the Town
+of Ringle ($1,693). Still not subtracted (and said so): special-district taxes
+(sanitary/lake districts).
 
 The last entry is NOT a government — it's a cross-entity **overview**: a City of Wausau
 homeowner's complete property-tax bill split across all four taxing jurisdictions
@@ -189,6 +204,12 @@ python scripts/extract_budget.py sources/2027-Annual-Budget-Proposed.pdf public/
 
 # City of Wausau (separate extractor, separate schema — see extract_wausau.py):
 python scripts/extract_wausau.py "2026-Wausau-Budget.pdf" public/wausau-city.json --cache
+
+# Every Marathon County municipality's levies (DOR TVC workbook) + the state's
+# per-home credits (DOR's lottery and first-dollar "Credit Amount" reports):
+python scripts/extract_dor.py sources/dor-tvc25.xlsx sources/dor-2025lotcr.pdf        sources/dor-2025fdcred.pdf public/marathon-tax-districts.json --cache
+# then redraw the share cards (CI fails while their figures are stale):
+python scripts/og_cards.py
 
 # Wausau School District (separate extractor, separate schema — see extract_school.py).
 # Source = the district's "Annual Budget Book" PDF, linked from
@@ -333,12 +354,13 @@ from the County's.
 ### marathon-tax-districts.json schema (Wisconsin DOR — every municipality)
 
 ```
-meta:            { source, source_url, tax_year, county }
+meta:            { source, source_url, tax_year, county,
+                   credits: { payable, lottery_max_value, first_dollar_max_value, source_url } }
 municipalities[]: { code, type: City|Village|Town, name, split_county, population,
                     full_value, full_value_ex_tif, assessment_level, total_tax,
                     school_levy_credit, gross_rate, effective_rate,
                     taxes: { county, local, school, technical_college, other },   # other = TIF increment + special districts
-                    school_districts[]: { code, name, full_value, levy },        # largest first
+                    school_districts[]: { code, name, full_value, levy, credit_rate },  # largest first
                     technical_colleges[]: { code, name } }
                  # sorted Cities, Villages, Towns, then by name
 ```

@@ -5,7 +5,7 @@
 //
 //   node scripts/check-data.mjs      # exit 1 with every failure listed
 import { readFileSync, existsSync } from "node:fs";
-import { billTotal, muniSlug } from "../src/taxmath.js";
+import { billTotal, muniSlug, netBill } from "../src/taxmath.js";
 
 const failures = [];
 const fail = (where, msg) => failures.push(`${where}: ${msg}`);
@@ -121,6 +121,16 @@ for (const file of [countyEnt.data, ...(countyEnt.editions || []).map((ed) => ed
       if (!Number.isFinite(rate) || rate <= 0 || rate > 60) fail(where, `${s.name}: bill rate ${rate}`);
     }
   }
+  // the state's credits: one rate per municipality / school district, two maximum values
+  const c = d.meta.credits;
+  if (!c || c.payable !== d.meta.tax_year + 1 || !(c.lottery_max_value > 0) || !(c.first_dollar_max_value > 0)) {
+    fail("marathon-tax-districts.json", "meta.credits needs {payable: tax_year + 1, lottery_max_value, first_dollar_max_value}");
+  }
+  for (const m of d.municipalities) for (const s of m.school_districts) {
+    if (!(s.credit_rate > 0 && s.credit_rate < 0.03)) fail(`marathon-tax-districts.json ${m.name}`, `${s.name}: credit_rate ${s.credit_rate}`);
+    // the bill after credits on a typical home is still a bill
+    if (!(netBill(m, s, c, 200000) > 0)) fail(`marathon-tax-districts.json ${m.name}`, `${s.name}: no bill left after credits`);
+  }
   // every municipality gets its own share page at /tax/<slug>/
   const slugs = d.municipalities.map(muniSlug);
   if (new Set(slugs).size !== slugs.length) fail("marathon-tax-districts.json", "two municipalities share a page slug");
@@ -131,10 +141,10 @@ for (const file of [countyEnt.data, ...(countyEnt.editions || []).map((ed) => ed
   const cards = read("public/og-cards.json");
   const stale = (where, msg) => fail(`og-cards.json ${where}`, `${msg} — rerun python scripts/og_cards.py`);
   const d = read("public/marathon-tax-districts.json");
-  const pairs = d.municipalities.flatMap((m) => m.school_districts.map((sd) => ({ m, rate: billTotal(m, sd) })))
-    .sort((a, c) => a.rate - c.rate);
+  const pairs = d.municipalities.flatMap((m) => m.school_districts.map((sd) => ({ m, bill: netBill(m, sd, d.meta.credits, 200000) })))
+    .sort((a, c) => a.bill - c.bill);
   const [lo, hi] = [pairs[0], pairs.at(-1)];
-  const want = { lo: Math.round(200 * lo.rate), lo_place: `${lo.m.type} of ${lo.m.name}`, hi: Math.round(200 * hi.rate),
+  const want = { lo: Math.round(lo.bill), lo_place: `${lo.m.type} of ${lo.m.name}`, hi: Math.round(hi.bill),
     hi_place: `${hi.m.type} of ${hi.m.name}`, municipalities: d.municipalities.length };
   const taxbillId = entities.find((e) => e.kind === "taxbill").id;
   for (const k of ["suite", taxbillId]) {

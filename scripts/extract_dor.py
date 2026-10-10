@@ -19,7 +19,20 @@ within $1 per part.)
     python scripts/extract_dor.py sources/dor-tvc25.xlsx public/marathon-tax-districts.json
 
 Source: https://www.revenue.wi.gov/Pages/Report/tvc-bulletin.aspx (posted each
-June; tvc25 = taxes levied in 2025, payable in 2026). revenue.wi.gov does not
+June; tvc25 = taxes levied in 2025, payable in 2026).
+
+The state's two per-home credits come from DOR's "Credit Amount" reports for the
+same bills (posted each Nov. 20; files <year>lotcr.pdf and <year>fdcred.pdf on
+https://www.revenue.wi.gov/Pages/Report/lgc-mcv.aspx and .../fdc-mcv.aspx): per
+municipality and school district, the district's equalized school tax rate (its
+levy over its TIF-out equalized value) and the maximum credit — that rate times
+the year's maximum credit value. A home's lottery & gaming credit (primary
+residence only) and first-dollar credit (every parcel with a building) are that
+rate times the maximum credit value, or the home's value if it is less. Each
+school district here carries the rate (credit_rate); meta.credits the two maximum
+credit values. Checked line by line: the rate is the printed levy over the
+printed value, rate x maximum value is the printed credit to the cent, both
+reports agree, and every municipality / school district pair here has its line. revenue.wi.gov does not
 block scripted downloads. Reconciled per municipality, within the whole-dollar
 rounding above: the five levies sum to the printed total tax, and the school
 districts' levies and values sum to the school tax and the TIF-out full value.
@@ -27,7 +40,49 @@ districts' levies and values sum to the school tax and the TIF-out full value.
 import re
 import argparse
 
-from lib import write_json
+from lib import load_pages, money, write_json
+
+# One line of a DOR credit report, for a Marathon County municipality:
+# year, CoMun, auth code, name, county, district code (county + 4-digit district),
+# auth, district name, district levy, TIF-out equalized value, school tax rate,
+# maximum credit value, maximum credit.
+CREDIT_LINE = re.compile(
+    r"^(20\d\d) (\d{5}) \d{4} .+? MARATHON (\d{6}) \d{4} .+? "
+    r"\$([\d,]+\.\d\d) \$([\d,]+\.\d\d) (0\.\d+) \$([\d,]+\.\d\d) \$([\d,]+\.\d\d)$")
+
+
+def credit_report(pdf, title, cache):
+    """{(municipality code, school district code): (school tax rate, max credit)},
+    the report's maximum credit value, and the year its bills are payable."""
+    texts = load_pages(pdf, cache)
+    if title not in texts[0]:
+        raise ValueError(f"{pdf}: expected the {title!r} report, got {texts[0][:80]!r}")
+    rows, mcvs, years = {}, set(), set()
+    for t in texts:
+        for line in t.split("\n"):
+            m = CREDIT_LINE.match(line.strip())
+            if not m:
+                continue
+            year, comun, sd6, levy, value, rate, mcv, credit = m.groups()
+            levy, value, rate, mcv, credit = money(levy), money(value), float(rate), money(mcv), money(credit)
+            label = f"{pdf}: {comun} / {sd6}"
+            # The printed rate is the printed levy over the printed value (9 decimals) ...
+            if abs(levy / value - rate) > 5e-10:
+                raise ValueError(f"{label}: rate {rate} vs levy/value {levy / value:.10f}")
+            # ... and the printed credit is that rate times the maximum value, to the cent.
+            if abs(round(rate * mcv, 2) - credit) > 0.005:
+                raise ValueError(f"{label}: credit ${credit} vs rate x ${mcv:,.0f} = ${rate * mcv:.4f}")
+            key = (comun, sd6[2:])
+            if key in rows:
+                raise ValueError(f"{label}: listed twice")
+            rows[key] = (rate, credit)
+            mcvs.add(mcv)
+            years.add(int(year))
+    if not rows:
+        raise ValueError(f"{pdf}: no Marathon County lines parsed — the report layout changed")
+    if len(mcvs) != 1 or len(years) != 1:
+        raise ValueError(f"{pdf}: expected one maximum credit value and one year, got {mcvs} / {years}")
+    return rows, int(mcvs.pop()), years.pop()
 
 COUNTY = "MARATHON COUNTY"
 TYPES = {"T": "Town", "V": "Village", "C": "City"}
@@ -84,7 +139,7 @@ def check_headers(head, spec, sheet):
                              f"the workbook layout changed; re-map MUNI_COLS/SD_COLS")
 
 
-def extract(xlsx):
+def extract(xlsx, lottery_pdf, first_dollar_pdf, cache=False):
     import openpyxl
     wb = openpyxl.load_workbook(xlsx, read_only=True, data_only=True)
 
@@ -189,12 +244,37 @@ def extract(xlsx):
                 raise ValueError(f"{label}: bill rate ${ours:.3f}/$1,000 vs DOR effective rate "
                                  f"${m['effective_rate'] * 1000:.2f} — the rate method no longer matches DOR's")
 
+    # The state's per-home credits (see the module notes): one rate per
+    # municipality / school district, shared by both reports.
+    lottery, lottery_mcv, lottery_year = credit_report(lottery_pdf, "Lottery Credit Estimate Report", cache)
+    first, first_mcv, first_year = credit_report(first_dollar_pdf, "First Dollar Credit Estimate Report", cache)
+    if not lottery_year == first_year == tax_year + 1:
+        raise ValueError(f"credit reports are for bills payable {lottery_year}/{first_year}, "
+                         f"the TVC bulletin's taxes are payable {tax_year + 1}")
+    if lottery.keys() != first.keys() or any(lottery[k][0] != first[k][0] for k in lottery):
+        raise ValueError("the lottery and first-dollar reports disagree on the municipalities, districts or rates")
+    for m in munis.values():
+        label = f"{m['type']} of {m['name']} ({m['code']})"
+        for sd in m["school_districts"]:
+            if (m["code"], sd["code"]) not in lottery:
+                raise ValueError(f"{label}: no credit line for school district {sd['code']} {sd['name']}")
+            sd["credit_rate"] = lottery[(m["code"], sd["code"])][0]
+    unknown = sorted({c for c, _ in lottery} - set(munis))
+    if unknown:
+        raise ValueError(f"credit reports list Marathon County municipalities not in the bulletin: {unknown}")
+
     return {
         "meta": {
             "source": f"Wisconsin Department of Revenue, {tax_year} Town, Village and City Taxes",
             "source_url": "https://www.revenue.wi.gov/Pages/Report/tvc-bulletin.aspx",
             "tax_year": tax_year,
             "county": "Marathon",
+            "credits": {
+                "payable": tax_year + 1,
+                "lottery_max_value": lottery_mcv,
+                "first_dollar_max_value": first_mcv,
+                "source_url": "https://www.revenue.wi.gov/Pages/Report/lgc-mcv.aspx",
+            },
         },
         "municipalities": sorted(munis.values(), key=lambda m: (m["type"] != "City", m["type"] != "Village", m["name"])),
     }
@@ -203,9 +283,12 @@ def extract(xlsx):
 def main():
     ap = argparse.ArgumentParser(description="Extract Marathon County taxing districts from the DOR TVC workbook.")
     ap.add_argument("xlsx", help="the DOR Town, Village and City Taxes workbook (tvcYY.xlsx)")
+    ap.add_argument("lottery", help="DOR's lottery & gaming credit amounts for the same bills (YYYYlotcr.pdf)")
+    ap.add_argument("first_dollar", help="DOR's first-dollar credit amounts for the same bills (YYYYfdcred.pdf)")
     ap.add_argument("out", help="output JSON path (public/marathon-tax-districts.json)")
+    ap.add_argument("--cache", action="store_true", help="cache the PDFs' page texts in sources/")
     args = ap.parse_args()
-    data = extract(args.xlsx)
+    data = extract(args.xlsx, args.lottery, args.first_dollar, cache=args.cache)
     write_json(args.out, data)
     ms = data["municipalities"]
     multi = [f"{m['type']} of {m['name']}" for m in ms if len(m["school_districts"]) > 1]

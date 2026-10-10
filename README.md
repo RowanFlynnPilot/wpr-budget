@@ -43,18 +43,19 @@ year's bill and its split, and a link to the full tool. It fits its frame at
 every width, so readers scroll past it like an image:
 
 ```html
-<div><div style="position:relative;padding-top:max(400px, min(calc(690px - 25.9%), calc(2533px - 333%)));"><iframe src="https://rowanflynnpilot.github.io/wpr-budget/#card" title="Follow the Money: what does your home pay?" loading="lazy" allow="web-share; clipboard-write" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"></iframe></div></div>
+<div><div style="position:relative;padding-top:max(425px, min(calc(820px - 52.9%), calc(2569px - 335%)));"><iframe src="https://rowanflynnpilot.github.io/wpr-budget/#card" title="Follow the Money: what does your home pay?" loading="lazy" allow="web-share; clipboard-write" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"></iframe></div></div>
 ```
 
 Without a script the frame can't measure the card, so its height is a formula of
 the column's width (`padding-top` percentages are shares of the outer `<div>`'s
-width; keep that `<div>`, block themes need it). Fitted on Oct. 10, 2026 to the
-card's measured height in English and Spanish: 587px at a 288px column (WPR's on
-a 320px phone), 509px at 375, 491px at 480, 438px just under 620px, where the
-controls go three across and the card drops to ~370px. The frame has at least
+width; keep that `<div>`, block themes need it). Refitted on Oct. 10, 2026, after
+the card started showing the state's credits, to its measured height in English
+and Spanish (the taller): 637px at a 288px column (WPR's on a 320px phone),
+577px at 320, 534px at 375, 491px at 480, 462px just under 620px, where the
+controls go three across and the card drops to ~395px. The frame has at least
 24px to spare at every width from 288px up, and the card centers itself in it.
 **If the card's content changes, re-measure** `.card-inner`'s height at frame
-widths 288–1100 and refit.
+widths 288–1100 in both languages and refit.
 
 ### On its own page: the full tool
 
@@ -120,6 +121,8 @@ pip install -r scripts/requirements.txt
 python scripts/extract_budget.py 2026-Annual-Budget.pdf public/marathon-county.json 2025-Annual-Budget.pdf --cache
 python scripts/extract_wausau.py 2026-Wausau-Budget.pdf public/wausau-city.json --cache
 python scripts/extract_school.py sources/2026-Wausau-School-Budget.pdf public/wausau-school.json sources/enrollment_certified_*.zip --cache
+python scripts/extract_dor.py sources/dor-tvc25.xlsx sources/dor-2025lotcr.pdf sources/dor-2025fdcred.pdf public/marathon-tax-districts.json --cache
+python scripts/og_cards.py # the share cards carry figures; CI fails while they're stale
 
 python scripts/verify.py   # proves all three reproduce the committed JSON byte-for-byte
 ```

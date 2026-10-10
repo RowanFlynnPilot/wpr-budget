@@ -6,11 +6,12 @@ import { useStrings } from "../i18n";
 import { usd, compact } from "../format";
 import {
   ENTITY_LOGOS, EditionBanner, SectionHead, Stat, FullOrCompact, SourceLink, ChartFrame, Delta, Highlights, rankLast, rankNote, risesOf, signedCompact, SubNav, SponsorSlot, Methodology,
-  HomeValueCalc, TaxSplit, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
+  HomeValueCalc, TaxSplit, PrimaryHomeToggle, usePrimaryHome, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
   SchoolPicker, useSchoolChoice, billRates, WAUSAU_CITY_DOR,
 } from "../ui";
 import { BarTip, MoneyFlowSankey, DebtChart } from "../charts";
 import ChromeBar from "../ChromeBar";
+import { netBill, stateCredits } from "../taxmath";
 import demographics from "../demographics.json";
 
 // Shorter labels for the Sankey (the full names are too long to fit beside nodes).
@@ -102,6 +103,9 @@ export default function CityLedger({ b, extra, chrome }) {
   const muni = extra.taxDistricts.municipalities.find((m) => m.code === WAUSAU_CITY_DOR);
   const bill = useMemo(() => billRates(muni, school), [muni, school]);
   const jtotal = bill.total;
+  const [primary, setPrimary] = usePrimaryHome();
+  const cr = extra.taxDistricts.meta.credits;
+  const credits = stateCredits(bill.school, cr, homeValue, primary);
   const splitRows = useMemo(() => [...bill.rows].sort((a, c) => c.rate - a.rate), [bill.rows]);
   // The City's own share of the bill — the City row, not whichever row is largest.
   const cityShare = Math.round((bill.rows.find((r) => r.key === "municipality").rate / jtotal) * 100);
@@ -300,11 +304,12 @@ export default function CityLedger({ b, extra, chrome }) {
 
         <SchoolPicker options={bill.schoolOptions} value={bill.school.code} onChange={setSchool} where={bill.where} />
 
-        <HomeValueCalc id="homeval" label={t("c.taxbill.homeLabel")} outLabel={t("calc.estProperty")}
-          outValue={usd(Math.round((homeValue / 1000) * jtotal))} value={homeValue} onChange={setHomeValue} />
+        <HomeValueCalc id="homeval" label={t("c.taxbill.homeLabel")} outLabel={t("tb.estOut")}
+          outValue={usd(Math.round(netBill(muni, bill.school, cr, homeValue, primary)))} value={homeValue} onChange={setHomeValue} />
+        <PrimaryHomeToggle value={primary} onChange={setPrimary} />
 
-        <TaxSplit rows={splitRows} total={jtotal} homeValue={homeValue} totalLabel={t("c.taxbill.totalRow")} />
-        <p className="note">{t("c.taxbill.note", taxYear, jtotal.toFixed(2))}</p>
+        <TaxSplit rows={splitRows} total={jtotal} homeValue={homeValue} totalLabel={t("tb.leviedRow")} credits={credits} />
+        <p className="note">{t("c.taxbill.note", taxYear, jtotal.toFixed(2), usd(cr.lottery_max_value), usd(cr.first_dollar_max_value))}</p>
       </section>
 
       {/* DEVELOPMENT — tax increment districts */}

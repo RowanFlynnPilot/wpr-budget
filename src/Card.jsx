@@ -3,6 +3,7 @@ import { useStrings } from "./i18n";
 import { fetchData } from "./data";
 import { usd } from "./format";
 import { track } from "./analytics";
+import { netBill, stateCredits } from "./taxmath";
 import entities from "./entities.json";
 import { billRates, countLink, MoneyInput, useHomeValue, useMuniChoice, useSchoolChoice, JURIS_COLORS, WAUSAU_CITY_DOR } from "./ui";
 
@@ -38,6 +39,8 @@ function CardBody({ d }) {
   const bill = useMemo(() => billRates(muni, school), [muni, school]);
   const rows = [...bill.rows].sort((a, c) => c.rate - a.rate);
   const dollars = (rate) => usd(Math.round((homeValue / 1000) * rate));
+  // A primary home: both state credits (the full tool has the choice).
+  const credits = stateCredits(bill.school, d.meta.credits, homeValue);
   const counted = useRef(false);
   const part = (r) => (r.key === "municipality" ? t("card.part." + muni.type) : t("card.part." + r.key));
 
@@ -80,7 +83,7 @@ function CardBody({ d }) {
           </label>
         </div>
         <div className="card-result" aria-live="polite" aria-atomic="true">
-          <b>{dollars(bill.total)}</b> <span>{t("card.perYear")}</span>
+          <b>{usd(Math.round(netBill(muni, bill.school, d.meta.credits, homeValue)))}</b> <span>{t("card.perYear")}</span>
         </div>
         <div className="taxbar card-bar" aria-hidden="true">
           {rows.map((r, i) => (
@@ -93,6 +96,7 @@ function CardBody({ d }) {
           {rows.map((r, i) => (
             <li key={r.key}><i style={{ background: JURIS_COLORS[i] }} />{part(r)} <b>{dollars(r.rate)}</b></li>
           ))}
+          <li className="card-credit">{t("card.credits")} <b>{"\u2212" + usd(Math.round(credits.total))}</b></li>
         </ul>
         <a className="card-cta" href={FULL_TOOL} target="_blank" rel="noopener noreferrer" onClick={countLink("full-tool")}>
           {t("card.cta", d.municipalities.length)} →

@@ -3,8 +3,9 @@ import { Receipt, ArrowUpRight } from "lucide-react";
 import { useLang, useStrings } from "./i18n";
 import { fetchData } from "./data";
 import { usd, compact, fmtDate } from "./format";
-import { ENTITY_LOGOS, MEETING_TRACKER_URL, countLink, SupportBand, SponsorSlot, useAnchorOnMount, billRates, billExtremes, rememberMuni, WAUSAU_CITY_DOR } from "./ui";
+import { ENTITY_LOGOS, MEETING_TRACKER_URL, countLink, SupportBand, SponsorSlot, useAnchorOnMount, billExtremes, rememberMuni, WAUSAU_CITY_DOR } from "./ui";
 import ChromeBar from "./ChromeBar";
+import { netBill } from "./taxmath";
 import { prefetchProps } from "./views";
 
 // Suite landing page — the front door. Fetches every entity's data once (via
@@ -41,7 +42,9 @@ function LandingBody({ byFile, entities, chrome }) {
   // and computation as the Your Tax Bill view itself.
   const taxbillEnt = entities.find((e) => e.kind === "taxbill");
   const wausau = byFile[taxbillEnt.data].municipalities.find((m) => m.code === WAUSAU_CITY_DOR);
-  const combinedBill = usd(Math.round(200 * billRates(wausau, "").total));
+  const dor = byFile[taxbillEnt.data];
+  // Its largest school district (Wausau); a primary home, so both state credits.
+  const combinedBill = usd(Math.round(netBill(wausau, wausau.school_districts[0], dor.meta.credits, 200000)));
   // Headline figure per card, straight from each entity's reconciled data.
   const headline = (e) => {
     const p = byFile[e.data];
@@ -62,7 +65,7 @@ function LandingBody({ byFile, entities, chrome }) {
 
       {/* The statement: what one home pays, and how far that swings across the county. */}
       {(() => {
-        const { lo, hi } = billExtremes(byFile[taxbillEnt.data].municipalities);
+        const { lo, hi } = billExtremes(dor.municipalities, dor.meta.credits, 200000);
         const n = byFile[taxbillEnt.data].municipalities.length;
         const place = ({ m }) => `${m.type} of ${m.name}`;
         return (
@@ -73,7 +76,7 @@ function LandingBody({ byFile, entities, chrome }) {
               <span className="lp-hook-cta">{t("lp.seeBreakdown")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
             </button>
             <a className="lp-fig" href={"#" + taxbillEnt.id + "/compare"} {...prefetchProps(taxbillEnt)}>
-              <b className="lp-hook-num">{usd(Math.round(200 * lo.rate))}–{usd(Math.round(200 * hi.rate))}</b>
+              <b className="lp-hook-num">{usd(Math.round(lo.bill))}–{usd(Math.round(hi.bill))}</b>
               <span>{t("lp.rangeCaption", place(lo), place(hi), n)}</span>
               <span className="lp-hook-cta">{t("lp.compareCta", n)} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
             </a>

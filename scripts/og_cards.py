@@ -104,12 +104,20 @@ def bill_total(m, sd):
             + per1k(sd["levy"], sd["full_value"]) - per1k(m["school_levy_credit"], m["full_value"]))
 
 
+def net_bill(m, sd, credits, value=200000):
+    # netBill in src/taxmath.js: the levies at the bill rate, less the state's
+    # lottery & gaming and first-dollar credits for a primary home
+    credit = sd["credit_rate"] * (min(credits["lottery_max_value"], value) + min(credits["first_dollar_max_value"], value))
+    return max(0, value / 1000 * bill_total(m, sd) - credit)
+
+
 def extremes(dor):
-    pairs = sorted(((bill_total(m, sd), m, sd) for m in dor["municipalities"] for sd in m["school_districts"]),
+    credits = dor["meta"]["credits"]
+    pairs = sorted(((net_bill(m, sd, credits), m, sd) for m in dor["municipalities"] for sd in m["school_districts"]),
                    key=lambda p: p[0])
     (lo, mlo, _), (hi, mhi, _) = pairs[0], pairs[-1]
-    return {"lo": round(200 * lo), "lo_place": f"{mlo['type']} of {mlo['name']}",
-            "hi": round(200 * hi), "hi_place": f"{mhi['type']} of {mhi['name']}",
+    return {"lo": round(lo), "lo_place": f"{mlo['type']} of {mlo['name']}",
+            "hi": round(hi), "hi_place": f"{mhi['type']} of {mhi['name']}",
             "municipalities": len(dor["municipalities"])}
 
 
@@ -141,7 +149,8 @@ def day(iso):
 def suite_card(x):
     im, d = frame("THE PUBLIC LEDGER")
     d.text((70, 186), "Follow the Money", font=SERIF(104), fill=INK)
-    line = f"The same $200,000 home pays {usd(x['lo'])} a year in the {x['lo_place']} and {usd(x['hi'])} in the {x['hi_place']}."
+    line = (f"The same $200,000 home pays {usd(x['lo'])} a year in the {x['lo_place']} and {usd(x['hi'])} "
+            f"in the {x['hi_place']}, after state credits.")
     y = 330
     for ln in wrap(d, line, SERIF(36), W - 144):
         d.text((72, y), ln, font=SERIF(36), fill=INK)

@@ -2,10 +2,10 @@ import React, { useMemo, useState } from "react";
 import { useStrings } from "../i18n";
 import { usd } from "../format";
 import { track } from "../analytics";
-import { muniSlug } from "../taxmath";
+import { muniSlug, netBill, stateCredits } from "../taxmath";
 import {
   SponsorSlot, SourceLink, SectionHead, HomeValueCalc, TaxSplit, MuniPicker, SchoolPicker, billRates, billExtremes, placeLabel,
-  useAnchorOnMount, useHomeValue, useMuniChoice, useSchoolChoice, WAUSAU_CITY_DOR,
+  PrimaryHomeToggle, useAnchorOnMount, useHomeValue, useMuniChoice, useSchoolChoice, usePrimaryHome, WAUSAU_CITY_DOR,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
 
@@ -49,17 +49,20 @@ function ShareTown({ muni, where }) {
 // they chose. Collapsed: the five dearest, the five cheapest, and the reader's.
 // A row is a button: it opens that municipality's bill above.
 const RANK_EDGE = 5;
-function Ranking({ municipalities, muni, school, homeValue, onPick }) {
+function Ranking({ municipalities, muni, school, homeValue, credits, primary, onPick }) {
   const t = useStrings();
   const [all, setAll] = useState(false);
+  // Bills after the state's credits, in dollars, on the reader's own value and
+  // primary-home choice (credits are capped, so the order can shift with value).
   const rows = useMemo(() => municipalities.map((m) => {
-    const rates = m.school_districts.map((sd) => billRates(m, sd.code).total);
-    const rate = m.code === muni.code ? billRates(m, school).total : rates[0];
-    return { m, rate, min: Math.min(...rates), max: Math.max(...rates) };
-  }).sort((a, c) => c.rate - a.rate), [municipalities, muni.code, school]);
-  const { lo, hi } = useMemo(() => billExtremes(municipalities), [municipalities]);
-  const top = Math.max(...rows.map((r) => r.max));
-  const dollars = (rate) => usd(Math.round((homeValue / 1000) * rate));
+    const bills = m.school_districts.map((sd) => netBill(m, sd, credits, homeValue, primary));
+    const mineSd = m.school_districts.find((sd) => sd.code === school) || m.school_districts[0];
+    const bill = m.code === muni.code ? netBill(m, mineSd, credits, homeValue, primary) : bills[0];
+    return { m, bill, min: Math.min(...bills), max: Math.max(...bills) };
+  }).sort((a, c) => c.bill - a.bill), [municipalities, muni.code, school, credits, homeValue, primary]);
+  const { lo, hi } = useMemo(() => billExtremes(municipalities, credits, homeValue, primary), [municipalities, credits, homeValue, primary]);
+  const top = Math.max(...rows.map((r) => r.max)) || 1;
+  const dollars = (n) => usd(Math.round(n));
   const mine = rows.findIndex((r) => r.m.code === muni.code);
   const shown = all ? rows.map((r, i) => i)
     : [...new Set([...rows.keys()].filter((i) => i < RANK_EDGE || i >= rows.length - RANK_EDGE).concat(mine))].sort((a, c) => a - c);
@@ -68,7 +71,7 @@ function Ranking({ municipalities, muni, school, homeValue, onPick }) {
       <SectionHead kicker={t("tb.cmp.kick")} title={t("tb.cmp.title")}>
         {t("tb.cmp.dek", usd(homeValue), rows.length)}
       </SectionHead>
-      <p className="rank-lede">{t("tb.cmp.range", dollars(lo.rate), placeLabel(t, lo), dollars(hi.rate), placeLabel(t, hi), dollars(hi.rate - lo.rate))}</p>
+      <p className="rank-lede">{t("tb.cmp.range", dollars(lo.bill), placeLabel(t, lo), dollars(hi.bill), placeLabel(t, hi), dollars(hi.bill - lo.bill))}</p>
       <ol className="rank-list">
         {shown.map((i, k) => {
           const r = rows[i];
@@ -86,10 +89,10 @@ function Ranking({ municipalities, muni, school, homeValue, onPick }) {
                   <span className="rank-name">{r.m.type} of {r.m.name}{r.m.split_county ? " " + t("tb.splitPart") : ""}
                     {on && <em className="rank-yours">{t("tb.cmp.yours")}</em>}</span>
                   <span className="rank-bar" aria-hidden="true">
-                    <i style={{ width: (r.rate / top) * 100 + "%" }} />
+                    <i style={{ width: (r.bill / top) * 100 + "%" }} />
                     {r.max > r.min && <s style={{ left: (r.min / top) * 100 + "%", width: ((r.max - r.min) / top) * 100 + "%" }} />}
                   </span>
-                  <span className="rank-val">{dollars(r.rate)}</span>
+                  <span className="rank-val">{dollars(r.bill)}</span>
                 </button>
               </li>
             </React.Fragment>
@@ -121,6 +124,11 @@ export default function TaxBillOverview({ b, chrome }) {
     .map((r) => ({ ...r, drillId: inSuite(r.drillId) ? r.drillId : null }))
     .sort((a, c) => c.rate - a.rate), [bill.rows]);
   const total = bill.total;
+  // The state's credits on this home (the lottery credit only for a primary home).
+  const [primary, setPrimary] = usePrimaryHome();
+  const cr = b.meta.credits;
+  const credits = stateCredits(bill.school, cr, homeValue, primary);
+  const net = netBill(muni, bill.school, cr, homeValue, primary);
 
   return (
     <div className="ftm">
@@ -145,12 +153,13 @@ export default function TaxBillOverview({ b, chrome }) {
         <SchoolPicker options={bill.schoolOptions} value={bill.school.code} onChange={setSchool} where={bill.where} step={2} />
 
         <HomeValueCalc id="homeval-all" label={t("tb.homeLabel")} outLabel={t("tb.estOut")} step={bill.schoolOptions ? 3 : 2}
-          outValue={usd(Math.round((homeValue / 1000) * total))} value={homeValue} onChange={setHomeValue} />
+          outValue={usd(Math.round(net))} value={homeValue} onChange={setHomeValue} />
+        <PrimaryHomeToggle value={primary} onChange={setPrimary} />
 
-        <TaxSplit rows={splitRows} total={total} homeValue={homeValue}
-          totalLabel={t("tb.totalRow")} exploreLabel={t("tb.explore")}
+        <TaxSplit rows={splitRows} total={total} homeValue={homeValue} credits={credits}
+          totalLabel={t("tb.leviedRow")} exploreLabel={t("tb.explore")}
           onDrill={(id) => chrome.onSelect(id)} />
-        <p className="note">{t("tb.note", year, total.toFixed(2), bill.where)}</p>
+        <p className="note">{t("tb.note", year, total.toFixed(2), bill.where, usd(cr.lottery_max_value), usd(cr.first_dollar_max_value))}</p>
         {bill.collegeAveraged && <p className="note">{t("tb.collegeAveraged", bill.where)}</p>}
         <details className="tb-more">
           <summary>{t("tb.businessQ")}</summary>
@@ -160,6 +169,7 @@ export default function TaxBillOverview({ b, chrome }) {
       </section>
 
       <Ranking municipalities={b.municipalities} muni={muni} school={bill.school.code} homeValue={homeValue}
+        credits={cr} primary={primary}
         onPick={(code) => {
           setMuniCode(code);
           document.getElementById("bill").scrollIntoView({ behavior: "instant", block: "start" });

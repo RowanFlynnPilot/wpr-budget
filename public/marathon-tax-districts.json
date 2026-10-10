@@ -3,7 +3,13 @@
     "source": "Wisconsin Department of Revenue, 2025 Town, Village and City Taxes",
     "source_url": "https://www.revenue.wi.gov/Pages/Report/tvc-bulletin.aspx",
     "tax_year": 2025,
-    "county": "Marathon"
+    "county": "Marathon",
+    "credits": {
+      "payable": 2026,
+      "lottery_max_value": 27000,
+      "first_dollar_max_value": 9000,
+      "source_url": "https://www.revenue.wi.gov/Pages/Report/lgc-mcv.aspx"
+    }
   },
   "municipalities": [
     {
@@ -31,13 +37,15 @@
           "code": "0007",
           "name": "Abbotsford",
           "full_value": 48328202,
-          "levy": 429150
+          "levy": 429150,
+          "credit_rate": 0.0088799
         },
         {
           "code": "1162",
           "name": "Colby",
           "full_value": 5394598,
-          "levy": 32207
+          "levy": 32207,
+          "credit_rate": 0.00597026
         }
       ],
       "technical_colleges": [
@@ -72,7 +80,8 @@
           "code": "1162",
           "name": "Colby",
           "full_value": 48462400,
-          "levy": 289333
+          "levy": 289333,
+          "credit_rate": 0.00597026
         }
       ],
       "technical_colleges": [
@@ -107,7 +116,8 @@
           "code": "3339",
           "name": "Marshfield",
           "full_value": 178344600,
-          "levy": 1087417
+          "levy": 1087417,
+          "credit_rate": 0.006097281
         }
       ],
       "technical_colleges": [
@@ -142,7 +152,8 @@
           "code": "3787",
           "name": "Mosinee",
           "full_value": 537325900,
-          "levy": 3126477
+          "levy": 3126477,
+          "credit_rate": 0.005818586
         }
       ],
       "technical_colleges": [
@@ -177,7 +188,8 @@
           "code": "4970",
           "name": "D.C. Everest Area",
           "full_value": 353356000,
-          "levy": 2073944
+          "levy": 2073944,
+          "credit_rate": 0.005869275
         }
       ],
       "technical_colleges": [
@@ -212,13 +224,15 @@
           "code": "6223",
           "name": "Wausau",
           "full_value": 3892235167,
-          "levy": 25616725
+          "levy": 25616725,
+          "credit_rate": 0.006581495
         },
         {
           "code": "4970",
           "name": "D.C. Everest Area",
           "full_value": 217086333,
-          "levy": 1274139
+          "levy": 1274139,
+          "credit_rate": 0.005869275
         }
       ],
       "technical_colleges": [
@@ -253,7 +267,8 @@
           "code": "0196",
           "name": "Athens",
           "full_value": 86276800,
-          "levy": 678649
+          "levy": 678649,
+          "credit_rate": 0.007865955
         }
       ],
       "technical_colleges": [
@@ -288,7 +303,8 @@
           "code": "6692",
           "name": "Wittenberg-Birnamwood",
           "full_value": 2140500,
-          "levy": 13292
+          "levy": 13292,
+          "credit_rate": 0.006209963
         }
       ],
       "technical_colleges": [
@@ -323,7 +339,8 @@
           "code": "1162",
           "name": "Colby",
           "full_value": 1421000,
-          "levy": 8484
+          "levy": 8484,
+          "credit_rate": 0.00597026
         }
       ],
       "technical_colleges": [
@@ -358,7 +375,8 @@
           "code": "1561",
           "name": "Edgar",
           "full_value": 107919900,
-          "levy": 669770
+          "levy": 669770,
+          "credit_rate": 0.00620618
         }
       ],
       "technical_colleges": [
@@ -393,7 +411,8 @@
           "code": "6692",
           "name": "Wittenberg-Birnamwood",
           "full_value": 14064900,
-          "levy": 87343
+          "levy": 87343,
+          "credit_rate": 0.006209963
         }
       ],
       "technical_colleges": [
@@ -428,7 +447,8 @@
           "code": "1561",
           "name": "Edgar",
           "full_value": 10703000,
-          "levy": 66425
+          "levy": 66425,
+          "credit_rate": 0.00620618
         }
       ],
       "technical_colleges": [
@@ -463,7 +483,8 @@
           "code": "4970",
           "name": "D.C. Everest Area",
           "full_value": 53233900,
-          "levy": 312444
+          "levy": 312444,
+          "credit_rate": 0.005869275
         }
       ],
       "technical_colleges": [
@@ -498,13 +519,15 @@
           "code": "4970",
           "name": "D.C. Everest Area",
           "full_value": 706522056,
-          "levy": 4146772
+          "levy": 4146772,
+          "credit_rate": 0.005869275
         },
         {
           "code": "3787",
           "name": "Mosinee",
           "full_value": 269150644,
-          "levy": 1566076
+          "levy": 1566076,
+          "credit_rate": 0.005818586
         }
       ],
       "technical_colleges": [
@@ -539,7 +562,8 @@
           "code": "6223",
           "name": "Wausau",
           "full_value": 433137700,
-          "levy": 2850693
+          "levy": 2850693,
+          "credit_rate": 0.006581495
         }
       ],
       "technical_colleges": [
@@ -574,7 +598,8 @@
           "code": "3304",
           "name": "Marathon City",
           "full_value": 206216800,
-          "levy": 1560633
+          "levy": 1560633,
+          "credit_rate": 0.007567926
         }
       ],
       "technical_colleges": [
@@ -609,7 +634,8 @@
           "code": "6223",
           "name": "Wausau",
           "full_value": 1365107900,
-          "levy": 8984450
+          "levy": 8984450,
+          "credit_rate": 0.006581495
         }
       ],
       "technical_colleges": [
@@ -644,7 +670,8 @@
           "code": "4970",
           "name": "D.C. Everest Area",
           "full_value": 740659000,
-          "levy": 4347131
+          "levy": 4347131,
+          "credit_rate": 0.005869275
         }
       ],
       "technical_colleges": [
@@ -679,7 +706,8 @@
           "code": "5467",
           "name": "Spencer",
           "full_value": 160520400,
-          "levy": 1362202
+          "levy": 1362202,
+          "credit_rate": 0.008486164
         }
       ],
       "technical_colleges": [
@@ -714,7 +742,8 @@
           "code": "5628",
           "name": "Stratford",
           "full_value": 140083400,
-          "levy": 945897
+          "levy": 945897,
+          "credit_rate": 0.006752386
         }
       ],
       "technical_colleges": [
@@ -749,7 +778,8 @@
           "code": "1162",
           "name": "Colby",
           "full_value": 15607300,
-          "levy": 93180
+          "levy": 93180,
+          "credit_rate": 0.00597026
         }
       ],
       "technical_colleges": [
@@ -784,7 +814,8 @@
           "code": "4970",
           "name": "D.C. Everest Area",
           "full_value": 1645513200,
-          "levy": 9657970
+          "levy": 9657970,
+          "credit_rate": 0.005869275
         }
       ],
       "technical_colleges": [
@@ -819,7 +850,8 @@
           "code": "3787",
           "name": "Mosinee",
           "full_value": 127872700,
-          "levy": 744038
+          "levy": 744038,
+          "credit_rate": 0.005818586
         }
       ],
       "technical_colleges": [
@@ -854,13 +886,15 @@
           "code": "6223",
           "name": "Wausau",
           "full_value": 121430657,
-          "levy": 799195
+          "levy": 799195,
+          "credit_rate": 0.006581495
         },
         {
           "code": "3304",
           "name": "Marathon City",
           "full_value": 8839843,
-          "levy": 66899
+          "levy": 66899,
+          "credit_rate": 0.007567926
         }
       ],
       "technical_colleges": [
@@ -895,13 +929,15 @@
           "code": "0196",
           "name": "Athens",
           "full_value": 61904904,
-          "levy": 486941
+          "levy": 486941,
+          "credit_rate": 0.007865955
         },
         {
           "code": "3409",
           "name": "Medford Area",
           "full_value": 8246496,
-          "levy": 49423
+          "levy": 49423,
+          "credit_rate": 0.005993266
         }
       ],
       "technical_colleges": [
@@ -936,13 +972,15 @@
           "code": "4963",
           "name": "Rosholt",
           "full_value": 173594125,
-          "levy": 1235317
+          "levy": 1235317,
+          "credit_rate": 0.007116125
         },
         {
           "code": "6692",
           "name": "Wittenberg-Birnamwood",
           "full_value": 16120675,
-          "levy": 100109
+          "levy": 100109,
+          "credit_rate": 0.006209963
         }
       ],
       "technical_colleges": [
@@ -977,13 +1015,15 @@
           "code": "5467",
           "name": "Spencer",
           "full_value": 42671025,
-          "levy": 362113
+          "levy": 362113,
+          "credit_rate": 0.008486164
         },
         {
           "code": "1162",
           "name": "Colby",
           "full_value": 36019975,
-          "levy": 215049
+          "levy": 215049,
+          "credit_rate": 0.00597026
         }
       ],
       "technical_colleges": [
@@ -1018,13 +1058,15 @@
           "code": "3304",
           "name": "Marathon City",
           "full_value": 81462486,
-          "levy": 616502
+          "levy": 616502,
+          "credit_rate": 0.007567926
         },
         {
           "code": "1561",
           "name": "Edgar",
           "full_value": 58373114,
-          "levy": 362274
+          "levy": 362274,
+          "credit_rate": 0.00620618
         }
       ],
       "technical_colleges": [
@@ -1059,13 +1101,15 @@
           "code": "5628",
           "name": "Stratford",
           "full_value": 198779171,
-          "levy": 1342234
+          "levy": 1342234,
+          "credit_rate": 0.006752386
         },
         {
           "code": "1561",
           "name": "Edgar",
           "full_value": 3077729,
-          "levy": 19101
+          "levy": 19101,
+          "credit_rate": 0.00620618
         }
       ],
       "technical_colleges": [
@@ -1100,19 +1144,22 @@
           "code": "5628",
           "name": "Stratford",
           "full_value": 63044729,
-          "levy": 425702
+          "levy": 425702,
+          "credit_rate": 0.006752386
         },
         {
           "code": "3339",
           "name": "Marshfield",
           "full_value": 59793512,
-          "levy": 364578
+          "levy": 364578,
+          "credit_rate": 0.006097281
         },
         {
           "code": "0203",
           "name": "Auburndale",
           "full_value": 15806260,
-          "levy": 92072
+          "levy": 92072,
+          "credit_rate": 0.005825062
         }
       ],
       "technical_colleges": [
@@ -1151,7 +1198,8 @@
           "code": "4970",
           "name": "D.C. Everest Area",
           "full_value": 161428900,
-          "levy": 947471
+          "levy": 947471,
+          "credit_rate": 0.005869275
         }
       ],
       "technical_colleges": [
@@ -1186,7 +1234,8 @@
           "code": "5628",
           "name": "Stratford",
           "full_value": 108741500,
-          "levy": 734265
+          "levy": 734265,
+          "credit_rate": 0.006752386
         }
       ],
       "technical_colleges": [
@@ -1221,7 +1270,8 @@
           "code": "6692",
           "name": "Wittenberg-Birnamwood",
           "full_value": 119875400,
-          "levy": 744422
+          "levy": 744422,
+          "credit_rate": 0.006209963
         }
       ],
       "technical_colleges": [
@@ -1256,25 +1306,29 @@
           "code": "3787",
           "name": "Mosinee",
           "full_value": 62098873,
-          "levy": 361328
+          "levy": 361328,
+          "credit_rate": 0.005818586
         },
         {
           "code": "1561",
           "name": "Edgar",
           "full_value": 26270145,
-          "levy": 163037
+          "levy": 163037,
+          "credit_rate": 0.00620618
         },
         {
           "code": "5628",
           "name": "Stratford",
           "full_value": 25790129,
-          "levy": 174145
+          "levy": 174145,
+          "credit_rate": 0.006752386
         },
         {
           "code": "3304",
           "name": "Marathon City",
           "full_value": 25329053,
-          "levy": 191688
+          "levy": 191688,
+          "credit_rate": 0.007567926
         }
       ],
       "technical_colleges": [
@@ -1309,25 +1363,29 @@
           "code": "1162",
           "name": "Colby",
           "full_value": 33797232,
-          "levy": 201778
+          "levy": 201778,
+          "credit_rate": 0.00597026
         },
         {
           "code": "5628",
           "name": "Stratford",
           "full_value": 28582404,
-          "levy": 192999
+          "levy": 192999,
+          "credit_rate": 0.006752386
         },
         {
           "code": "1561",
           "name": "Edgar",
           "full_value": 18522925,
-          "levy": 114957
+          "levy": 114957,
+          "credit_rate": 0.00620618
         },
         {
           "code": "0007",
           "name": "Abbotsford",
           "full_value": 4711639,
-          "levy": 41839
+          "levy": 41839,
+          "credit_rate": 0.0088799
         }
       ],
       "technical_colleges": [
@@ -1362,13 +1420,15 @@
           "code": "6692",
           "name": "Wittenberg-Birnamwood",
           "full_value": 98544029,
-          "levy": 611955
+          "levy": 611955,
+          "credit_rate": 0.006209963
         },
         {
           "code": "4963",
           "name": "Rosholt",
           "full_value": 287171,
-          "levy": 2044
+          "levy": 2044,
+          "credit_rate": 0.007116125
         }
       ],
       "technical_colleges": [
@@ -1403,25 +1463,29 @@
           "code": "3787",
           "name": "Mosinee",
           "full_value": 82128066,
-          "levy": 477869
+          "levy": 477869,
+          "credit_rate": 0.005818586
         },
         {
           "code": "5628",
           "name": "Stratford",
           "full_value": 25311354,
-          "levy": 170912
+          "levy": 170912,
+          "credit_rate": 0.006752386
         },
         {
           "code": "3339",
           "name": "Marshfield",
           "full_value": 10081957,
-          "levy": 61473
+          "levy": 61473,
+          "credit_rate": 0.006097281
         },
         {
           "code": "0203",
           "name": "Auburndale",
           "full_value": 644423,
-          "levy": 3754
+          "levy": 3754,
+          "credit_rate": 0.005825062
         }
       ],
       "technical_colleges": [
@@ -1460,7 +1524,8 @@
           "code": "3787",
           "name": "Mosinee",
           "full_value": 67833800,
-          "levy": 394697
+          "levy": 394697,
+          "credit_rate": 0.005818586
         }
       ],
       "technical_colleges": [
@@ -1495,7 +1560,8 @@
           "code": "0196",
           "name": "Athens",
           "full_value": 86772700,
-          "levy": 682550
+          "levy": 682550,
+          "credit_rate": 0.007865955
         }
       ],
       "technical_colleges": [
@@ -1530,13 +1596,15 @@
           "code": "0196",
           "name": "Athens",
           "full_value": 99850441,
-          "levy": 785419
+          "levy": 785419,
+          "credit_rate": 0.007865955
         },
         {
           "code": "3304",
           "name": "Marathon City",
           "full_value": 2257759,
-          "levy": 17087
+          "levy": 17087,
+          "credit_rate": 0.007567926
         }
       ],
       "technical_colleges": [
@@ -1571,7 +1639,8 @@
           "code": "0140",
           "name": "Antigo",
           "full_value": 49309200,
-          "levy": 333928
+          "levy": 333928,
+          "credit_rate": 0.006772122
         }
       ],
       "technical_colleges": [
@@ -1606,7 +1675,8 @@
           "code": "6223",
           "name": "Wausau",
           "full_value": 88040100,
-          "levy": 579435
+          "levy": 579435,
+          "credit_rate": 0.006581495
         }
       ],
       "technical_colleges": [
@@ -1641,13 +1711,15 @@
           "code": "1162",
           "name": "Colby",
           "full_value": 59068215,
-          "levy": 352653
+          "levy": 352653,
+          "credit_rate": 0.00597026
         },
         {
           "code": "0007",
           "name": "Abbotsford",
           "full_value": 38580285,
-          "levy": 342589
+          "levy": 342589,
+          "credit_rate": 0.0088799
         }
       ],
       "technical_colleges": [
@@ -1682,13 +1754,15 @@
           "code": "1162",
           "name": "Colby",
           "full_value": 103176004,
-          "levy": 615988
+          "levy": 615988,
+          "credit_rate": 0.00597026
         },
         {
           "code": "0007",
           "name": "Abbotsford",
           "full_value": 915896,
-          "levy": 8133
+          "levy": 8133,
+          "credit_rate": 0.0088799
         }
       ],
       "technical_colleges": [
@@ -1723,13 +1797,15 @@
           "code": "0196",
           "name": "Athens",
           "full_value": 67001667,
-          "levy": 527032
+          "levy": 527032,
+          "credit_rate": 0.007865955
         },
         {
           "code": "0007",
           "name": "Abbotsford",
           "full_value": 22379033,
-          "levy": 198724
+          "levy": 198724,
+          "credit_rate": 0.0088799
         }
       ],
       "technical_colleges": [
@@ -1764,7 +1840,8 @@
           "code": "3787",
           "name": "Mosinee",
           "full_value": 494376500,
-          "levy": 2876572
+          "levy": 2876572,
+          "credit_rate": 0.005818586
         }
       ],
       "technical_colleges": [
@@ -1799,7 +1876,8 @@
           "code": "3304",
           "name": "Marathon City",
           "full_value": 172177800,
-          "levy": 1303029
+          "levy": 1303029,
+          "credit_rate": 0.007567926
         }
       ],
       "technical_colleges": [
@@ -1834,19 +1912,22 @@
           "code": "3339",
           "name": "Marshfield",
           "full_value": 294805524,
-          "levy": 1797512
+          "levy": 1797512,
+          "credit_rate": 0.006097281
         },
         {
           "code": "5628",
           "name": "Stratford",
           "full_value": 26824131,
-          "levy": 181127
+          "levy": 181127,
+          "credit_rate": 0.006752386
         },
         {
           "code": "5467",
           "name": "Spencer",
           "full_value": 7114745,
-          "levy": 60377
+          "levy": 60377,
+          "credit_rate": 0.008486164
         }
       ],
       "technical_colleges": [
@@ -1885,13 +1966,15 @@
           "code": "3787",
           "name": "Mosinee",
           "full_value": 296026489,
-          "levy": 1722456
+          "levy": 1722456,
+          "credit_rate": 0.005818586
         },
         {
           "code": "3304",
           "name": "Marathon City",
           "full_value": 24430111,
-          "levy": 184885
+          "levy": 184885,
+          "credit_rate": 0.007567926
         }
       ],
       "technical_colleges": [
@@ -1926,13 +2009,15 @@
           "code": "6692",
           "name": "Wittenberg-Birnamwood",
           "full_value": 143006174,
-          "levy": 888063
+          "levy": 888063,
+          "credit_rate": 0.006209963
         },
         {
           "code": "4970",
           "name": "D.C. Everest Area",
           "full_value": 19143126,
-          "levy": 112356
+          "levy": 112356,
+          "credit_rate": 0.005869275
         }
       ],
       "technical_colleges": [
@@ -1967,13 +2052,15 @@
           "code": "6692",
           "name": "Wittenberg-Birnamwood",
           "full_value": 51507868,
-          "levy": 319862
+          "levy": 319862,
+          "credit_rate": 0.006209963
         },
         {
           "code": "0140",
           "name": "Antigo",
           "full_value": 37854632,
-          "levy": 256356
+          "levy": 256356,
+          "credit_rate": 0.006772122
         }
       ],
       "technical_colleges": [
@@ -2008,19 +2095,22 @@
           "code": "6692",
           "name": "Wittenberg-Birnamwood",
           "full_value": 85510700,
-          "levy": 531018
+          "levy": 531018,
+          "credit_rate": 0.006209963
         },
         {
           "code": "3787",
           "name": "Mosinee",
           "full_value": 58127197,
-          "levy": 338218
+          "levy": 338218,
+          "credit_rate": 0.005818586
         },
         {
           "code": "4970",
           "name": "D.C. Everest Area",
           "full_value": 28409104,
-          "levy": 166741
+          "levy": 166741,
+          "credit_rate": 0.005869275
         }
       ],
       "technical_colleges": [
@@ -2055,19 +2145,22 @@
           "code": "3304",
           "name": "Marathon City",
           "full_value": 91307505,
-          "levy": 691008
+          "levy": 691008,
+          "credit_rate": 0.007567926
         },
         {
           "code": "1561",
           "name": "Edgar",
           "full_value": 31734945,
-          "levy": 196953
+          "levy": 196953,
+          "credit_rate": 0.00620618
         },
         {
           "code": "0196",
           "name": "Athens",
           "full_value": 6212150,
-          "levy": 48865
+          "levy": 48865,
+          "credit_rate": 0.007865955
         }
       ],
       "technical_colleges": [
@@ -2102,13 +2195,15 @@
           "code": "0196",
           "name": "Athens",
           "full_value": 71195429,
-          "levy": 560020
+          "levy": 560020,
+          "credit_rate": 0.007865955
         },
         {
           "code": "1561",
           "name": "Edgar",
           "full_value": 25034071,
-          "levy": 155366
+          "levy": 155366,
+          "credit_rate": 0.00620618
         }
       ],
       "technical_colleges": [
@@ -2143,7 +2238,8 @@
           "code": "4970",
           "name": "D.C. Everest Area",
           "full_value": 292879000,
-          "levy": 1718987
+          "levy": 1718987,
+          "credit_rate": 0.005869275
         }
       ],
       "technical_colleges": [
@@ -2178,7 +2274,8 @@
           "code": "5467",
           "name": "Spencer",
           "full_value": 214199800,
-          "levy": 1817735
+          "levy": 1817735,
+          "credit_rate": 0.008486164
         }
       ],
       "technical_colleges": [
@@ -2213,13 +2310,15 @@
           "code": "6223",
           "name": "Wausau",
           "full_value": 389858188,
-          "levy": 2565850
+          "levy": 2565850,
+          "credit_rate": 0.006581495
         },
         {
           "code": "3304",
           "name": "Marathon City",
           "full_value": 82025512,
-          "levy": 620763
+          "levy": 620763,
+          "credit_rate": 0.007567926
         }
       ],
       "technical_colleges": [
@@ -2254,7 +2353,8 @@
           "code": "6223",
           "name": "Wausau",
           "full_value": 222102300,
-          "levy": 1461765
+          "levy": 1461765,
+          "credit_rate": 0.006581495
         }
       ],
       "technical_colleges": [
@@ -2289,13 +2389,15 @@
           "code": "6223",
           "name": "Wausau",
           "full_value": 232037991,
-          "levy": 1527157
+          "levy": 1527157,
+          "credit_rate": 0.006581495
         },
         {
           "code": "4970",
           "name": "D.C. Everest Area",
           "full_value": 92671509,
-          "levy": 543915
+          "levy": 543915,
+          "credit_rate": 0.005869275
         }
       ],
       "technical_colleges": [
@@ -2330,7 +2432,8 @@
           "code": "4970",
           "name": "D.C. Everest Area",
           "full_value": 107964500,
-          "levy": 633673
+          "levy": 633673,
+          "credit_rate": 0.005869275
         }
       ],
       "technical_colleges": [
@@ -2365,19 +2468,22 @@
           "code": "1561",
           "name": "Edgar",
           "full_value": 100314396,
-          "levy": 622569
+          "levy": 622569,
+          "credit_rate": 0.00620618
         },
         {
           "code": "5628",
           "name": "Stratford",
           "full_value": 14907019,
-          "levy": 100658
+          "levy": 100658,
+          "credit_rate": 0.006752386
         },
         {
           "code": "0196",
           "name": "Athens",
           "full_value": 111685,
-          "levy": 879
+          "levy": 879,
+          "credit_rate": 0.007865955
         }
       ],
       "technical_colleges": [

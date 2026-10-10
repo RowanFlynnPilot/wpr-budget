@@ -218,6 +218,12 @@ body{margin:0; background:#f5f1e8;}
 .jrow-amt,.jrow-share{text-align:right;}
 .jrow-amt{font-weight:600;}
 .jrow.total{font-weight:700; border-bottom:none; border-top:1px solid var(--ink); margin-top:2px;}
+/* the state's credits, after the levies' total, then the bill after them */
+.jrow.credit{color:var(--pos); border-bottom:1px dotted var(--rule);}
+.jrow.total.net{border-top:2px solid var(--ink); font-size:1.06em;}
+.primary-home{display:flex; align-items:flex-start; gap:8px; margin:10px 0 0; font-size:14.5px; line-height:1.4; cursor:pointer; max-width:60ch;}
+.primary-home input{width:18px; height:18px; margin:1px 0 0; accent-color:var(--accent); flex-shrink:0;}
+.card-credit{color:var(--pos);}
 /* Clickable jurisdiction rows in the complete-bill overview drill through to that
    government's page. */
 .jrow.go{cursor:pointer; transition:background .12s ease;}

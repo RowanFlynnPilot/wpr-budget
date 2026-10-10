@@ -1,16 +1,16 @@
 {
   "suite": {
-    "lo": 1905,
+    "lo": 1693,
     "lo_place": "Town of Ringle",
-    "hi": 3683,
-    "hi_place": "City of Abbotsford",
+    "hi": 3372,
+    "hi_place": "City of Wausau",
     "municipalities": 61
   },
   "your-tax-bill": {
-    "lo": 1905,
+    "lo": 1693,
     "lo_place": "Town of Ringle",
-    "hi": 3683,
-    "hi_place": "City of Abbotsford",
+    "hi": 3372,
+    "hi_place": "City of Wausau",
     "municipalities": 61
   },
   "marathon-county-2027-proposed": {
