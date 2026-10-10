@@ -202,7 +202,7 @@ export default {
   "method.step.updatesLabel": "Actualizaciones.",
   "method.dlJson": "Descargar todos los datos (JSON)",
   "method.dlCsv": "Descargar gastos (CSV)",
-  "method.reuse": "Estos datos son de libre reutilización. Creado y mantenido por Wausau Pilot & Review como parte de su trabajo de transparencia cívica.",
+  "method.reuse": "Estos datos son de libre reutilización; por favor dé crédito a Wausau Pilot & Review.",
   "method.corrections": "¿Encontró un error o tiene una pregunta sobre estas cifras?",
   "method.correctionsLink": "Contacte a Wausau Pilot & Review",
   "suite.linkLead": "Vea las decisiones detrás del presupuesto.",

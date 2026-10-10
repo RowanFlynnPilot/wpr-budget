@@ -202,7 +202,7 @@ export default {
   "method.step.updatesLabel": "Hloov tshiab.",
   "method.dlJson": "Rub tag nrho cov ntaub ntawv (JSON)",
   "method.dlCsv": "Rub cov nuj nqis (CSV)",
-  "method.reuse": "Cov ntaub ntawv no pub dawb siv dua. Tsim thiab saib xyuas los ntawm Wausau Pilot & Review ua ib feem ntawm nws txoj haujlwm pej xeem nthuav qhia.",
+  "method.reuse": "Cov ntaub ntawv no pub dawb siv dua; thov qhia tias yog los ntawm Wausau Pilot & Review.",
   "method.corrections": "Pom ib qho yuam kev, lossis muaj lus nug txog cov lej no?",
   "method.correctionsLink": "Tiv tauj Wausau Pilot & Review",
   "suite.linkLead": "Saib cov kev txiav txim tom qab daim nyiaj txiag.",

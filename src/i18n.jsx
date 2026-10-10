@@ -218,7 +218,7 @@ const EN = {
   "method.step.updatesLabel": "Updates.",
   "method.dlJson": "Download the full data (JSON)",
   "method.dlCsv": "Download spending (CSV)",
-  "method.reuse": "This data is free to reuse. Built and maintained by Wausau Pilot & Review as part of its civic transparency work.",
+  "method.reuse": "This data is free to reuse; please credit Wausau Pilot & Review.",
   "method.corrections": "Spot an error, or have a question about these numbers?",
   "method.correctionsLink": "Contact Wausau Pilot & Review",
   "suite.linkLead": "See the decisions behind the budget.",
