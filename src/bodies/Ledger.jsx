@@ -311,7 +311,7 @@ export default function Ledger({ b, extra, chrome }) {
                     <span className="d-spark"><span style={{ width: `${(spend / deptMaxSpend) * 100}%` }} /></span>
                   </span>
                   <span className="d-spend">{usd(spend)}</span>
-                  <span className="d-pers hide-sm">{compact(d.personnel_expenditures)}</span>
+                  <span className="d-pers hide-sm">{usd(d.personnel_expenditures)}</span>
                   <span className="d-levy"><span className="lg-only">{usd(d.tax_levy)}</span><span className="sm-only">{compact(d.tax_levy)}</span></span>
                   <span className="d-change hide-sm"><Delta value={d.levy_difference} money /></span>
                   <span className="chev-col"><ChevronDown size={16} className="chev" /></span>

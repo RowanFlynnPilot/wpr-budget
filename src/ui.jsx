@@ -279,6 +279,20 @@ export function SubNav({ sections, active, routeId }) {
   // Keep the active tab in view when the row scrolls sideways (phones, the
   // nine-tab City bar). Horizontal only: never moves the page.
   const ref = useRef(null);
+  // Which edges have more tabs beyond them — drawn as a fade, so a clipped
+  // last tab reads as "scroll for more", not as a mistake.
+  const [more, setMore] = useState("");
+  useEffect(() => {
+    const nav = ref.current;
+    const update = () => {
+      const left = nav.scrollLeft > 2, right = nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 2;
+      setMore((left ? " more-left" : "") + (right ? " more-right" : ""));
+    };
+    update();
+    nav.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => { nav.removeEventListener("scroll", update); window.removeEventListener("resize", update); };
+  }, []);
   useEffect(() => {
     const nav = ref.current;
     const a = nav && nav.querySelector("a.active");
@@ -288,7 +302,7 @@ export function SubNav({ sections, active, routeId }) {
     }
   }, [active]);
   return (
-    <nav className="subnav" ref={ref}>
+    <nav className={"subnav" + more} ref={ref}>
       {sections.map((id) => (
         <a key={id} href={"#" + routeId + "/" + id} className={active === id ? "active" : ""}>{t("nav." + id)}</a>
       ))}
