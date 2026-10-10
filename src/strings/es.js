@@ -3,6 +3,8 @@
 // so the landing page and embeds ship English alone. Same keys as EN —
 // scripts/check-data.mjs fails the deploy on any missing or extra key.
 export default {
+  "lp.rangeCaption": (lo, hi, n) => `La misma casa en cualquier lugar del condado de Marathon: de ${lo} a ${hi}, entre sus ${n} ciudades, villas y pueblos.`,
+  "lp.seasonHead": "Temporada de presupuestos",
   "chg.title": "Cambios desde la propuesta",
   "chg.story": "Lea la noticia",
   "ed.companion.city": (year) => `Ya salió el presupuesto propuesto por el alcalde para ${year}: explórelo departamento por departamento en la herramienta de WPR sobre el presupuesto de la ciudad.`,
@@ -11,7 +13,8 @@ export default {
   "demo.yourBrand": "Su negocio aquí",
   "demo.ribbon": "Vista previa para patrocinadores: así aparece el crédito “Presentado por” en cada página. Los lectores nunca ven este aviso.",
   "demo.ask": "Pregunte por el patrocinio",
-  "tb.business": "¿Tiene una propiedad comercial? La constitución de Wisconsin exige que la propiedad comercial pague la misma tasa que las casas, así que ingrese su valor de mercado y el cálculo es el mismo. El equipo y otros bienes muebles de los negocios no pagan impuestos desde 2024. De los dos créditos que aquí no se restan, un negocio solo recibe el de primer dólar; el crédito de lotería es para la residencia principal del dueño.",
+  "tb.businessQ": "¿Tiene una propiedad comercial?",
+  "tb.businessA": "La constitución de Wisconsin exige que la propiedad comercial pague la misma tasa que las casas, así que ingrese su valor de mercado y el cálculo es el mismo. El equipo y otros bienes muebles de los negocios no pagan impuestos desde 2024. De los dos créditos que aquí no se restan, un negocio solo recibe el de primer dólar; el crédito de lotería es para la residencia principal del dueño.",
   "nav.say": "Opine",
   "ed.sayLink": "Cómo participar",
   "say.kick": "Antes de la votación",
@@ -57,7 +60,6 @@ export default {
   "tb.cmp.showAll": (n) => `Ver los ${n}`,
   "tb.cmp.showFewer": "Ver menos",
   "tb.cmp.note": "Cuando un municipio abarca más de un distrito escolar, su barra muestra el distrito más grande y la línea fina debajo, el rango entre sus distritos; el suyo muestra el distrito que eligió. Elija cualquier fila para ver su factura completa.",
-  "lp.compare": (lo, loPlace, hi, hiPlace) => `La misma casa de $200,000 paga ${lo} en ${loPlace} y ${hi} en ${hiPlace}.`,
   "lp.compareCta": (n) => `Compare los ${n}`,
   "wc.levyChange": "Cambio en el impuesto",
   "wc.riseRecord": (from) => `el mayor aumento en los registros desde ${from}`,

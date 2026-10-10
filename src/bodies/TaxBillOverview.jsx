@@ -152,7 +152,10 @@ export default function TaxBillOverview({ b, chrome }) {
           onDrill={(id) => chrome.onSelect(id)} />
         <p className="note">{t("tb.note", year, total.toFixed(2), bill.where)}</p>
         {bill.collegeAveraged && <p className="note">{t("tb.collegeAveraged", bill.where)}</p>}
-        <p className="note">{t("tb.business")}</p>
+        <details className="tb-more">
+          <summary>{t("tb.businessQ")}</summary>
+          <p>{t("tb.businessA")}</p>
+        </details>
         <ShareTown muni={muni} where={bill.where} />
       </section>
 

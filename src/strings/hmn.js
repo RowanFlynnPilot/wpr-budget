@@ -3,6 +3,8 @@
 // so the landing page and embeds ship English alone. Same keys as EN —
 // scripts/check-data.mjs fails the deploy on any missing or extra key.
 export default {
+  "lp.rangeCaption": (lo, hi, n) => `Tib lub tsev nyob qhov twg hauv Marathon County: txij ${lo} mus txog ${hi}, thoob plaws tag nrho ${n} lub nroog, zos thiab town.`,
+  "lp.seasonHead": "Lub caij npaj nyiaj txiag",
   "chg.title": "Kev hloov txij li qhov kev npaj",
   "chg.story": "Nyeem zaj xov xwm",
   "ed.companion.city": (year) => `Tus kav nroog daim nyiaj txiag npaj rau xyoo ${year} tawm lawm: saib txhua lub department hauv WPR qhov cuab yeej nyiaj txiag City xyoo ${year}.`,
@@ -11,7 +13,8 @@ export default {
   "demo.yourBrand": "Koj lub lag luam ntawm no",
   "demo.ribbon": "Saib ua ntej rau cov neeg txhawb nqa: qhov no yog li cas “Presented by” tshwm ntawm txhua nplooj. Cov nyeem yeej tsis pom daim ntawv no.",
   "demo.ask": "Nug txog kev txhawb nqa",
-  "tb.business": "Koj puas muaj ib qho chaw ua lag luam? Wisconsin txoj cai lij choj yuam kom cov vaj tse lag luam them tib tus nqi se li cov tsev nyob, yog li sau nws tus nqi lag luam thiab tib qho kev suav siv tau. Cov khoom siv ua lag luam thiab lwm yam khoom tsis tau them se txij li xyoo 2024. Ntawm ob qho credit uas tsis rho tawm ntawm no, ib lub lag luam tsuas tau first-dollar credit xwb; lottery credit yog rau tus tswv lub tsev nyob tseem ceeb.",
+  "tb.businessQ": "Koj puas muaj ib qho chaw ua lag luam?",
+  "tb.businessA": "Wisconsin txoj cai lij choj yuam kom cov vaj tse lag luam them tib tus nqi se li cov tsev nyob, yog li sau nws tus nqi lag luam thiab tib qho kev suav siv tau. Cov khoom siv ua lag luam thiab lwm yam khoom tsis tau them se txij li xyoo 2024. Ntawm ob qho credit uas tsis rho tawm ntawm no, ib lub lag luam tsuas tau first-dollar credit xwb; lottery credit yog rau tus tswv lub tsev nyob tseem ceeb.",
   "nav.say": "Hais koj lub tswv yim",
   "ed.sayLink": "Yuav koom li cas",
   "say.kick": "Ua ntej kev pov npav",
@@ -57,7 +60,6 @@ export default {
   "tb.cmp.showAll": (n) => `Saib tag nrho ${n}`,
   "tb.cmp.showFewer": "Saib tsawg dua",
   "tb.cmp.note": "Qhov twg ib lub zos muaj ntau tshaj ib lub tsev kawm ntawv district, nws tus kab qhia lub district loj tshaj thiab txoj kab nyias hauv qab qhia qhov sib txawv ntawm nws cov district; koj li qhia lub district koj xaiv. Xaiv ib kab twg los saib nws daim nqi se tag nrho.",
-  "lp.compare": (lo, loPlace, hi, hiPlace) => `Tib lub tsev $200,000 them ${lo} hauv ${loPlace} thiab ${hi} hauv ${hiPlace}.`,
   "lp.compareCta": (n) => `Piv tag nrho ${n}`,
   "wc.levyChange": "Qhov se hloov",
   "wc.riseRecord": (from) => `qhov nce siab tshaj plaws hauv cov ntaub ntawv txij li ${from}`,

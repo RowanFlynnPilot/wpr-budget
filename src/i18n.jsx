@@ -16,6 +16,8 @@ const STORAGE_KEY = "wpr-budget-lang";
 // ---- string tables -------------------------------------------------------
 // Keys are grouped by area. Values are strings, or functions for interpolation.
 const EN = {
+  "lp.rangeCaption": (lo, hi, n) => `The same home anywhere in Marathon County: from the ${lo} to the ${hi}, across all ${n} cities, villages and towns.`,
+  "lp.seasonHead": "Budget season",
   "chg.title": "Changes since the proposal",
   "chg.story": "Read the story",
   "ed.companion.city": (year) => `The Mayor's proposed ${year} budget is out: explore it department by department in WPR's ${year} City budget tool.`,
@@ -24,7 +26,8 @@ const EN = {
   "demo.yourBrand": "Your business here",
   "demo.ribbon": "Sponsor preview: this is how a “Presented by” credit appears on every page. Readers never see this banner.",
   "demo.ask": "Ask about sponsoring",
-  "tb.business": "Own a business property? Wisconsin's constitution requires commercial property to be taxed at the same rate as homes, so enter its fair market value and the same math applies. Business equipment and other personal property have not been taxed since 2024. Of the two credits not subtracted here, a business gets only the first-dollar credit; the lottery credit is for an owner's primary home.",
+  "tb.businessQ": "Own a business property?",
+  "tb.businessA": "Wisconsin's constitution requires commercial property to be taxed at the same rate as homes, so enter its fair market value and the same math applies. Business equipment and other personal property have not been taxed since 2024. Of the two credits not subtracted here, a business gets only the first-dollar credit; the lottery credit is for an owner's primary home.",
   "nav.say": "Have your say",
   "ed.sayLink": "How to weigh in",
   "say.kick": "Before the vote",
@@ -70,7 +73,6 @@ const EN = {
   "tb.cmp.showAll": (n) => `Show all ${n}`,
   "tb.cmp.showFewer": "Show fewer",
   "tb.cmp.note": "Where a municipality spans more than one school district, its bar shows the largest district and the thin line beneath it the range across its districts; yours shows the district you chose. Pick any row to see its whole bill.",
-  "lp.compare": (lo, loPlace, hi, hiPlace) => `The same $200,000 home pays ${lo} in the ${loPlace} and ${hi} in the ${hiPlace}.`,
   "lp.compareCta": (n) => `Compare all ${n}`,
   "wc.levyChange": "Change in the tax levy",
   "wc.riseRecord": (from) => `the largest rise in records back to ${from}`,

@@ -3,7 +3,7 @@ import { Receipt, ArrowUpRight } from "lucide-react";
 import { useLang, useStrings } from "./i18n";
 import { fetchData } from "./data";
 import { usd, compact, fmtDate } from "./format";
-import { ENTITY_LOGOS, MEETING_TRACKER_URL, countLink, SupportBand, SponsorSlot, useAnchorOnMount, billRates, billExtremes, placeLabel, rememberMuni, WAUSAU_CITY_DOR } from "./ui";
+import { ENTITY_LOGOS, MEETING_TRACKER_URL, countLink, SupportBand, SponsorSlot, useAnchorOnMount, billRates, billExtremes, rememberMuni, WAUSAU_CITY_DOR } from "./ui";
 import ChromeBar from "./ChromeBar";
 
 // Suite landing page — the front door. Fetches every entity's data once (via
@@ -35,7 +35,6 @@ function LandingBody({ byFile, entities, chrome }) {
   const { lang } = useLang();
   useAnchorOnMount();
 
-  const year = byFile[entities[0].data].meta.budget_year;
   // The combined-bill hook and the Tax Bill card: a $200,000 (fair market value)
   // City of Wausau home in the Wausau School District, from the same DOR data
   // and computation as the Your Tax Bill view itself.
@@ -52,7 +51,7 @@ function LandingBody({ byFile, entities, chrome }) {
 
   return (
     <div className="ftm">
-      <ChromeBar {...chrome} year={year} />
+      <ChromeBar {...chrome} />
 
       <header className="masthead lp-hero">
         <div className="kicker-row"><span className="pub">{t("common.publicLedger")}</span><SponsorSlot entityId={null} /></div>
@@ -60,43 +59,51 @@ function LandingBody({ byFile, entities, chrome }) {
         <p className="dek">{t("lp.heroDek")}</p>
       </header>
 
-      <button type="button" className="lp-hook" onClick={() => { rememberMuni(WAUSAU_CITY_DOR); chrome.onSelect(taxbillEnt.id); }}>
-        <span className="lp-hook-figure">
-          <b className="lp-hook-num">{combinedBill}</b>
-          <span>{t("lp.combinedCaption")}</span>
-        </span>
-        <span className="lp-hook-cta">{t("lp.seeBreakdown")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
-      </button>
-
-      {/* The statement: the same home, the county's cheapest and dearest places. */}
+      {/* The statement: what one home pays, and how far that swings across the county. */}
       {(() => {
         const { lo, hi } = billExtremes(byFile[taxbillEnt.data].municipalities);
+        const n = byFile[taxbillEnt.data].municipalities.length;
+        const place = ({ m }) => `${m.type} of ${m.name}`;
         return (
-          <a className="edition edition--pointer lp-season" href={"#" + taxbillEnt.id + "/compare"}>
-            <span>{t("lp.compare", usd(Math.round(200 * lo.rate)), placeLabel(t, lo), usd(Math.round(200 * hi.rate)), placeLabel(t, hi))}</span>
-            <span className="lp-hook-cta">{t("lp.compareCta", byFile[taxbillEnt.data].municipalities.length)} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
-          </a>
+          <div className="lp-statement">
+            <button type="button" className="lp-fig" onClick={() => { rememberMuni(WAUSAU_CITY_DOR); chrome.onSelect(taxbillEnt.id); }}>
+              <b className="lp-hook-num">{combinedBill}</b>
+              <span>{t("lp.combinedCaption")}</span>
+              <span className="lp-hook-cta">{t("lp.seeBreakdown")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
+            </button>
+            <a className="lp-fig" href={"#" + taxbillEnt.id + "/compare"}>
+              <b className="lp-hook-num">{usd(Math.round(200 * lo.rate))}–{usd(Math.round(200 * hi.rate))}</b>
+              <span>{t("lp.rangeCaption", place(lo), place(hi), n)}</span>
+              <span className="lp-hook-cta">{t("lp.compareCta", n)} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
+            </a>
+          </div>
         );
       })()}
 
-      {/* Budget season: any entity whose next-year PROPOSED book is out. The cards
-          and headline figures above stay on the adopted budgets. */}
-      {entities.filter((e) => e.editions && e.editions.length).map((e) => {
-        const ed = e.editions[0];
-        return (
-          <a key={e.id} className="edition edition--pointer lp-season" href={"#" + e.id + "~" + ed.id}>
-            <span>{t("lp.season", e.name, ed.year, fmtDate(ed.hearing, lang, false))}</span>
-            <span className="lp-hook-cta">{t("lp.seasonCta")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
-          </a>
-        );
-      })}
-
-      {entities.filter((e) => e.companion).map((e) => (
-        <a key={e.id} className="edition edition--pointer lp-season" href={e.companion.url} target="_blank" rel="noopener noreferrer" onClick={countLink("companion")}>
-          <span>{t("lp.companion." + e.kind, e.companion.year)}</span>
-          <span className="lp-hook-cta">{t("lp.companionCta")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
-        </a>
-      ))}
+      {/* Budget season: next year's proposals — an edition served here, or a
+          sibling WPR tool (companion). The cards below stay on adopted budgets. */}
+      {entities.some((e) => (e.editions && e.editions.length) || e.companion) && (
+        <section className="lp-seasons" aria-labelledby="lp-seasons-h">
+          <h2 id="lp-seasons-h">{t("lp.seasonHead")}</h2>
+          <ul>
+            {entities.filter((e) => e.editions && e.editions.length).map((e) => {
+              const ed = e.editions[0];
+              return (
+                <li key={e.id}><a href={"#" + e.id + "~" + ed.id}>
+                  <span>{t("lp.season", e.name, ed.year, fmtDate(ed.hearing, lang, false))}</span>
+                  <span className="lp-hook-cta">{t("lp.seasonCta")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
+                </a></li>
+              );
+            })}
+            {entities.filter((e) => e.companion).map((e) => (
+              <li key={e.id}><a href={e.companion.url} target="_blank" rel="noopener noreferrer" onClick={countLink("companion")}>
+                <span>{t("lp.companion." + e.kind, e.companion.year)}</span>
+                <span className="lp-hook-cta">{t("lp.companionCta")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
+              </a></li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="lp-cards">
         {entities.map((e) => {
