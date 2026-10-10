@@ -307,6 +307,17 @@ export function EditionBanner({ chrome, adoptedYear }) {
       </div>
     );
   }
+  // Next year's proposal covered by a sibling WPR tool (the City's 2027 budget
+  // has its own app): point there, on WPR's own page for it.
+  if (ent.companion) {
+    const c = ent.companion;
+    return (
+      <a className="edition edition--pointer" href={c.url} target="_blank" rel="noopener noreferrer" onClick={countLink("companion")}>
+        <span>{t("ed.companion." + ent.kind, c.year)}</span>
+        <ArrowUpRight size={15} strokeWidth={2.5} aria-hidden="true" />
+      </a>
+    );
+  }
   const ed = (ent.editions || [])[0];
   if (!ed) return null;
   return (

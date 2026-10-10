@@ -5,7 +5,7 @@ import {
 import { useStrings } from "../i18n";
 import { usd, compact } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, SourceLink, ChartFrame, Delta, Highlights, rankLast, rankNote, risesOf, signedCompact, SubNav, SponsorSlot, Methodology,
+  ENTITY_LOGOS, EditionBanner, SectionHead, Stat, FullOrCompact, SourceLink, ChartFrame, Delta, Highlights, rankLast, rankNote, risesOf, signedCompact, SubNav, SponsorSlot, Methodology,
   HomeValueCalc, TaxSplit, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
   SchoolPicker, useSchoolChoice, billRates, WAUSAU_CITY_DOR,
 } from "../ui";
@@ -149,6 +149,8 @@ export default function CityLedger({ b, extra, chrome }) {
   return (
     <div className="ftm">
       <ChromeBar {...chrome} year={b.meta.budget_year} />
+
+      <EditionBanner chrome={chrome} />
 
       <header className="masthead">
         <div className="masthead-head">

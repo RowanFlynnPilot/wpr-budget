@@ -35,6 +35,11 @@ for (const e of entities) {
   }
 }
 
+// a next-year proposal covered by a sibling WPR tool
+for (const e of entities.filter((x) => x.companion)) {
+  if (!/^https:\/\//.test(e.companion.url) || !Number.isInteger(e.companion.year)) fail(`entities.json ${e.id}`, "companion needs {year, https url}");
+}
+
 // ---- County (adopted book + any editions) ----
 const countyEnt = entities.find((e) => e.kind === "county");
 for (const file of [countyEnt.data, ...(countyEnt.editions || []).map((ed) => ed.data)]) {

@@ -3,6 +3,9 @@
 // so the landing page and embeds ship English alone. Same keys as EN —
 // scripts/check-data.mjs fails the deploy on any missing or extra key.
 export default {
+  "ed.companion.city": (year) => `Ya salió el presupuesto propuesto por el alcalde para ${year}: explórelo departamento por departamento en la herramienta de WPR sobre el presupuesto de la ciudad.`,
+  "lp.companion.city": (year) => `Ya salió el presupuesto propuesto de la ciudad de Wausau para ${year}: el plan del alcalde, departamento por departamento.`,
+  "lp.companionCta": "Abrir la herramienta de la ciudad",
   "demo.yourBrand": "Su negocio aquí",
   "demo.ribbon": "Vista previa para patrocinadores: así aparece el crédito “Presentado por” en cada página. Los lectores nunca ven este aviso.",
   "demo.ask": "Pregunte por el patrocinio",

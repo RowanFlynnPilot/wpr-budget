@@ -16,6 +16,9 @@ const STORAGE_KEY = "wpr-budget-lang";
 // ---- string tables -------------------------------------------------------
 // Keys are grouped by area. Values are strings, or functions for interpolation.
 const EN = {
+  "ed.companion.city": (year) => `The Mayor's proposed ${year} budget is out: explore it department by department in WPR's ${year} City budget tool.`,
+  "lp.companion.city": (year) => `The City of Wausau's proposed ${year} budget is out: the Mayor's plan, department by department.`,
+  "lp.companionCta": "Open the City tool",
   "demo.yourBrand": "Your business here",
   "demo.ribbon": "Sponsor preview: this is how a “Presented by” credit appears on every page. Readers never see this banner.",
   "demo.ask": "Ask about sponsoring",

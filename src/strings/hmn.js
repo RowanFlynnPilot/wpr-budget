@@ -3,6 +3,9 @@
 // so the landing page and embeds ship English alone. Same keys as EN —
 // scripts/check-data.mjs fails the deploy on any missing or extra key.
 export default {
+  "ed.companion.city": (year) => `Tus kav nroog daim nyiaj txiag npaj rau xyoo ${year} tawm lawm: saib txhua lub department hauv WPR qhov cuab yeej nyiaj txiag City xyoo ${year}.`,
+  "lp.companion.city": (year) => `City of Wausau daim nyiaj txiag npaj rau xyoo ${year} tawm lawm: tus kav nroog txoj kev npaj, txhua lub department.`,
+  "lp.companionCta": "Qhib qhov cuab yeej City",
   "demo.yourBrand": "Koj lub lag luam ntawm no",
   "demo.ribbon": "Saib ua ntej rau cov neeg txhawb nqa: qhov no yog li cas “Presented by” tshwm ntawm txhua nplooj. Cov nyeem yeej tsis pom daim ntawv no.",
   "demo.ask": "Nug txog kev txhawb nqa",

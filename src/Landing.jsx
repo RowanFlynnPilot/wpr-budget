@@ -91,6 +91,13 @@ function LandingBody({ byFile, entities, chrome }) {
         );
       })}
 
+      {entities.filter((e) => e.companion).map((e) => (
+        <a key={e.id} className="edition edition--pointer lp-season" href={e.companion.url} target="_blank" rel="noopener noreferrer" onClick={countLink("companion")}>
+          <span>{t("lp.companion." + e.kind, e.companion.year)}</span>
+          <span className="lp-hook-cta">{t("lp.companionCta")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
+        </a>
+      ))}
+
       <div className="lp-cards">
         {entities.map((e) => {
           const h = headline(e);
