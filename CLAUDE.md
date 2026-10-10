@@ -207,7 +207,8 @@ python scripts/extract_wausau.py "2026-Wausau-Budget.pdf" public/wausau-city.jso
 
 # Every Marathon County municipality's levies (DOR TVC workbook) + the state's
 # per-home credits (DOR's lottery and first-dollar "Credit Amount" reports):
-python scripts/extract_dor.py sources/dor-tvc25.xlsx sources/dor-2025lotcr.pdf \n       sources/dor-2025fdcred.pdf public/marathon-tax-districts.json --cache
+python scripts/extract_dor.py sources/dor-tvc25.xlsx sources/dor-2025lotcr.pdf \
+       sources/dor-2025fdcred.pdf public/marathon-tax-districts.json --cache
 # then redraw the share cards (CI fails while their figures are stale):
 python scripts/og_cards.py
 
