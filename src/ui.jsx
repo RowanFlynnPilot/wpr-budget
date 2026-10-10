@@ -301,6 +301,8 @@ export function EditionBanner({ chrome, adoptedYear }) {
       <div className="edition edition--proposed" role="note">
         <div className="edition__tag">{t("ed.proposedTag")}</div>
         <p className="edition__body">{t("ed.proposedBody", ed.year, day(ed.hearing), day(ed.vote))}</p>
+        <a className="edition__link" href={"#" + chrome.routeId + "/say"}>{t("ed.sayLink")}</a>
+        <span className="edition__sep" aria-hidden="true"> · </span>
         <a className="edition__link" href={"#" + ent.id}>{t("ed.backToAdopted", adoptedYear)}</a>
       </div>
     );
@@ -312,6 +314,44 @@ export function EditionBanner({ chrome, adoptedYear }) {
       <span>{t("ed.pointer", ed.year, day(ed.hearing))}</span>
       <ArrowUpRight size={15} strokeWidth={2.5} aria-hidden="true" />
     </a>
+  );
+}
+
+// "Have your say" — on a PROPOSED edition only: the calendar to the vote (the
+// book's own budget-process timeline, curated as the edition's `milestones`),
+// and the three ways a resident can act before it: speak at the hearing, reach
+// their supervisor before the amendment deadline, get the result. Dates already
+// past are checked off by the reader's clock.
+export function HaveYourSay({ chrome }) {
+  const t = useStrings();
+  const { lang } = useLang();
+  const ent = chrome.entities.find((e) => e.id === chrome.activeId);
+  const ed = chrome.edition;
+  const go = ent.participate;
+  const day = (iso) => fmtDate(iso, lang, false);
+  const today = new Date().toISOString().slice(0, 10);
+  const amend = ed.milestones.find((m) => m.what === "amendments");
+  const out = (href, to, label) => <a href={href} target="_blank" rel="noopener noreferrer" onClick={countLink(to)}>{label}</a>;
+  return (
+    <section id="say" className="block">
+      <SectionHead kicker={t("say.kick")} title={t("say.title")}>{t("say.dek", ed.year, day(ed.vote))}</SectionHead>
+      <div className="say">
+        <ol className="say-dates">
+          {ed.milestones.map((m) => (
+            <li key={m.what} className={m.date < today ? "past" : m.what === "hearing" || m.what === "vote" ? "key" : ""}>
+              <b>{day(m.date)}</b><span>{t("say.m." + m.what)}</span>
+            </li>
+          ))}
+        </ol>
+        <div className="say-acts">
+          <p><b>{t("say.speak.lead")}</b> {t("say.speak", day(ed.hearing))} {out(go.agendas, "agendas", t("say.agendaLink"))}</p>
+          <p><b>{t("say.contact.lead")}</b> {t("say.contact", day(amend.date))}{" "}
+            {out(go.find_supervisor, "find-supervisor", t("say.findLink"))} · {out(go.supervisors, "supervisors", t("say.membersLink"))}</p>
+          <p><b>{t("say.follow.lead")}</b> {t("say.follow")}{" "}
+            {out(NEWSLETTER_URL, "newsletter", t("support.newsletter"))} · {out(MEETING_TRACKER_URL, "meeting-tracker", t("say.trackerLink"))}</p>
+        </div>
+      </div>
+    </section>
   );
 }
 

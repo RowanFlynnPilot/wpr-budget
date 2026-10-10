@@ -12,6 +12,32 @@
         "data": "marathon-county-2027-proposed.json",
         "hearing": "2026-11-02",
         "vote": "2026-11-10",
+        "milestones": [
+          {
+            "date": "2026-10-15",
+            "what": "education"
+          },
+          {
+            "date": "2026-10-20",
+            "what": "qa"
+          },
+          {
+            "date": "2026-11-02",
+            "what": "hearing"
+          },
+          {
+            "date": "2026-11-06",
+            "what": "amendments"
+          },
+          {
+            "date": "2026-11-09",
+            "what": "committee"
+          },
+          {
+            "date": "2026-11-10",
+            "what": "vote"
+          }
+        ],
         "calendar_source": "2027 Administrator's Proposed Budget, Appendix K: Budget Process Timeline",
         "source": {
           "title": "Marathon County 2027 Administrator's Proposed Budget (PDF)",
@@ -22,6 +48,12 @@
     "source": {
       "title": "Marathon County 2026 Approved Budget (PDF)",
       "url": "https://www.marathoncounty.gov/home/showpublisheddocument/18175/639105629169430000"
+    },
+    "participate": {
+      "agendas": "https://www.marathoncounty.gov/about-us/government/county-board/minutes-agendas",
+      "find_supervisor": "https://myvote.wi.gov/en-us/My-Elected-Officials",
+      "supervisors": "https://www.marathoncounty.gov/about-us/government/county-board/members",
+      "source": "marathoncounty.gov County Board page (its \"Who is my County Board Supervisor?\" link is MyVote Wisconsin)"
     }
   },
   {

@@ -21,6 +21,17 @@ for (const e of entities) {
   }
   for (const ed of e.editions || []) {
     for (const k of ["hearing", "vote"]) if (!/^\d{4}-\d{2}-\d{2}$/.test(ed[k] || "")) fail(`edition ${ed.id}`, `${k} must be an ISO date`);
+    // "Have your say": the calendar is in order, names the hearing and vote on their dates, and has an amendment deadline
+    const ms = ed.milestones || [];
+    const dates = ms.map((m) => m.date);
+    if (dates.join() !== [...dates].sort().join()) fail(`edition ${ed.id}`, "milestones out of order");
+    for (const [what, date] of [["hearing", ed.hearing], ["vote", ed.vote]]) {
+      if (!ms.some((m) => m.what === what && m.date === date)) fail(`edition ${ed.id}`, `milestones need the ${what} on ${date}`);
+    }
+    if (!ms.some((m) => m.what === "amendments")) fail(`edition ${ed.id}`, "milestones need the amendment deadline");
+    for (const k of ["agendas", "find_supervisor", "supervisors"]) {
+      if (!/^https:\/\//.test(e.participate?.[k] || "")) fail(`entities.json ${e.id}`, `participate.${k} must be an https link`);
+    }
   }
 }
 

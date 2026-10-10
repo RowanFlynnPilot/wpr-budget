@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { useLang, useStrings } from "../i18n";
 import { usd, compact, pct, deptSpend, fmtDate } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, MillRate, SourceLink, ChartFrame, Delta, Balance, Spark, Highlights, rankLast, rankNote, risesOf, signedCompact, SubNav, SponsorSlot, EditionBanner,
+  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, MillRate, SourceLink, ChartFrame, Delta, Balance, Spark, Highlights, HaveYourSay, rankLast, rankNote, risesOf, signedCompact, SubNav, SponsorSlot, EditionBanner,
   Methodology, HomeValueCalc, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
@@ -14,6 +14,8 @@ import "../charts"; // applies the reduced-motion default to recharts
 import demographics from "../demographics.json";
 
 const SECTIONS = ["where", "departments", "trends", "bill", "funds", "debt", "methodology"];
+// A proposed edition adds "Have your say" before the methodology.
+const SECTIONS_PROPOSED = ["where", "departments", "trends", "bill", "funds", "debt", "say", "methodology"];
 
 // Marathon County body — the original "Follow the Money" ledger: General Fund
 // spending/revenue, the per-department levy ledger, the levy/mill-rate history,
@@ -36,7 +38,8 @@ export default function Ledger({ b, chrome }) {
   const [homeValue, setHomeValue] = useHomeValue();
   const [divisor, setDivisor] = useState("total");
   useAnchorOnMount();
-  const active = useScrollSpy(SECTIONS, chrome.routeId);
+  const sections = chrome.edition ? SECTIONS_PROPOSED : SECTIONS;
+  const active = useScrollSpy(sections, chrome.routeId);
 
   // Per-resident / per-household view of the GF bars (curated 2020 Census
   // denominators in src/demographics.json).
@@ -214,7 +217,7 @@ export default function Ledger({ b, chrome }) {
 
       <Highlights items={changed} head={proposed ? t("wc.headProposed", b.meta.budget_year) : undefined} />
 
-      <SubNav sections={SECTIONS} active={active} routeId={chrome.routeId} />
+      <SubNav sections={sections} active={active} routeId={chrome.routeId} />
 
       {/* WHERE IT GOES */}
       <section id="where" className="block">
@@ -474,6 +477,8 @@ export default function Ledger({ b, chrome }) {
           ))}
         </div>
       </section>
+
+      {chrome.edition && <HaveYourSay chrome={chrome} />}
 
       <Methodology b={b} chrome={chrome} />
 
