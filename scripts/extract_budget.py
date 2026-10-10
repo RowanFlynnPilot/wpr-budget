@@ -527,9 +527,16 @@ def build_history(extractions):
                 "total_expenditures": e["meta"]["total_expenditures"],
                 "tax_levy": e["meta"]["tax_levy"],
                 "tax_rate": e["meta"].get("tax_rate") or rate_by_year.get(e["meta"]["budget_year"]),
+                # "adopted", or "proposed" when that book's appendix tables still
+                # carry the Administrator's proposal (see appendix_basis)
+                "basis": e["basis"],
             } for e in extractions
         },
         "departments": merge(lambda e: e["departments"], "department", "tax_levy"),
+        # Total spending (operating + personnel) by fund, per year — what moves the
+        # all-funds total (2027: the Highway Fund, +$30.1M of the +$42.3M).
+        "funds": merge(lambda e: [{"name": f["name"], "spending": f["operating_expenditures"] + f["personnel_expenditures"]}
+                                  for f in e["funds"]], "name", "spending"),
         # A proposed edition carries no GF summary (general_fund is null), so it
         # contributes no GF year.
         "general_fund": {
@@ -551,6 +558,7 @@ def extract(latest_pdf, prior_pdfs=(), cache=False):
     latest = extract_one(latest_pdf, cache=cache)
     priors = [extract_history_slice(p, cache=cache) for p in prior_pdfs]
     latest["history"] = build_history([latest, *priors])
+    del latest["basis"]  # carried into history.totals[year].basis
     return latest
 
 
@@ -575,6 +583,26 @@ def appendix_tables(texts):
     return funds, fund_total, departments, int(m.group(1))
 
 
+def appendix_basis(full_text, year, appendix_levy, status):
+    """Whether this book's appendix tables are the ADOPTED budget or still the
+    Administrator's proposal. The approved books open with "the Board approved
+    the YYYY Budget with a tax levy of $X" and a caveat that the pages after it
+    "reflect the Administrator's proposed budget" — and sometimes they do: the
+    2025 book's appendix totals a $59,694,287 levy against the $57,954,103 the
+    board adopted, while the 2026 book's appendix matches its adopted levy (and
+    every department/fund levy matches the 2027 book's prior-year column). So
+    the tables count as adopted exactly when their levy equals the approved
+    levy. A proposed edition is proposal-basis by definition; an approved book
+    without the approval sentence is a format change — fail loud."""
+    if status == "proposed":
+        return "proposed"
+    m = re.search(r"approved\s+the\s+(20\d{2})\s+Budget\s+with\s+a\s+tax\s+levy\s+of\s+\$([\d,]+)", full_text)
+    if not m or int(m.group(1)) != year:
+        raise ValueError(f"no 'approved the {year} Budget with a tax levy of $X' sentence — can't tell whether "
+                         f"the {year} appendix tables are the adopted budget")
+    return "adopted" if money(m.group(2)) == appendix_levy else "proposed"
+
+
 def extract_history_slice(pdf_path, cache=False):
     """Minimal prior-year parse for the `history` block: the by-fund and
     by-department summary tables plus the budget year, with the same loud
@@ -585,6 +613,7 @@ def extract_history_slice(pdf_path, cache=False):
     texts = load_pages(pdf_path, cache=cache)
     funds, fund_total, departments, year = appendix_tables(texts)
     return {
+        "basis": appendix_basis("\n".join(texts), year, fund_total["tax_levy"], status="adopted"),
         "meta": {
             "budget_year": year,
             "total_expenditures": fund_total["operating_expenditures"] + fund_total["personnel_expenditures"],
@@ -630,6 +659,7 @@ def extract_one(pdf_path, cache=False):
         raise ValueError(f"approved book has no General Fund summary (needles {GF_SUMMARY})")
 
     return {
+        "basis": appendix_basis(full_text, meta["budget_year"], fund_total["tax_levy"], meta["status"]),
         "meta": meta,
         "funds": funds,
         "departments": departments,

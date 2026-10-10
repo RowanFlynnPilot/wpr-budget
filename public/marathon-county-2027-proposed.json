@@ -529,17 +529,20 @@
       "2027": {
         "total_expenditures": 238631841,
         "tax_levy": 66248545,
-        "tax_rate": 3.48
+        "tax_rate": 3.48,
+        "basis": "proposed"
       },
       "2026": {
         "total_expenditures": 196351665,
         "tax_levy": 61225481,
-        "tax_rate": 3.49
+        "tax_rate": 3.49,
+        "basis": "adopted"
       },
       "2025": {
         "total_expenditures": 181691076,
         "tax_levy": 59694287,
-        "tax_rate": 3.67
+        "tax_rate": 3.67,
+        "basis": "proposed"
       }
     },
     "departments": [
@@ -716,6 +719,94 @@
           "2027": 11075852,
           "2026": 10910212,
           "2025": 10721021
+        }
+      }
+    ],
+    "funds": [
+      {
+        "name": "General Fund",
+        "adopted": {
+          "2027": 84071068,
+          "2026": 76521597,
+          "2025": 71988445
+        }
+      },
+      {
+        "name": "Social Improvement Fund",
+        "adopted": {
+          "2027": 13587032,
+          "2026": 12374276,
+          "2025": 10848263
+        }
+      },
+      {
+        "name": "Parks Fund",
+        "adopted": {
+          "2027": 5646473,
+          "2026": 5637242,
+          "2025": 5405472
+        }
+      },
+      {
+        "name": "Grants Fund",
+        "adopted": {
+          "2027": 20454600,
+          "2026": 17592768,
+          "2025": 17651171
+        }
+      },
+      {
+        "name": "Debt Service Fund",
+        "adopted": {
+          "2027": 7844400,
+          "2026": 7859925,
+          "2025": 7834919
+        }
+      },
+      {
+        "name": "Capital Projects Fund",
+        "adopted": {
+          "2027": 10675280,
+          "2026": 5522619,
+          "2025": 9031033
+        }
+      },
+      {
+        "name": "Landfill Fund",
+        "adopted": {
+          "2027": 10237834,
+          "2026": 17448581,
+          "2025": 6960864
+        }
+      },
+      {
+        "name": "Highway Fund",
+        "adopted": {
+          "2027": 62759173,
+          "2026": 32648419,
+          "2025": 30354766
+        }
+      },
+      {
+        "name": "Employee Benefits Fund",
+        "adopted": {
+          "2027": 20561299,
+          "2026": 18036288,
+          "2025": 18983235
+        }
+      },
+      {
+        "name": "Property and Casualty Insurance Fund",
+        "adopted": {
+          "2027": 2788728,
+          "2026": 2709950,
+          "2025": 2632908
+        }
+      },
+      {
+        "name": "State Special Charges",
+        "adopted": {
+          "2027": 5954
         }
       }
     ],

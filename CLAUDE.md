@@ -250,10 +250,19 @@ funds[]:         fund_no, name, tax_levy, operating_revenues, operating_expendit
 levy_history[]:  year, levy, rate
 homeowner_impact[]: year, avg_value, tax_rate, tax_amount, pct_change_bill
 debt[]:          series, outstanding   # outstanding principal as of Dec 31 of the prior year
-history:         { years[], totals{}, departments[], general_fund:{expenditures[],revenues[]} }
-                 # multi-year ADOPTED figures merged across the PDFs passed to the
-                 # extractor. totals: {<year>:{total_expenditures,tax_levy,tax_rate}};
+history:         { years[], totals{}, departments[], funds[], general_fund:{expenditures[],revenues[]} }
+                 # multi-year figures merged across the PDFs passed to the
+                 # extractor. totals: {<year>:{total_expenditures,tax_levy,tax_rate,basis}};
+                 # basis = "adopted" | "proposed": whether that book's appendix tables
+                 # are the adopted budget. The approved books warn their tables
+                 # "reflect the Administrator's proposed budget"; they count as adopted
+                 # only when their levy equals the levy the book says was approved —
+                 # 2026 does ($61,225,481), 2025 does NOT ($59.69M vs $57.95M adopted).
+                 # The UI claims no total-budget change against a "proposed"-basis year
+                 # and footnotes it on the department chart.
                  # departments[]: {department, adopted:{<year>:tax_levy}};
+                 # funds[]: {name, adopted:{<year>:spending}} (operating + personnel) —
+                 # drives the "biggest single change" line under the stat tiles;
                  # general_fund blocks: {category, adopted:{<year>:proposed_next}}.
                  # With one PDF, each series holds a single year; prior-year PDFs
                  # fill earlier years losslessly. The "Over Time" department chart

@@ -228,6 +228,7 @@ const EN = {
   "co.dek": (entity, date) => `Every dollar in ${entity}'s budget — where it comes from, where it goes, and what it means for your tax bill. Adopted by the County Board on ${date}.`,
   "co.dekProposed": (entity, date) => `Every dollar in ${entity}'s proposed budget — where it would come from, where it would go, and what it would mean for your tax bill. Presented by the County Administrator on ${date}; not yet adopted.`,
   "co.stat.countyLevy": "County tax levy",
+  "co.stat.driver": (prev, fund, change, total) => `Total spending is ${total} vs. ${prev}; the biggest single change is the ${fund} (${change}).`,
   "co.where.dek": "The county's general fund pays for day-to-day government. Toggle to see what it spends — and where the money comes from before the property-tax levy fills the gap.",
   "co.where.pending": (hearing) => `The general fund's breakdown by function isn't in the Administrator's proposed book — the county prints it in the public-hearing notice it publishes ahead of the ${hearing} hearing, and it will appear here then. Meanwhile, the department ledger below shows the proposed general fund, department by department.`,
   "co.where.note": (flow, year, psShare) => (flow === "expenditures"
@@ -258,6 +259,7 @@ const EN = {
   "co.trends.change": "Change",
   "co.trends.legendYr": (yr) => `${yr} levy`,
   "co.trends.cmpNote": (first, last, proposedLast) => `County tax levy by department, ${first}–${last}, each year taken from that year's own adopted budget book${proposedLast ? ` (${last}: the Administrator's proposal, not yet adopted)` : ""}. Revenue-returning offices (e.g. the County Treasurer), whose levy is negative, are omitted. In a tax context an increase is shown in red.`,
+  "co.trends.proposalBasis": (year) => `The ${year} figures come from that year's budget-book tables, which — as the book itself notes — reflect the Administrator's proposal rather than the board's final amendments.`,
   "co.bill.dek": (since) => `The county's mill rate has fallen nearly every year since ${since}. But because home values climbed faster, the bill on a typical home kept rising anyway. Enter your home's value to see your county tax.`,
   "co.bill.homeLabel": "Your home's fair market value",
   "co.bill.estOut": (year, proposed) => `Your ${year} county property tax${proposed ? " at the proposed rate" : ""}`,
@@ -526,6 +528,7 @@ const ES = {
   "co.dek": (entity, date) => `Cada dólar del presupuesto de ${entity}: de dónde viene, a dónde va y qué significa para su factura de impuestos. Adoptado por la Junta del Condado el ${date}.`,
   "co.dekProposed": (entity, date) => `Cada dólar del presupuesto propuesto de ${entity}: de dónde vendría, a dónde iría y qué significaría para su factura de impuestos. Presentado por el Administrador del Condado el ${date}; aún no adoptado.`,
   "co.stat.countyLevy": "Impuesto del condado",
+  "co.stat.driver": (prev, fund, change, total) => `El gasto total cambia ${total} respecto a ${prev}; el mayor cambio individual es el ${fund} (${change}).`,
   "co.where.dek": "El fondo general del condado paga el gobierno diario. Alterne para ver lo que gasta — y de dónde viene el dinero antes de que el impuesto a la propiedad cubra la diferencia.",
   "co.where.pending": (hearing) => `El desglose del fondo general por función no figura en el libro propuesto por el Administrador: el condado lo imprime en el aviso de audiencia pública que publica antes de la audiencia del ${hearing}, y aparecerá aquí entonces. Mientras tanto, el registro de departamentos más abajo muestra el fondo general propuesto, departamento por departamento.`,
   "co.where.note": (flow, year, psShare) => (flow === "expenditures"
@@ -556,6 +559,7 @@ const ES = {
   "co.trends.change": "Cambio",
   "co.trends.legendYr": (yr) => `impuesto ${yr}`,
   "co.trends.cmpNote": (first, last, proposedLast) => `Impuesto del condado por departamento, ${first}–${last}; cada año proviene del propio libro presupuestario adoptado de ese año${proposedLast ? ` (${last}: la propuesta del Administrador, aún no adoptada)` : ""}. Las oficinas que devuelven ingresos (p. ej. el Tesorero del Condado), cuyo impuesto es negativo, se omiten. En un contexto fiscal, un aumento se muestra en rojo.`,
+  "co.trends.proposalBasis": (year) => `Las cifras de ${year} provienen de las tablas del libro presupuestario de ese año, que — como indica el propio libro — reflejan la propuesta del Administrador y no las enmiendas finales de la junta.`,
   "co.bill.dek": (since) => `La tasa por milaje del condado ha bajado casi todos los años desde ${since}. Pero como el valor de las casas subió más rápido, la factura de una casa típica siguió subiendo de todos modos. Ingrese el valor de su casa para ver su impuesto del condado.`,
   "co.bill.homeLabel": "El valor de mercado de su casa",
   "co.bill.estOut": (year, proposed) => `Su impuesto del condado de ${year}${proposed ? " con la tasa propuesta" : ""}`,
@@ -823,6 +827,7 @@ const HMN = {
   "co.dek": (entity, date) => `Txhua nyuas nyiaj hauv ${entity} daim nyiaj txiag — los qhov twg los, mus qhov twg, thiab txhais li cas rau koj daim nqi se. Pom zoo los ntawm Pawg Saib Xyuas Lub Nroog (County Board) thaum ${date}.`,
   "co.dekProposed": (entity, date) => `Txhua nyuas nyiaj hauv ${entity} daim nyiaj txiag npaj tseg — yuav los qhov twg los, yuav mus qhov twg, thiab yuav txhais li cas rau koj daim nqi se. Tus Thawj Tswj Lub Nroog (County Administrator) muab tawm thaum ${date}; tseem tsis tau pom zoo.`,
   "co.stat.countyLevy": "Se hauv lub nroog",
+  "co.stat.driver": (prev, fund, change, total) => `Tag nrho kev siv hloov ${total} piv rau ${prev}; qhov hloov loj tshaj yog ${fund} (${change}).`,
   "co.where.dek": "Lub nroog lub general fund them rau kev kav niaj hnub. Hloov los saib nws siv dab tsi — thiab cov nyiaj los qhov twg los ua ntej se vaj tse los txhaws qhov tsis txaus.",
   "co.where.pending": (hearing) => `Daim ntawv faib general fund raws hauj lwm tsis nyob hauv phau npaj tseg — lub nroog luam nws rau hauv daim ntawv ceeb toom kev sib hais pej xeem (public hearing) ua ntej ${hearing}, thiab nws yuav tshwm ntawm no thaum ntawd. Tam sim no, daim ntawv chaw haujlwm hauv qab qhia general fund npaj tseg raws chaw haujlwm.`,
   "co.where.note": (flow, year, psShare) => (flow === "expenditures"
@@ -853,6 +858,7 @@ const HMN = {
   "co.trends.change": "Hloov",
   "co.trends.legendYr": (yr) => `se ${yr}`,
   "co.trends.cmpNote": (first, last, proposedLast) => `Se lub nroog raws chaw haujlwm, ${first}–${last}; txhua xyoo muab los ntawm xyoo ntawd daim phau nyiaj txiag pom zoo${proposedLast ? ` (${last}: tus Thawj Tswj npaj tseg, tseem tsis tau pom zoo)` : ""}. Cov chaw rov qab nyiaj (xws li County Treasurer), uas lawv tus se yog tsawg dua xoom, raug muab tshem tawm. Hauv kev se, qhov nce raug muab tso liab.`,
+  "co.trends.proposalBasis": (year) => `Cov lej xyoo ${year} los ntawm xyoo ntawd phau nyiaj txiag cov rooj, uas — raws li phau ntawv hais — qhia tus Thawj Tswj qhov npaj tseg, tsis yog pawg cov kev hloov kawg.`,
   "co.bill.dek": (since) => `Lub nroog tus nqi se poob yuav luag txhua xyoo txij ${since}. Tab sis vim cov nqi vaj tse nce sai dua, daim nqi rau ib lub tsev txawm li cas los tseem nce. Sau koj lub tsev tus nqi los saib koj cov se lub nroog.`,
   "co.bill.homeLabel": "Koj lub tsev tus nqi lag luam (fair market value)",
   "co.bill.estOut": (year, proposed) => `Koj cov se lub nroog xyoo ${year}${proposed ? " raws tus nqi npaj tseg" : ""}`,

@@ -99,13 +99,24 @@ export default function Ledger({ b, chrome }) {
   const ratePctChange = (levyLast.rate / levyPrev.rate - 1) * 100;
   const levyRisePct = (((levyLast.levy / levyFirst.levy) - 1) * 100).toFixed(0);
 
-  // Total-budget YoY change — dormant until a prior year's totals land in
-  // history (i.e. once prior-year PDFs are ingested), mirroring the levy delta.
+  // Total-budget YoY change, against the prior year's ADOPTED budget only: a
+  // year whose book still printed the Administrator's proposal (basis
+  // "proposed" — the 2025 book) isn't "last year's budget", so no change is
+  // claimed against it. Dormant until a prior year lands in history.
   const tYears = Object.keys(b.history.totals).map(Number).sort((a, c) => a - c);
-  const budgetPctChange = tYears.length >= 2
-    ? (b.history.totals[String(tYears[tYears.length - 1])].total_expenditures
-      / b.history.totals[String(tYears[tYears.length - 2])].total_expenditures - 1) * 100
+  const tLast = String(tYears[tYears.length - 1]);
+  const tPrev = tYears.length >= 2 ? String(tYears[tYears.length - 2]) : null;
+  const budgetPctChange = tPrev && b.history.totals[tPrev].basis === "adopted"
+    ? (b.history.totals[tLast].total_expenditures / b.history.totals[tPrev].total_expenditures - 1) * 100
     : null;
+  // What moved the total: the fund whose spending changed most from the prior year.
+  const budgetDriver = useMemo(() => {
+    if (budgetPctChange == null) return null;
+    const moves = b.history.funds
+      .map((f) => ({ name: f.name, change: (f.adopted[tLast] || 0) - (f.adopted[tPrev] || 0) }))
+      .sort((a, c) => Math.abs(c.change) - Math.abs(a.change));
+    return moves[0];
+  }, [b.history.funds, budgetPctChange, tLast, tPrev]);
 
   // Department adopted levy, prior year vs latest, for the comparison chart.
   // Dormant until >=2 adopted years exist in history. Excludes revenue-returning
@@ -174,6 +185,11 @@ export default function Ledger({ b, chrome }) {
           <Stat icon="🏛️" label={proposed ? t("stat.proposed", t("co.stat.countyLevy")) : t("co.stat.countyLevy")} value={<FullOrCompact n={b.meta.tax_levy} />} sub={<Delta value={levyPctChange} />} />
           <Stat icon="🏠" label={proposed ? t("stat.proposed", t("stat.millRate")) : t("stat.millRate")} value={"$" + b.meta.tax_rate.toFixed(2)} sub={<Delta value={ratePctChange} />} />
         </div>
+        {budgetDriver && (
+          <p className="stat-note">{t("co.stat.driver", tPrev, budgetDriver.name,
+            (budgetDriver.change >= 0 ? "+" : "−") + compact(Math.abs(budgetDriver.change)),
+            (budgetDriver.change >= 0 ? "+" : "−") + compact(Math.abs(b.history.totals[tLast].total_expenditures - b.history.totals[tPrev].total_expenditures)))}</p>
+        )}
       </header>
 
       <Highlights items={changed} head={proposed ? t("wc.headProposed", b.meta.budget_year) : undefined} />
@@ -362,7 +378,8 @@ export default function Ledger({ b, chrome }) {
               </div>
             )}
 
-            <p className="note">{t("co.trends.cmpNote", deptCompare.first, deptCompare.last, proposed)}</p>
+            <p className="note">{t("co.trends.cmpNote", deptCompare.first, deptCompare.last, proposed)}
+              {b.history.totals[deptCompare.first].basis === "proposed" && " " + t("co.trends.proposalBasis", deptCompare.first)}</p>
           </div>
         )}
       </section>

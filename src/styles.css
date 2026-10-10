@@ -108,6 +108,8 @@ body{margin:0; background:#f5f1e8;}
 .stat{background:var(--paper); padding:40px 24px 34px; transition:background .15s ease;
   display:flex; flex-direction:column; align-items:center; text-align:center;}
 .stat:hover{background:var(--paper-2);}
+/* One line under the tiles naming what drives the total-budget change. */
+.stat-note{margin:12px 0 0; font-size:14px; color:var(--ink-soft); line-height:1.45;}
 .stat-icon{font-size:34px; line-height:1; margin-bottom:16px;}
 .stat-label{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); font-weight:700;}
 .stat-value{font-family:var(--serif); font-size:clamp(32px,4.6vw,54px); font-weight:600; line-height:1;
