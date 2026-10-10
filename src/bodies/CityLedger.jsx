@@ -7,6 +7,7 @@ import { usd, compact } from "../format";
 import {
   ENTITY_LOGOS, SectionHead, Stat, Delta, Highlights, SubNav, SponsorSlot, Methodology,
   HomeValueCalc, TaxSplit, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
+  SchoolPicker, useSchoolChoice, schoolAdjusted, WAUSAU_CITY_DOR,
 } from "../ui";
 import { BarTip, MoneyFlowSankey, DebtChart } from "../charts";
 import ChromeBar from "../ChromeBar";
@@ -28,7 +29,7 @@ const SECTIONS = ["where", "flow", "allfunds", "overtime", "workforce", "taxbill
 // so the sections differ from the County's: spending by GF department and by
 // all-funds category, the levy over time, the property-tax-by-jurisdiction
 // split, and debt — all from the City's own validated schema.
-export default function CityLedger({ b, chrome }) {
+export default function CityLedger({ b, extra, chrome }) {
   const t = useStrings();
   const [gfFlow, setGfFlow] = useState("departments");
   const [wfDept, setWfDept] = useState(
@@ -88,11 +89,14 @@ export default function CityLedger({ b, chrome }) {
 
   const j = b.tax_by_jurisdiction;
   const ry = j.rate_years[0];
-  const jtotal = j.total[ry];
-  const splitRows = useMemo(() => [...j.rows]
-    .sort((a, c) => c.rates[ry] - a.rates[ry])
-    .map((r) => ({ key: r.jurisdiction, label: r.jurisdiction, rate: r.rates[ry] })), [j.rows, ry]);
-  const cityShare = Math.round((splitRows[0].rate / jtotal) * 100);
+  const [school, setSchool] = useSchoolChoice();
+  const bookRows = useMemo(() => j.rows.map((r) => ({ key: r.jurisdiction, label: r.jurisdiction, rate: r.rates[ry] })), [j.rows, ry]);
+  const muni = extra.taxDistricts.municipalities.find((m) => m.code === WAUSAU_CITY_DOR);
+  const adj = useMemo(() => schoolAdjusted(bookRows, j.total[ry], muni, school), [bookRows, j.total, ry, muni, school]);
+  const jtotal = adj.total;
+  const splitRows = useMemo(() => [...adj.rows].sort((a, c) => c.rate - a.rate), [adj.rows]);
+  // The City's own share of the bill — the City row, not whichever row is largest.
+  const cityShare = Math.round((adj.rows.find((r) => /city of wausau/i.test(r.label)).rate / jtotal) * 100);
 
   const debt = b.debt;
 
@@ -120,7 +124,7 @@ export default function CityLedger({ b, chrome }) {
     const mover = [...b.expenditure_categories].sort((a, c) => (c.current - c.prior) - (a.current - a.prior))[0];
     return [
       { label: t("wc.cityLevy"), value: usd(b.meta.tax_levy), delta: levyPct },
-      { label: t("wc.totalBudgetAllFunds"), value: compact(b.meta.total_expenditures), delta: (cur / prior - 1) * 100 },
+      { label: t("wc.totalBudgetAllFunds"), value: compact(b.meta.total_expenditures), delta: (cur / prior - 1) * 100, neutral: true },
       { label: t("wc.fastestGrowing"), value: mover.category, note: "+" + compact(mover.current - mover.prior) },
     ];
   }, [t, b.expenditure_categories, b.meta, levyPct]);
@@ -171,7 +175,7 @@ export default function CityLedger({ b, chrome }) {
               <div className="bar-track"><div className="bar-fill" style={{ width: `${(r.proposed / gfMax) * 100}%` }} /></div>
               <div className="bar-val">{showVal(r.proposed)}</div>
               <div className="bar-share">{((r.proposed / gfTotal) * 100).toFixed(0)}%</div>
-              <div className="bar-delta"><Delta value={r.pct_change} invertColor={gfFlow === "departments"} /></div>
+              <div className="bar-delta"><Delta value={r.pct_change} neutral /></div>
             </div>
           ))}
         </div>
@@ -204,7 +208,7 @@ export default function CityLedger({ b, chrome }) {
               <div className="bar-track"><div className="bar-fill" style={{ width: `${(c.current / catMax) * 100}%` }} /></div>
               <div className="bar-val">{compact(c.current)}</div>
               <div className="bar-share">{((c.current / b.meta.total_expenditures) * 100).toFixed(0)}%</div>
-              <div className="bar-delta"><Delta value={(c.current / c.prior - 1) * 100} invertColor /></div>
+              <div className="bar-delta"><Delta value={(c.current / c.prior - 1) * 100} neutral /></div>
             </div>
           ))}
         </div>
@@ -268,11 +272,14 @@ export default function CityLedger({ b, chrome }) {
           {t("c.taxbill.dek", cityShare)}
         </SectionHead>
 
+        <SchoolPicker options={adj.options} value={adj.chosen.code} onChange={setSchool} />
+
         <HomeValueCalc id="homeval" label={t("c.taxbill.homeLabel")} outLabel={t("calc.estProperty")}
           outValue={usd(Math.round((homeValue / 1000) * jtotal))} value={homeValue} onChange={setHomeValue} />
 
         <TaxSplit rows={splitRows} total={jtotal} homeValue={homeValue} totalLabel={t("c.taxbill.totalRow")} />
         <p className="note">{t("c.taxbill.note", ry, jtotal.toFixed(2))}</p>
+        {adj.delta !== 0 && <p className="note">{t("tb.schoolDerived", adj.chosen.name, extra.taxDistricts.meta.tax_year)}</p>}
       </section>
 
       {/* DEVELOPMENT — tax increment districts */}

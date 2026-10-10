@@ -255,6 +255,12 @@ html{scroll-behavior:smooth;}
   border-left:4px solid var(--gold); color:var(--ink); text-decoration:none; font-size:14px; font-weight:600;}
 .edition--pointer:hover{border-color:var(--ink-soft); border-left-color:var(--gold);}
 .edition--pointer svg{flex-shrink:0;}
+/* "Which school district is your home in?" — the tax-bill views' school choice. */
+.school-pick{margin:0 0 22px;}
+.school-pick__q{font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px;}
+.school-pick .toggle{margin-bottom:8px; flex-wrap:wrap;}
+.school-pick .note{margin-top:0;}
+
 /* A section the current edition can't fill yet (e.g. the GF summary in a proposed book). */
 .callout-plain{margin:18px 0 0; padding:16px 20px; background:var(--paper-2); border-left:3px solid var(--rule);
   font-size:15px; line-height:1.55; color:#3a362d; max-width:70ch;}

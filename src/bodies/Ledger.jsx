@@ -134,7 +134,7 @@ export default function Ledger({ b, chrome }) {
     levyMover && levyMover.levy_difference > 0
       ? { label: t("wc.biggestLevyIncrease"), value: levyMover.department, note: "+" + usd(levyMover.levy_difference) }
       : (budgetPctChange != null
-        ? { label: t("wc.totalBudget"), value: compact(b.meta.total_expenditures), delta: budgetPctChange }
+        ? { label: t("wc.totalBudget"), value: compact(b.meta.total_expenditures), delta: budgetPctChange, neutral: true }
         : null),
   ]), [t, b.meta, levyPctChange, ratePctChange, levyMover, budgetPctChange]);
 
@@ -164,7 +164,7 @@ export default function Ledger({ b, chrome }) {
           : t("co.dek", b.meta.entity, fmtDate(b.meta.adopted, lang))}</p>
 
         <div className="stat-strip">
-          <Stat icon="💰" label={t("stat.totalBudget")} value={compact(b.meta.total_expenditures)} sub={budgetPctChange != null ? <Delta value={budgetPctChange} /> : null} />
+          <Stat icon="💰" label={t("stat.totalBudget")} value={compact(b.meta.total_expenditures)} sub={budgetPctChange != null ? <Delta value={budgetPctChange} neutral /> : null} />
           <Stat icon="🏛️" label={t("co.stat.countyLevy")} value={usd(b.meta.tax_levy)} sub={<Delta value={levyPctChange} />} />
           <Stat icon="🏠" label={t("stat.millRate")} value={"$" + b.meta.tax_rate.toFixed(2)} sub={<Delta value={ratePctChange} />} />
         </div>
@@ -198,10 +198,10 @@ export default function Ledger({ b, chrome }) {
               </div>
               <Spark className="hide-sm"
                 values={[r.actual_prior, r.budget_current, r.proposed_next]}
-                tone={(r.proposed_next >= r.actual_prior) === (flow === "revenues") ? "pos" : "neg"} />
+                tone="ink-soft" />
               <div className="bar-val">{showVal(r.proposed_next)}</div>
               <div className="bar-share">{((r.proposed_next / gfTotal) * 100).toFixed(0)}%</div>
-              <div className="bar-delta"><Delta value={r.pct_change} invertColor={flow === "expenditures"} /></div>
+              <div className="bar-delta"><Delta value={r.pct_change} neutral /></div>
             </div>
           ))}
         </div>

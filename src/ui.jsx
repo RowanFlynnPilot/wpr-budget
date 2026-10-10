@@ -69,19 +69,22 @@ export function useScrollSpy(sectionIds, routeId) {
 
 /* ---------- small building blocks ---------- */
 
-export function Delta({ value, invertColor = false, money = false, exact = false }) {
+// Color encodes what a change means for taxpayers, and nothing else. On what
+// they pay — a levy, a mill rate, a bill — up is red and down is green. On
+// spending and revenue (`neutral`), where more is not inherently better or
+// worse, the arrow carries the direction in neutral ink.
+export function Delta({ value, neutral = false, money = false, exact = false }) {
   if (value === null || value === undefined) return <span className="muted">—</span>;
   // A directional arrow on "no change" reads as a glitch — render zero neutral.
   if (value === 0) return <span className="delta muted">{money ? "$0" : pct(0)}</span>;
   const up = value > 0;
-  const good = invertColor ? !up : up;
   const Icon = up ? ArrowUpRight : ArrowDownRight;
   const sign = value > 0 ? "+" : value < 0 ? "−" : "";
   const text = money
     ? sign + (exact ? "$" + Math.abs(value).toLocaleString("en-US") : compact(Math.abs(value)))
     : pct(value);
   return (
-    <span className="delta" style={{ color: good ? "var(--neg)" : "var(--pos)" }}>
+    <span className="delta" style={{ color: neutral ? "var(--ink-soft)" : up ? "var(--neg)" : "var(--pos)" }}>
       <Icon size={13} strokeWidth={2.5} /> {text}
     </span>
   );
@@ -141,7 +144,8 @@ export function Spark({ values, tone, className = "" }) {
 
 // "What changed this year" lead band — a few auto-computed highlights rendered
 // between the masthead and the section nav. Each body passes its own
-// data-appropriate items: { label, value, delta?, invert?, money?, exact?, note? }.
+// data-appropriate items: { label, value, delta?, neutral?, money?, exact?, note? }
+// (neutral: a spending/revenue figure — see Delta).
 export function Highlights({ items, head }) {
   const t = useStrings();
   const shown = (items || []).filter(Boolean);
@@ -155,7 +159,7 @@ export function Highlights({ items, head }) {
             <div className="wc-label">{it.label}</div>
             <div className="wc-value">{it.value}</div>
             <div className="wc-meta">
-              {it.delta !== undefined && <Delta value={it.delta} invertColor={it.invert} money={it.money} exact={it.exact} />}
+              {it.delta !== undefined && <Delta value={it.delta} neutral={it.neutral} money={it.money} exact={it.exact} />}
               {it.note && <span className="wc-note">{it.note}</span>}
             </div>
           </div>
@@ -292,6 +296,76 @@ export function useHomeValue() {
     try { localStorage.setItem(HOME_VALUE_KEY, String(v)); } catch (e) { /* ignore */ }
   };
   return [value, set];
+}
+
+// City of Wausau homes are split between two school districts (DOR: ~95% of the
+// city's value in the Wausau School District, ~5% in D.C. Everest). The City
+// book's rate table carries only the Wausau School District's rate, so these
+// identify that municipality and that district in the DOR taxing-district data.
+export const WAUSAU_CITY_DOR = "37291";
+export const BOOK_SCHOOL_DISTRICT = "6223"; // Wausau School District (DPI/DOR code)
+
+// The school district a reader picked, shared across the tax-bill views and
+// persisted like the home value (localStorage only, never in URLs or shares).
+const SCHOOL_KEY = "wpr-budget-school";
+export function useSchoolChoice() {
+  const [code, setCode] = useState(() => {
+    try { return localStorage.getItem(SCHOOL_KEY) || BOOK_SCHOOL_DISTRICT; } catch (e) { return BOOK_SCHOOL_DISTRICT; }
+  });
+  const set = (c) => {
+    setCode(c);
+    try { localStorage.setItem(SCHOOL_KEY, c); } catch (e) { /* ignore */ }
+  };
+  return [code, set];
+}
+
+// The City book's jurisdiction rates (per $1,000 of ASSESSED value, school net
+// of the school-levy credit) re-based for a home in school district `code`.
+// Only the gross school rate differs between the city's school districts: the
+// city, county and college rates are levied city-wide, and the school-levy
+// credit is applied as one city-wide rate. So the swap is the difference of the
+// two districts' gross school rates (levy ÷ equalized value, from DOR), put on
+// the assessed basis by the city's assessment level. Returns the rows with the
+// school row relabeled/re-rated, the adjusted total, and the picker options
+// (null when the municipality has a single school district).
+export function schoolAdjusted(rows, total, muni, code) {
+  if (!muni) throw new Error(`DOR taxing-district data has no municipality ${WAUSAU_CITY_DOR}`);
+  const per1k = (s) => (s.levy / s.full_value) * 1000;
+  const book = muni.school_districts.find((s) => s.code === BOOK_SCHOOL_DISTRICT);
+  if (!book) throw new Error(`DOR data has no school district ${BOOK_SCHOOL_DISTRICT} in municipality ${muni.code}`);
+  const chosen = muni.school_districts.find((s) => s.code === code) || book;
+  const delta = chosen === book ? 0 : (per1k(chosen) - per1k(book)) / muni.assessment_level;
+  const schoolRows = rows.filter((r) => /school district/i.test(r.label));
+  if (schoolRows.length !== 1) throw new Error(`expected one school row in the tax table, found ${schoolRows.length}`);
+  return {
+    rows: rows.map((r) => (r === schoolRows[0] && chosen !== book
+      ? { ...r, key: chosen.code, label: `${chosen.name} School District (net)`, rate: r.rate + delta, drillId: null }
+      : r)),
+    total: total + delta,
+    delta,
+    chosen,
+    options: muni.school_districts.length > 1
+      ? muni.school_districts.map((s) => ({ code: s.code, label: `${s.name} School District`, share: s.full_value / muni.full_value_ex_tif }))
+      : null,
+  };
+}
+
+export function SchoolPicker({ options, value, onChange }) {
+  const t = useStrings();
+  if (!options) return null;
+  const other = options.find((o) => o.code !== BOOK_SCHOOL_DISTRICT);
+  return (
+    <div className="school-pick">
+      <div className="school-pick__q">{t("tb.schoolQ")}</div>
+      <div className="toggle" role="group" aria-label={t("tb.schoolQ")}>
+        {options.map((o) => (
+          <button key={o.code} type="button" aria-pressed={value === o.code} className={value === o.code ? "on" : ""}
+            onClick={() => onChange(o.code)}>{o.label}</button>
+        ))}
+      </div>
+      <p className="note">{t("tb.schoolNote", Math.round(other.share * 100), other.label)}</p>
+    </div>
+  );
 }
 
 // The "what's your home worth" input + estimated-bill output. Controlled: the

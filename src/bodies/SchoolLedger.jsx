@@ -205,7 +205,7 @@ export default function SchoolLedger({ b, chrome }) {
               <div className="bar-track"><div className="bar-fill" style={{ width: `${(r.amount / gfMax) * 100}%` }} /></div>
               <div className="bar-val">{compact(r.amount)}</div>
               <div className="bar-share">{((r.amount / gfTotal) * 100).toFixed(0)}%</div>
-              <div className="bar-delta"><Delta value={(r.amount / r.prior - 1) * 100} invertColor={gfFlow === "expenditures"} /></div>
+              <div className="bar-delta"><Delta value={(r.amount / r.prior - 1) * 100} neutral /></div>
             </div>
           ))}
         </div>
@@ -257,7 +257,7 @@ export default function SchoolLedger({ b, chrome }) {
               <div className="bar-track"><div className="bar-fill" style={{ width: `${(f.expenditures / fundMax) * 100}%` }} /></div>
               <div className="bar-val">{compact(f.expenditures)}</div>
               <div className="bar-share">{((f.expenditures / fundsTotal) * 100).toFixed(0)}%</div>
-              <div className="bar-delta"><Delta value={(f.expenditures / f.prior_expenditures - 1) * 100} invertColor /></div>
+              <div className="bar-delta"><Delta value={(f.expenditures / f.prior_expenditures - 1) * 100} neutral /></div>
             </div>
           ))}
         </div>

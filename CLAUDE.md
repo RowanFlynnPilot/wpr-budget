@@ -55,6 +55,27 @@ per-department levy) are structurally different governments.
 | City of Wausau | city | `scripts/extract_wausau.py` | `public/wausau-city.json` | `CityLedger` |
 | Wausau School District | school | `scripts/extract_school.py` | `public/wausau-school.json` | `SchoolLedger` |
 | Your Tax Bill (overview) | taxbill | — (no extractor) | `public/wausau-city.json` (reuses the City's `tax_by_jurisdiction`) | `TaxBillOverview` |
+| *(supporting data)* | — | `scripts/extract_dor.py` | `public/marathon-tax-districts.json` | loaded via the manifest's `with` by City + Tax Bill |
+
+**State taxing-district data (DOR).** `extract_dor.py` reads the Wisconsin DOR
+"Town, Village and City Taxes" workbook (`sources/dor-tvc25.xlsx`, from
+https://www.revenue.wi.gov/Pages/Report/tvc-bulletin.aspx — posted each June, no
+download block) into `public/marathon-tax-districts.json`: all 61 Marathon County
+municipalities with levies by government, full/TIF-out values, assessment level,
+school-levy credit, and each school district's share of value + levy (28
+municipalities span more than one district). Header text is checked per column;
+sums reconcile within $1 per part (DOR rounds each part to the dollar). Today it
+powers the **school-district choice** on both tax-bill views: ~5% of the City of
+Wausau's value is in **D.C. Everest**, whose school rate is lower — the City
+book's table assumes the Wausau School District, so those homeowners were shown
+~$0.75/$1,000 too much (~$150 on a $200K home). `schoolAdjusted()` (ui.jsx)
+swaps only the gross school rate (levy ÷ value, ÷ assessment level), since the
+city/county/college rates and school-levy credit are city-wide; the choice
+persists in localStorage like the home value. Next use: a bill for every
+municipality. App fetches a route's `with` files before rendering and passes
+them to the body as `extra`. NOTE: the City book's rates are per $1,000 of
+ASSESSED value (net of the school credit) — copy that said "equalized" was wrong
+and is fixed.
 
 The last entry is NOT a government — it's a cross-entity **overview**: a City of Wausau
 homeowner's complete property-tax bill split across all four taxing jurisdictions
@@ -377,6 +398,11 @@ for 2025-26) for a per-student denominator.
   toggles/chips, `role="img"` on the Sankey, `aria-current` on the switcher).
   Tax-levy values render in full dollars everywhere EXCEPT the levy chart y-axes
   ($M); the County dept-ledger levy uses compact on mobile via `.lg-only`/`.sm-only`.
+  **Change colors (decided 2026-10-10):** red/green ONLY on what taxpayers pay —
+  a levy, a mill rate, a bill — where up = red, down = green. Spending and
+  revenue changes are `<Delta neutral>` (ink-soft arrows; sparklines ink-soft):
+  more spending isn't inherently good or bad, and the old `invertColor` flag
+  had left a spending increase green beside a rust sparkline in the same row.
 
 ### Sponsor surface (BUILT — hidden until enabled)
 

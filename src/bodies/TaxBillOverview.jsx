@@ -1,7 +1,10 @@
 import React, { useMemo } from "react";
 import { useStrings } from "../i18n";
 import { usd } from "../format";
-import { SectionHead, Stat, SponsorSlot, HomeValueCalc, TaxSplit, useAnchorOnMount, useHomeValue } from "../ui";
+import {
+  SectionHead, Stat, SponsorSlot, HomeValueCalc, TaxSplit, SchoolPicker, useAnchorOnMount, useHomeValue,
+  useSchoolChoice, schoolAdjusted, WAUSAU_CITY_DOR,
+} from "../ui";
 import ChromeBar from "../ChromeBar";
 
 // Cross-entity overview: a City of Wausau homeowner's COMPLETE local property-
@@ -16,25 +19,27 @@ function billEntityFor(name) {
   const n = name.toLowerCase();
   if (n.includes("city of wausau")) return "wausau-city";
   if (n.includes("marathon county")) return "marathon-county";
-  if (n.includes("school")) return "wausau-school";
-  return null; // e.g. NC Technical College — not its own entity in the suite
+  if (n.includes("wausau school district")) return "wausau-school";
+  return null; // e.g. NC Technical College, D.C. Everest — not entities in the suite
 }
 
-export default function TaxBillOverview({ b, chrome }) {
+export default function TaxBillOverview({ b, extra, chrome }) {
   const t = useStrings();
   const [homeValue, setHomeValue] = useHomeValue();
+  const [school, setSchool] = useSchoolChoice();
   useAnchorOnMount();
 
   const j = b.tax_by_jurisdiction;
   const ry = j.rate_years[0];
-  const jtotal = j.total[ry];
   const inSuite = (id) => id && chrome.entities.some((e) => e.id === id);
-  const splitRows = useMemo(() => [...j.rows]
-    .sort((a, c) => c.rates[ry] - a.rates[ry])
-    .map((r) => {
-      const id = billEntityFor(r.jurisdiction);
-      return { key: r.jurisdiction, label: r.jurisdiction, rate: r.rates[ry], drillId: inSuite(id) ? id : null };
-    }), [j.rows, ry]);
+  const bookRows = useMemo(() => j.rows.map((r) => {
+    const id = billEntityFor(r.jurisdiction);
+    return { key: r.jurisdiction, label: r.jurisdiction, rate: r.rates[ry], drillId: inSuite(id) ? id : null };
+  }), [j.rows, ry]);
+  const muni = extra.taxDistricts.municipalities.find((m) => m.code === WAUSAU_CITY_DOR);
+  const adj = useMemo(() => schoolAdjusted(bookRows, j.total[ry], muni, school), [bookRows, j.total, ry, muni, school]);
+  const jtotal = adj.total;
+  const splitRows = useMemo(() => [...adj.rows].sort((a, c) => c.rate - a.rate), [adj.rows]);
   const bill = Math.round((homeValue / 1000) * jtotal);
   const top = splitRows[0];
 
@@ -65,6 +70,8 @@ export default function TaxBillOverview({ b, chrome }) {
           {t("tb.sec.dek")}
         </SectionHead>
 
+        <SchoolPicker options={adj.options} value={adj.chosen.code} onChange={setSchool} />
+
         <HomeValueCalc id="homeval-all" label={t("tb.homeLabel")} outLabel={t("tb.estOut")}
           outValue={usd(bill)} value={homeValue} onChange={setHomeValue} />
 
@@ -72,6 +79,7 @@ export default function TaxBillOverview({ b, chrome }) {
           totalLabel={t("tb.totalRow")} exploreLabel={t("tb.explore")}
           onDrill={(id) => chrome.onSelect(id)} />
         <p className="note">{t("tb.note", ry, jtotal.toFixed(2))}</p>
+        {adj.delta !== 0 && <p className="note">{t("tb.schoolDerived", adj.chosen.name, extra.taxDistricts.meta.tax_year)}</p>}
       </section>
 
       <footer className="foot">

@@ -21,7 +21,10 @@
     "name": "City of Wausau",
     "kind": "city",
     "short": "City of Wausau",
-    "data": "wausau-city.json"
+    "data": "wausau-city.json",
+    "with": {
+      "taxDistricts": "marathon-tax-districts.json"
+    }
   },
   {
     "id": "wausau-school",
@@ -35,6 +38,9 @@
     "name": "Your Tax Bill",
     "kind": "taxbill",
     "short": "Your Tax Bill",
-    "data": "wausau-city.json"
+    "data": "wausau-city.json",
+    "with": {
+      "taxDistricts": "marathon-tax-districts.json"
+    }
   }
 ]

@@ -90,15 +90,21 @@ export default function App() {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  // Fetch the active route's data. The stale flag closes a race: switching
-  // A->B while A's (slower) fetch is in flight must not let A's late response
-  // overwrite B's data — with the route gate below, that would strand the
-  // view on the loading screen.
+  // Fetch the active route's data, plus any supporting files the manifest
+  // lists under `with` (e.g. the DOR taxing-district data the tax-bill views
+  // need) — all before the body renders, so a body never sees half its data.
+  // The stale flag closes a race: switching A->B while A's (slower) fetch is in
+  // flight must not let A's late response overwrite B's data — with the route
+  // gate below, that would strand the view on the loading screen.
   useEffect(() => {
     if (!route) return;
     let stale = false;
-    fetchData(resolveRoute(route).dataFile)
-      .then((payload) => { if (!stale) setData({ route, payload }); })
+    const { ent, dataFile } = resolveRoute(route);
+    const extras = Object.entries(ent.with || {});
+    Promise.all([fetchData(dataFile), ...extras.map(([, file]) => fetchData(file))])
+      .then(([payload, ...more]) => {
+        if (!stale) setData({ route, payload, extra: Object.fromEntries(extras.map(([key], i) => [key, more[i]])) });
+      })
       .catch((e) => { if (!stale) setErr(String(e.message || e)); });
     return () => { stale = true; };
   }, [route]);
@@ -126,7 +132,7 @@ export default function App() {
   return (
     <LangProvider>
       <Suspense fallback={<Frame>Loading the ledger&hellip;</Frame>}>
-        <Body key={route} b={data.payload} chrome={chrome} />
+        <Body key={route} b={data.payload} extra={data.extra} chrome={chrome} />
       </Suspense>
     </LangProvider>
   );

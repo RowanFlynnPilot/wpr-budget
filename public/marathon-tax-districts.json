@@ -1,0 +1,2019 @@
+{
+  "meta": {
+    "source": "Wisconsin Department of Revenue, 2025 Town, Village and City Taxes",
+    "source_url": "https://www.revenue.wi.gov/Pages/Report/tvc-bulletin.aspx",
+    "tax_year": 2025,
+    "county": "Marathon"
+  },
+  "municipalities": [
+    {
+      "code": "37201",
+      "type": "City",
+      "name": "Abbotsford",
+      "split_county": true,
+      "population": 606,
+      "full_value": 81186400,
+      "full_value_ex_tif": 53722800,
+      "assessment_level": 0.86,
+      "total_tax": 1574265,
+      "school_levy_credit": 94972,
+      "gross_rate": 0.01939,
+      "effective_rate": 0.01822,
+      "taxes": {
+        "county": 175188,
+        "local": 344674,
+        "school": 461357,
+        "technical_college": 55197,
+        "other": 537850
+      },
+      "school_districts": [
+        {
+          "code": "0007",
+          "name": "Abbotsford",
+          "full_value": 48328202,
+          "levy": 429150
+        },
+        {
+          "code": "1162",
+          "name": "Colby",
+          "full_value": 5394598,
+          "levy": 32207
+        }
+      ]
+    },
+    {
+      "code": "37211",
+      "type": "City",
+      "name": "Colby",
+      "split_county": true,
+      "population": 670,
+      "full_value": 48462400,
+      "full_value_ex_tif": 48462400,
+      "assessment_level": 0.96,
+      "total_tax": 789644,
+      "school_levy_credit": 60750,
+      "gross_rate": 0.01629,
+      "effective_rate": 0.01504,
+      "taxes": {
+        "county": 158034,
+        "local": 292484,
+        "school": 289333,
+        "technical_college": 49792,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "1162",
+          "name": "Colby",
+          "full_value": 48462400,
+          "levy": 289333
+        }
+      ]
+    },
+    {
+      "code": "37250",
+      "type": "City",
+      "name": "Marshfield",
+      "split_county": true,
+      "population": 1162,
+      "full_value": 181969600,
+      "full_value_ex_tif": 178344600,
+      "assessment_level": 0.94,
+      "total_tax": 3245885,
+      "school_levy_credit": 252331,
+      "gross_rate": 0.01784,
+      "effective_rate": 0.01645,
+      "taxes": {
+        "county": 583574,
+        "local": 1399850,
+        "school": 1087417,
+        "technical_college": 110383,
+        "other": 64661
+      },
+      "school_districts": [
+        {
+          "code": "3339",
+          "name": "Marshfield",
+          "full_value": 178344600,
+          "levy": 1087417
+        }
+      ]
+    },
+    {
+      "code": "37251",
+      "type": "City",
+      "name": "Mosinee",
+      "split_county": false,
+      "population": 4578,
+      "full_value": 588699300,
+      "full_value_ex_tif": 537325900,
+      "assessment_level": 0.7,
+      "total_tax": 8922170,
+      "school_levy_credit": 603813,
+      "gross_rate": 0.01516,
+      "effective_rate": 0.01413,
+      "taxes": {
+        "county": 1879996,
+        "local": 2585027,
+        "school": 3126477,
+        "technical_college": 552070,
+        "other": 778601
+      },
+      "school_districts": [
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 537325900,
+          "levy": 3126477
+        }
+      ]
+    },
+    {
+      "code": "37281",
+      "type": "City",
+      "name": "Schofield",
+      "split_county": false,
+      "population": 2279,
+      "full_value": 415059700,
+      "full_value_ex_tif": 353356000,
+      "assessment_level": 0.91,
+      "total_tax": 6775557,
+      "school_levy_credit": 467042,
+      "gross_rate": 0.01632,
+      "effective_rate": 0.0152,
+      "taxes": {
+        "county": 1236322,
+        "local": 2094971,
+        "school": 2073944,
+        "technical_college": 363052,
+        "other": 1007269
+      },
+      "school_districts": [
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 353356000,
+          "levy": 2073944
+        }
+      ]
+    },
+    {
+      "code": "37291",
+      "type": "City",
+      "name": "Wausau",
+      "split_county": false,
+      "population": 40571,
+      "full_value": 4569050900,
+      "full_value_ex_tif": 4109321500,
+      "assessment_level": 0.95,
+      "total_tax": 88652996,
+      "school_levy_credit": 6365834,
+      "gross_rate": 0.0194,
+      "effective_rate": 0.01801,
+      "taxes": {
+        "county": 14377692,
+        "local": 34226703,
+        "school": 26890864,
+        "technical_college": 4222077,
+        "other": 8935660
+      },
+      "school_districts": [
+        {
+          "code": "6223",
+          "name": "Wausau",
+          "full_value": 3892235167,
+          "levy": 25616725
+        },
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 217086333,
+          "levy": 1274139
+        }
+      ]
+    },
+    {
+      "code": "37102",
+      "type": "Village",
+      "name": "Athens",
+      "split_county": false,
+      "population": 1165,
+      "full_value": 113114500,
+      "full_value_ex_tif": 86276800,
+      "assessment_level": 1.02,
+      "total_tax": 1915378,
+      "school_levy_credit": 125596,
+      "gross_rate": 0.01693,
+      "effective_rate": 0.01582,
+      "taxes": {
+        "county": 301865,
+        "local": 391774,
+        "school": 678649,
+        "technical_college": 88644,
+        "other": 454445
+      },
+      "school_districts": [
+        {
+          "code": "0196",
+          "name": "Athens",
+          "full_value": 86276800,
+          "levy": 678649
+        }
+      ]
+    },
+    {
+      "code": "37104",
+      "type": "Village",
+      "name": "Birnamwood",
+      "split_county": true,
+      "population": 16,
+      "full_value": 2140500,
+      "full_value_ex_tif": 2140500,
+      "assessment_level": 0.76,
+      "total_tax": 28957,
+      "school_levy_credit": 2569,
+      "gross_rate": 0.01353,
+      "effective_rate": 0.01233,
+      "taxes": {
+        "county": 7465,
+        "local": 6000,
+        "school": 13292,
+        "technical_college": 2199,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6692",
+          "name": "Wittenberg-Birnamwood",
+          "full_value": 2140500,
+          "levy": 13292
+        }
+      ]
+    },
+    {
+      "code": "37116",
+      "type": "Village",
+      "name": "Dorchester",
+      "split_county": true,
+      "population": 3,
+      "full_value": 1421000,
+      "full_value_ex_tif": 1421000,
+      "assessment_level": 0.85,
+      "total_tax": 25487,
+      "school_levy_credit": 1716,
+      "gross_rate": 0.01794,
+      "effective_rate": 0.01673,
+      "taxes": {
+        "county": 4956,
+        "local": 10587,
+        "school": 8484,
+        "technical_college": 1460,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "1162",
+          "name": "Colby",
+          "full_value": 1421000,
+          "levy": 8484
+        }
+      ]
+    },
+    {
+      "code": "37121",
+      "type": "Village",
+      "name": "Edgar",
+      "split_county": false,
+      "population": 1443,
+      "full_value": 127294300,
+      "full_value_ex_tif": 107919900,
+      "assessment_level": 1.01,
+      "total_tax": 1843145,
+      "school_levy_credit": 131281,
+      "gross_rate": 0.01448,
+      "effective_rate": 0.01345,
+      "taxes": {
+        "county": 377590,
+        "local": 404374,
+        "school": 669770,
+        "technical_college": 110881,
+        "other": 280530
+      },
+      "school_districts": [
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 107919900,
+          "levy": 669770
+        }
+      ]
+    },
+    {
+      "code": "37122",
+      "type": "Village",
+      "name": "Elderon",
+      "split_county": false,
+      "population": 157,
+      "full_value": 14064900,
+      "full_value_ex_tif": 14064900,
+      "assessment_level": 0.88,
+      "total_tax": 166676,
+      "school_levy_credit": 17780,
+      "gross_rate": 0.01185,
+      "effective_rate": 0.01059,
+      "taxes": {
+        "county": 49053,
+        "local": 15830,
+        "school": 87343,
+        "technical_college": 14451,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6692",
+          "name": "Wittenberg-Birnamwood",
+          "full_value": 14064900,
+          "levy": 87343
+        }
+      ]
+    },
+    {
+      "code": "37126",
+      "type": "Village",
+      "name": "Fenwood",
+      "split_county": false,
+      "population": 142,
+      "full_value": 10703000,
+      "full_value_ex_tif": 10703000,
+      "assessment_level": 0.97,
+      "total_tax": 123529,
+      "school_levy_credit": 13684,
+      "gross_rate": 0.01154,
+      "effective_rate": 0.01026,
+      "taxes": {
+        "county": 37448,
+        "local": 8660,
+        "school": 66425,
+        "technical_college": 10997,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 10703000,
+          "levy": 66425
+        }
+      ]
+    },
+    {
+      "code": "37136",
+      "type": "Village",
+      "name": "Hatley",
+      "split_county": false,
+      "population": 685,
+      "full_value": 77557300,
+      "full_value_ex_tif": 53233900,
+      "assessment_level": 0.58,
+      "total_tax": 1000761,
+      "school_levy_credit": 75692,
+      "gross_rate": 0.0129,
+      "effective_rate": 0.01193,
+      "taxes": {
+        "county": 186255,
+        "local": 133510,
+        "school": 312444,
+        "technical_college": 54695,
+        "other": 313857
+      },
+      "school_districts": [
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 53233900,
+          "levy": 312444
+        }
+      ]
+    },
+    {
+      "code": "37145",
+      "type": "Village",
+      "name": "Kronenwetter",
+      "split_county": false,
+      "population": 8595,
+      "full_value": 1081333900,
+      "full_value_ex_tif": 975672700,
+      "assessment_level": 0.69,
+      "total_tax": 14240794,
+      "school_levy_credit": 1270064,
+      "gross_rate": 0.01317,
+      "effective_rate": 0.012,
+      "taxes": {
+        "county": 3413683,
+        "local": 2722913,
+        "school": 5712848,
+        "technical_college": 1002444,
+        "other": 1388906
+      },
+      "school_districts": [
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 706522056,
+          "levy": 4146772
+        },
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 269150644,
+          "levy": 1566076
+        }
+      ]
+    },
+    {
+      "code": "37146",
+      "type": "Village",
+      "name": "Maine",
+      "split_county": false,
+      "population": 2632,
+      "full_value": 454130500,
+      "full_value_ex_tif": 433137700,
+      "assessment_level": 0.79,
+      "total_tax": 6728135,
+      "school_levy_credit": 630388,
+      "gross_rate": 0.01482,
+      "effective_rate": 0.01343,
+      "taxes": {
+        "county": 1515462,
+        "local": 1605940,
+        "school": 2850693,
+        "technical_college": 445023,
+        "other": 311017
+      },
+      "school_districts": [
+        {
+          "code": "6223",
+          "name": "Wausau",
+          "full_value": 433137700,
+          "levy": 2850693
+        }
+      ]
+    },
+    {
+      "code": "37151",
+      "type": "Village",
+      "name": "Marathon City",
+      "split_county": false,
+      "population": 1602,
+      "full_value": 255179900,
+      "full_value_ex_tif": 206216800,
+      "assessment_level": 1.01,
+      "total_tax": 4259748,
+      "school_levy_credit": 311817,
+      "gross_rate": 0.01669,
+      "effective_rate": 0.01547,
+      "taxes": {
+        "county": 721511,
+        "local": 948381,
+        "school": 1560633,
+        "technical_college": 211875,
+        "other": 817347
+      },
+      "school_districts": [
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 206216800,
+          "levy": 1560633
+        }
+      ]
+    },
+    {
+      "code": "37168",
+      "type": "Village",
+      "name": "Rib Mountain",
+      "split_county": false,
+      "population": 7333,
+      "full_value": 1372752700,
+      "full_value_ex_tif": 1365107900,
+      "assessment_level": 1.0,
+      "total_tax": 18904527,
+      "school_levy_credit": 2144847,
+      "gross_rate": 0.01377,
+      "effective_rate": 0.01221,
+      "taxes": {
+        "county": 4776239,
+        "local": 3635995,
+        "school": 8984450,
+        "technical_college": 1402565,
+        "other": 105278
+      },
+      "school_districts": [
+        {
+          "code": "6223",
+          "name": "Wausau",
+          "full_value": 1365107900,
+          "levy": 8984450
+        }
+      ]
+    },
+    {
+      "code": "37176",
+      "type": "Village",
+      "name": "Rothschild",
+      "split_county": false,
+      "population": 5678,
+      "full_value": 793117300,
+      "full_value_ex_tif": 740659000,
+      "assessment_level": 0.89,
+      "total_tax": 12481351,
+      "school_levy_credit": 1064126,
+      "gross_rate": 0.01574,
+      "effective_rate": 0.0144,
+      "taxes": {
+        "county": 2583120,
+        "local": 3964578,
+        "school": 4347131,
+        "technical_college": 760982,
+        "other": 825540
+      },
+      "school_districts": [
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 740659000,
+          "levy": 4347131
+        }
+      ]
+    },
+    {
+      "code": "37181",
+      "type": "Village",
+      "name": "Spencer",
+      "split_county": false,
+      "population": 1845,
+      "full_value": 178332000,
+      "full_value_ex_tif": 160520400,
+      "assessment_level": 0.79,
+      "total_tax": 3267992,
+      "school_levy_credit": 255867,
+      "gross_rate": 0.01833,
+      "effective_rate": 0.01689,
+      "taxes": {
+        "county": 559830,
+        "local": 854631,
+        "school": 1362202,
+        "technical_college": 164925,
+        "other": 326403
+      },
+      "school_districts": [
+        {
+          "code": "5467",
+          "name": "Spencer",
+          "full_value": 160520400,
+          "levy": 1362202
+        }
+      ]
+    },
+    {
+      "code": "37182",
+      "type": "Village",
+      "name": "Stratford",
+      "split_county": false,
+      "population": 1644,
+      "full_value": 181772800,
+      "full_value_ex_tif": 140083400,
+      "assessment_level": 1.01,
+      "total_tax": 2974742,
+      "school_levy_credit": 195211,
+      "gross_rate": 0.01637,
+      "effective_rate": 0.01529,
+      "taxes": {
+        "county": 490124,
+        "local": 712540,
+        "school": 945897,
+        "technical_college": 143927,
+        "other": 682254
+      },
+      "school_districts": [
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 140083400,
+          "levy": 945897
+        }
+      ]
+    },
+    {
+      "code": "37186",
+      "type": "Village",
+      "name": "Unity",
+      "split_county": true,
+      "population": 229,
+      "full_value": 15941100,
+      "full_value_ex_tif": 15607300,
+      "assessment_level": 0.63,
+      "total_tax": 194647,
+      "school_levy_credit": 17863,
+      "gross_rate": 0.01221,
+      "effective_rate": 0.01109,
+      "taxes": {
+        "county": 54432,
+        "local": 26837,
+        "school": 93180,
+        "technical_college": 16036,
+        "other": 4163
+      },
+      "school_districts": [
+        {
+          "code": "1162",
+          "name": "Colby",
+          "full_value": 15607300,
+          "levy": 93180
+        }
+      ]
+    },
+    {
+      "code": "37192",
+      "type": "Village",
+      "name": "Weston",
+      "split_county": false,
+      "population": 15944,
+      "full_value": 1928048300,
+      "full_value_ex_tif": 1645513200,
+      "assessment_level": 0.93,
+      "total_tax": 30023580,
+      "school_levy_credit": 2123630,
+      "gross_rate": 0.01557,
+      "effective_rate": 0.01447,
+      "taxes": {
+        "county": 5738886,
+        "local": 8536423,
+        "school": 9657970,
+        "technical_college": 1690664,
+        "other": 4399637
+      },
+      "school_districts": [
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 1645513200,
+          "levy": 9657970
+        }
+      ]
+    },
+    {
+      "code": "37002",
+      "type": "Town",
+      "name": "Bergen",
+      "split_county": false,
+      "population": 737,
+      "full_value": 127872700,
+      "full_value_ex_tif": 127872700,
+      "assessment_level": 0.7,
+      "total_tax": 1457805,
+      "school_levy_credit": 143098,
+      "gross_rate": 0.0114,
+      "effective_rate": 0.01028,
+      "taxes": {
+        "county": 447401,
+        "local": 134984,
+        "school": 744038,
+        "technical_college": 131381,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 127872700,
+          "levy": 744038
+        }
+      ]
+    },
+    {
+      "code": "37004",
+      "type": "Town",
+      "name": "Berlin",
+      "split_county": false,
+      "population": 964,
+      "full_value": 130270500,
+      "full_value_ex_tif": 130270500,
+      "assessment_level": 0.89,
+      "total_tax": 1627424,
+      "school_levy_credit": 200620,
+      "gross_rate": 0.01249,
+      "effective_rate": 0.01095,
+      "taxes": {
+        "county": 455790,
+        "local": 171694,
+        "school": 866094,
+        "technical_college": 133845,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6223",
+          "name": "Wausau",
+          "full_value": 121430657,
+          "levy": 799195
+        },
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 8839843,
+          "levy": 66899
+        }
+      ]
+    },
+    {
+      "code": "37006",
+      "type": "Town",
+      "name": "Bern",
+      "split_county": false,
+      "population": 625,
+      "full_value": 70151400,
+      "full_value_ex_tif": 70151400,
+      "assessment_level": 0.71,
+      "total_tax": 902598,
+      "school_levy_credit": 92323,
+      "gross_rate": 0.01287,
+      "effective_rate": 0.01155,
+      "taxes": {
+        "county": 245446,
+        "local": 48712,
+        "school": 536364,
+        "technical_college": 72076,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "0196",
+          "name": "Athens",
+          "full_value": 61904904,
+          "levy": 486941
+        },
+        {
+          "code": "3409",
+          "name": "Medford Area",
+          "full_value": 8246496,
+          "levy": 49423
+        }
+      ]
+    },
+    {
+      "code": "37008",
+      "type": "Town",
+      "name": "Bevent",
+      "split_county": false,
+      "population": 1052,
+      "full_value": 189714800,
+      "full_value_ex_tif": 189714800,
+      "assessment_level": 0.54,
+      "total_tax": 2392433,
+      "school_levy_credit": 246462,
+      "gross_rate": 0.01261,
+      "effective_rate": 0.01131,
+      "taxes": {
+        "county": 663774,
+        "local": 188985,
+        "school": 1335426,
+        "technical_college": 194920,
+        "other": 9327
+      },
+      "school_districts": [
+        {
+          "code": "4963",
+          "name": "Rosholt",
+          "full_value": 173594125,
+          "levy": 1235317
+        },
+        {
+          "code": "6692",
+          "name": "Wittenberg-Birnamwood",
+          "full_value": 16120675,
+          "levy": 100109
+        }
+      ]
+    },
+    {
+      "code": "37010",
+      "type": "Town",
+      "name": "Brighton",
+      "split_county": false,
+      "population": 612,
+      "full_value": 78691000,
+      "full_value_ex_tif": 78691000,
+      "assessment_level": 0.64,
+      "total_tax": 1115386,
+      "school_levy_credit": 103434,
+      "gross_rate": 0.01417,
+      "effective_rate": 0.01286,
+      "taxes": {
+        "county": 275324,
+        "local": 182050,
+        "school": 577162,
+        "technical_college": 80850,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "5467",
+          "name": "Spencer",
+          "full_value": 42671025,
+          "levy": 362113
+        },
+        {
+          "code": "1162",
+          "name": "Colby",
+          "full_value": 36019975,
+          "levy": 215049
+        }
+      ]
+    },
+    {
+      "code": "37012",
+      "type": "Town",
+      "name": "Cassel",
+      "split_county": false,
+      "population": 958,
+      "full_value": 139835600,
+      "full_value_ex_tif": 139835600,
+      "assessment_level": 0.64,
+      "total_tax": 1701954,
+      "school_levy_credit": 180838,
+      "gross_rate": 0.01217,
+      "effective_rate": 0.01088,
+      "taxes": {
+        "county": 489257,
+        "local": 90249,
+        "school": 978776,
+        "technical_college": 143673,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 81462486,
+          "levy": 616502
+        },
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 58373114,
+          "levy": 362274
+        }
+      ]
+    },
+    {
+      "code": "37014",
+      "type": "Town",
+      "name": "Cleveland",
+      "split_county": false,
+      "population": 1502,
+      "full_value": 201856900,
+      "full_value_ex_tif": 201856900,
+      "assessment_level": 0.97,
+      "total_tax": 2836639,
+      "school_levy_credit": 287727,
+      "gross_rate": 0.01405,
+      "effective_rate": 0.01263,
+      "taxes": {
+        "county": 706257,
+        "local": 561652,
+        "school": 1361335,
+        "technical_college": 207396,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 198779171,
+          "levy": 1342234
+        },
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 3077729,
+          "levy": 19101
+        }
+      ]
+    },
+    {
+      "code": "37016",
+      "type": "Town",
+      "name": "Day",
+      "split_county": false,
+      "population": 1057,
+      "full_value": 138644500,
+      "full_value_ex_tif": 138644500,
+      "assessment_level": 0.91,
+      "total_tax": 1836705,
+      "school_levy_credit": 181762,
+      "gross_rate": 0.01325,
+      "effective_rate": 0.01194,
+      "taxes": {
+        "county": 485089,
+        "local": 347698,
+        "school": 882352,
+        "technical_college": 111566,
+        "other": 10000
+      },
+      "school_districts": [
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 63044729,
+          "levy": 425702
+        },
+        {
+          "code": "3339",
+          "name": "Marshfield",
+          "full_value": 59793512,
+          "levy": 364578
+        },
+        {
+          "code": "0203",
+          "name": "Auburndale",
+          "full_value": 15806260,
+          "levy": 92072
+        }
+      ]
+    },
+    {
+      "code": "37018",
+      "type": "Town",
+      "name": "Easton",
+      "split_county": false,
+      "population": 1184,
+      "full_value": 161428900,
+      "full_value_ex_tif": 161428900,
+      "assessment_level": 1.01,
+      "total_tax": 2226288,
+      "school_levy_credit": 227388,
+      "gross_rate": 0.01379,
+      "effective_rate": 0.01238,
+      "taxes": {
+        "county": 564807,
+        "local": 548152,
+        "school": 947471,
+        "technical_college": 165858,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 161428900,
+          "levy": 947471
+        }
+      ]
+    },
+    {
+      "code": "37020",
+      "type": "Town",
+      "name": "Eau Pleine",
+      "split_county": false,
+      "population": 774,
+      "full_value": 108741500,
+      "full_value_ex_tif": 108741500,
+      "assessment_level": 0.65,
+      "total_tax": 1298699,
+      "school_levy_credit": 141150,
+      "gross_rate": 0.01194,
+      "effective_rate": 0.01064,
+      "taxes": {
+        "county": 380465,
+        "local": 72245,
+        "school": 734265,
+        "technical_college": 111725,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 108741500,
+          "levy": 734265
+        }
+      ]
+    },
+    {
+      "code": "37022",
+      "type": "Town",
+      "name": "Elderon",
+      "split_county": false,
+      "population": 633,
+      "full_value": 119875400,
+      "full_value_ex_tif": 119875400,
+      "assessment_level": 1.0,
+      "total_tax": 1377608,
+      "school_levy_credit": 147393,
+      "gross_rate": 0.01149,
+      "effective_rate": 0.01026,
+      "taxes": {
+        "county": 419420,
+        "local": 90601,
+        "school": 744422,
+        "technical_college": 123165,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6692",
+          "name": "Wittenberg-Birnamwood",
+          "full_value": 119875400,
+          "levy": 744422
+        }
+      ]
+    },
+    {
+      "code": "37024",
+      "type": "Town",
+      "name": "Emmet",
+      "split_county": false,
+      "population": 910,
+      "full_value": 139488200,
+      "full_value_ex_tif": 139488200,
+      "assessment_level": 0.77,
+      "total_tax": 1689523,
+      "school_levy_credit": 166008,
+      "gross_rate": 0.01211,
+      "effective_rate": 0.01092,
+      "taxes": {
+        "county": 488041,
+        "local": 167968,
+        "school": 890198,
+        "technical_college": 143316,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 62098873,
+          "levy": 361328
+        },
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 26270145,
+          "levy": 163037
+        },
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 25790129,
+          "levy": 174145
+        },
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 25329053,
+          "levy": 191688
+        }
+      ]
+    },
+    {
+      "code": "37026",
+      "type": "Town",
+      "name": "Frankfort",
+      "split_county": false,
+      "population": 646,
+      "full_value": 85614200,
+      "full_value_ex_tif": 85614200,
+      "assessment_level": 0.95,
+      "total_tax": 1040418,
+      "school_levy_credit": 108296,
+      "gross_rate": 0.01215,
+      "effective_rate": 0.01089,
+      "taxes": {
+        "county": 299547,
+        "local": 101334,
+        "school": 551573,
+        "technical_college": 87963,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "1162",
+          "name": "Colby",
+          "full_value": 33797232,
+          "levy": 201778
+        },
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 28582404,
+          "levy": 192999
+        },
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 18522925,
+          "levy": 114957
+        },
+        {
+          "code": "0007",
+          "name": "Abbotsford",
+          "full_value": 4711639,
+          "levy": 41839
+        }
+      ]
+    },
+    {
+      "code": "37028",
+      "type": "Town",
+      "name": "Franzen",
+      "split_county": false,
+      "population": 572,
+      "full_value": 98831200,
+      "full_value_ex_tif": 98831200,
+      "assessment_level": 0.91,
+      "total_tax": 1196054,
+      "school_levy_credit": 113892,
+      "gross_rate": 0.0121,
+      "effective_rate": 0.01095,
+      "taxes": {
+        "county": 345791,
+        "local": 134722,
+        "school": 613999,
+        "technical_college": 101543,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6692",
+          "name": "Wittenberg-Birnamwood",
+          "full_value": 98544029,
+          "levy": 611955
+        },
+        {
+          "code": "4963",
+          "name": "Rosholt",
+          "full_value": 287171,
+          "levy": 2044
+        }
+      ]
+    },
+    {
+      "code": "37030",
+      "type": "Town",
+      "name": "Green Valley",
+      "split_county": false,
+      "population": 519,
+      "full_value": 118165800,
+      "full_value_ex_tif": 118165800,
+      "assessment_level": 0.74,
+      "total_tax": 1460425,
+      "school_levy_credit": 140030,
+      "gross_rate": 0.01236,
+      "effective_rate": 0.01117,
+      "taxes": {
+        "county": 413438,
+        "local": 215953,
+        "school": 714008,
+        "technical_college": 117026,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 82128066,
+          "levy": 477869
+        },
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 25311354,
+          "levy": 170912
+        },
+        {
+          "code": "3339",
+          "name": "Marshfield",
+          "full_value": 10081957,
+          "levy": 61473
+        },
+        {
+          "code": "0203",
+          "name": "Auburndale",
+          "full_value": 644423,
+          "levy": 3754
+        }
+      ]
+    },
+    {
+      "code": "37032",
+      "type": "Town",
+      "name": "Guenther",
+      "split_county": false,
+      "population": 356,
+      "full_value": 67833800,
+      "full_value_ex_tif": 67833800,
+      "assessment_level": 1.01,
+      "total_tax": 876304,
+      "school_levy_credit": 67074,
+      "gross_rate": 0.01292,
+      "effective_rate": 0.01193,
+      "taxes": {
+        "county": 237337,
+        "local": 174575,
+        "school": 394697,
+        "technical_college": 69695,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 67833800,
+          "levy": 394697
+        }
+      ]
+    },
+    {
+      "code": "37034",
+      "type": "Town",
+      "name": "Halsey",
+      "split_county": false,
+      "population": 656,
+      "full_value": 86772700,
+      "full_value_ex_tif": 86772700,
+      "assessment_level": 0.6,
+      "total_tax": 1162454,
+      "school_levy_credit": 111003,
+      "gross_rate": 0.0134,
+      "effective_rate": 0.01212,
+      "taxes": {
+        "county": 303600,
+        "local": 87150,
+        "school": 682550,
+        "technical_college": 89154,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "0196",
+          "name": "Athens",
+          "full_value": 86772700,
+          "levy": 682550
+        }
+      ]
+    },
+    {
+      "code": "37036",
+      "type": "Town",
+      "name": "Hamburg",
+      "split_county": false,
+      "population": 832,
+      "full_value": 102108200,
+      "full_value_ex_tif": 102108200,
+      "assessment_level": 0.9,
+      "total_tax": 1438070,
+      "school_levy_credit": 149704,
+      "gross_rate": 0.01408,
+      "effective_rate": 0.01262,
+      "taxes": {
+        "county": 357256,
+        "local": 173398,
+        "school": 802506,
+        "technical_college": 104910,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "0196",
+          "name": "Athens",
+          "full_value": 99850441,
+          "levy": 785419
+        },
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 2257759,
+          "levy": 17087
+        },
+        {
+          "code": "3500",
+          "name": "Merrill Area",
+          "full_value": 0,
+          "levy": 0
+        }
+      ]
+    },
+    {
+      "code": "37038",
+      "type": "Town",
+      "name": "Harrison",
+      "split_county": false,
+      "population": 315,
+      "full_value": 49309200,
+      "full_value_ex_tif": 49309200,
+      "assessment_level": 0.57,
+      "total_tax": 587090,
+      "school_levy_credit": 52728,
+      "gross_rate": 0.01191,
+      "effective_rate": 0.01084,
+      "taxes": {
+        "county": 172523,
+        "local": 29976,
+        "school": 333928,
+        "technical_college": 50662,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "0140",
+          "name": "Antigo",
+          "full_value": 49309200,
+          "levy": 333928
+        }
+      ]
+    },
+    {
+      "code": "37040",
+      "type": "Town",
+      "name": "Hewitt",
+      "split_county": false,
+      "population": 653,
+      "full_value": 88040100,
+      "full_value_ex_tif": 88040100,
+      "assessment_level": 1.02,
+      "total_tax": 1185962,
+      "school_levy_credit": 134687,
+      "gross_rate": 0.01347,
+      "effective_rate": 0.01194,
+      "taxes": {
+        "county": 308035,
+        "local": 208036,
+        "school": 579435,
+        "technical_college": 90456,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6223",
+          "name": "Wausau",
+          "full_value": 88040100,
+          "levy": 579435
+        }
+      ]
+    },
+    {
+      "code": "37042",
+      "type": "Town",
+      "name": "Holton",
+      "split_county": false,
+      "population": 845,
+      "full_value": 97648500,
+      "full_value_ex_tif": 97648500,
+      "assessment_level": 0.67,
+      "total_tax": 1282410,
+      "school_levy_credit": 124337,
+      "gross_rate": 0.01313,
+      "effective_rate": 0.01186,
+      "taxes": {
+        "county": 341653,
+        "local": 145188,
+        "school": 695242,
+        "technical_college": 100328,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "1162",
+          "name": "Colby",
+          "full_value": 59068215,
+          "levy": 352653
+        },
+        {
+          "code": "0007",
+          "name": "Abbotsford",
+          "full_value": 38580285,
+          "levy": 342589
+        }
+      ]
+    },
+    {
+      "code": "37044",
+      "type": "Town",
+      "name": "Hull",
+      "split_county": false,
+      "population": 760,
+      "full_value": 104091900,
+      "full_value_ex_tif": 104091900,
+      "assessment_level": 0.81,
+      "total_tax": 1233235,
+      "school_levy_credit": 120265,
+      "gross_rate": 0.01185,
+      "effective_rate": 0.01069,
+      "taxes": {
+        "county": 364197,
+        "local": 137970,
+        "school": 624121,
+        "technical_college": 106948,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "1162",
+          "name": "Colby",
+          "full_value": 103176004,
+          "levy": 615988
+        },
+        {
+          "code": "0007",
+          "name": "Abbotsford",
+          "full_value": 915896,
+          "levy": 8133
+        }
+      ]
+    },
+    {
+      "code": "37046",
+      "type": "Town",
+      "name": "Johnson",
+      "split_county": false,
+      "population": 869,
+      "full_value": 89380700,
+      "full_value_ex_tif": 89380700,
+      "assessment_level": 0.89,
+      "total_tax": 1301773,
+      "school_levy_credit": 128638,
+      "gross_rate": 0.01456,
+      "effective_rate": 0.01313,
+      "taxes": {
+        "county": 312725,
+        "local": 171459,
+        "school": 725756,
+        "technical_college": 91833,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "0196",
+          "name": "Athens",
+          "full_value": 67001667,
+          "levy": 527032
+        },
+        {
+          "code": "0007",
+          "name": "Abbotsford",
+          "full_value": 22379033,
+          "levy": 198724
+        }
+      ]
+    },
+    {
+      "code": "37048",
+      "type": "Town",
+      "name": "Knowlton",
+      "split_county": false,
+      "population": 2019,
+      "full_value": 494376500,
+      "full_value_ex_tif": 494376500,
+      "assessment_level": 0.67,
+      "total_tax": 5577203,
+      "school_levy_credit": 480168,
+      "gross_rate": 0.01128,
+      "effective_rate": 0.01031,
+      "taxes": {
+        "county": 1729724,
+        "local": 462965,
+        "school": 2876572,
+        "technical_college": 507942,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 494376500,
+          "levy": 2876572
+        }
+      ]
+    },
+    {
+      "code": "37054",
+      "type": "Town",
+      "name": "Marathon",
+      "split_county": false,
+      "population": 978,
+      "full_value": 172177800,
+      "full_value_ex_tif": 172177800,
+      "assessment_level": 0.81,
+      "total_tax": 2259629,
+      "school_levy_credit": 261419,
+      "gross_rate": 0.01312,
+      "effective_rate": 0.01161,
+      "taxes": {
+        "county": 602416,
+        "local": 177282,
+        "school": 1303029,
+        "technical_college": 176902,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 172177800,
+          "levy": 1303029
+        }
+      ]
+    },
+    {
+      "code": "37056",
+      "type": "Town",
+      "name": "McMillan",
+      "split_county": false,
+      "population": 2099,
+      "full_value": 328744400,
+      "full_value_ex_tif": 328744400,
+      "assessment_level": 1.01,
+      "total_tax": 3993671,
+      "school_levy_credit": 433057,
+      "gross_rate": 0.01215,
+      "effective_rate": 0.01083,
+      "taxes": {
+        "county": 1075708,
+        "local": 661613,
+        "school": 2039016,
+        "technical_college": 217334,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3339",
+          "name": "Marshfield",
+          "full_value": 294805524,
+          "levy": 1797512
+        },
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 26824131,
+          "levy": 181127
+        },
+        {
+          "code": "5467",
+          "name": "Spencer",
+          "full_value": 7114745,
+          "levy": 60377
+        }
+      ]
+    },
+    {
+      "code": "37058",
+      "type": "Town",
+      "name": "Mosinee",
+      "split_county": false,
+      "population": 2295,
+      "full_value": 320456600,
+      "full_value_ex_tif": 320456600,
+      "assessment_level": 0.86,
+      "total_tax": 3744480,
+      "school_levy_credit": 358469,
+      "gross_rate": 0.01168,
+      "effective_rate": 0.01057,
+      "taxes": {
+        "county": 1121213,
+        "local": 386676,
+        "school": 1907341,
+        "technical_college": 329250,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 296026489,
+          "levy": 1722456
+        },
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 24430111,
+          "levy": 184885
+        }
+      ]
+    },
+    {
+      "code": "37060",
+      "type": "Town",
+      "name": "Norrie",
+      "split_county": false,
+      "population": 1018,
+      "full_value": 162149300,
+      "full_value_ex_tif": 162149300,
+      "assessment_level": 0.9,
+      "total_tax": 1993934,
+      "school_levy_credit": 200275,
+      "gross_rate": 0.0123,
+      "effective_rate": 0.01106,
+      "taxes": {
+        "county": 567328,
+        "local": 259588,
+        "school": 1000419,
+        "technical_college": 166599,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6692",
+          "name": "Wittenberg-Birnamwood",
+          "full_value": 143006174,
+          "levy": 888063
+        },
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 19143126,
+          "levy": 112356
+        }
+      ]
+    },
+    {
+      "code": "37062",
+      "type": "Town",
+      "name": "Plover",
+      "split_county": false,
+      "population": 681,
+      "full_value": 89362500,
+      "full_value_ex_tif": 89362500,
+      "assessment_level": 0.95,
+      "total_tax": 1267615,
+      "school_levy_credit": 108039,
+      "gross_rate": 0.01419,
+      "effective_rate": 0.01298,
+      "taxes": {
+        "county": 312661,
+        "local": 286921,
+        "school": 576218,
+        "technical_college": 91815,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6692",
+          "name": "Wittenberg-Birnamwood",
+          "full_value": 51507868,
+          "levy": 319862
+        },
+        {
+          "code": "0140",
+          "name": "Antigo",
+          "full_value": 37854632,
+          "levy": 256356
+        }
+      ]
+    },
+    {
+      "code": "37064",
+      "type": "Town",
+      "name": "Reid",
+      "split_county": false,
+      "population": 1179,
+      "full_value": 172047000,
+      "full_value_ex_tif": 172047000,
+      "assessment_level": 0.84,
+      "total_tax": 2012553,
+      "school_levy_credit": 213650,
+      "gross_rate": 0.0117,
+      "effective_rate": 0.01046,
+      "taxes": {
+        "county": 601958,
+        "local": 197850,
+        "school": 1035977,
+        "technical_college": 176768,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6692",
+          "name": "Wittenberg-Birnamwood",
+          "full_value": 85510700,
+          "levy": 531018
+        },
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 58127197,
+          "levy": 338218
+        },
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 28409104,
+          "levy": 166741
+        }
+      ]
+    },
+    {
+      "code": "37066",
+      "type": "Town",
+      "name": "Rib Falls",
+      "split_county": false,
+      "population": 937,
+      "full_value": 129254600,
+      "full_value_ex_tif": 129254600,
+      "assessment_level": 0.86,
+      "total_tax": 1681950,
+      "school_levy_credit": 191940,
+      "gross_rate": 0.01301,
+      "effective_rate": 0.01153,
+      "taxes": {
+        "county": 452236,
+        "local": 160087,
+        "school": 936826,
+        "technical_college": 132801,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 91307505,
+          "levy": 691008
+        },
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 31734945,
+          "levy": 196953
+        },
+        {
+          "code": "0196",
+          "name": "Athens",
+          "full_value": 6212150,
+          "levy": 48865
+        }
+      ]
+    },
+    {
+      "code": "37070",
+      "type": "Town",
+      "name": "Rietbrock",
+      "split_county": false,
+      "population": 869,
+      "full_value": 96229500,
+      "full_value_ex_tif": 96229500,
+      "assessment_level": 1.02,
+      "total_tax": 1241864,
+      "school_levy_credit": 124939,
+      "gross_rate": 0.01291,
+      "effective_rate": 0.01161,
+      "taxes": {
+        "county": 336688,
+        "local": 90920,
+        "school": 715386,
+        "technical_college": 98870,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "0196",
+          "name": "Athens",
+          "full_value": 71195429,
+          "levy": 560020
+        },
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 25034071,
+          "levy": 155366
+        }
+      ]
+    },
+    {
+      "code": "37072",
+      "type": "Town",
+      "name": "Ringle",
+      "split_county": false,
+      "population": 1773,
+      "full_value": 292879000,
+      "full_value_ex_tif": 292879000,
+      "assessment_level": 0.68,
+      "total_tax": 3203113,
+      "school_levy_credit": 413887,
+      "gross_rate": 0.01094,
+      "effective_rate": 0.00952,
+      "taxes": {
+        "county": 1024725,
+        "local": 158485,
+        "school": 1718987,
+        "technical_college": 300915,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 292879000,
+          "levy": 1718987
+        }
+      ]
+    },
+    {
+      "code": "37074",
+      "type": "Town",
+      "name": "Spencer",
+      "split_county": false,
+      "population": 1600,
+      "full_value": 214199800,
+      "full_value_ex_tif": 214199800,
+      "assessment_level": 0.9,
+      "total_tax": 3031169,
+      "school_levy_credit": 338691,
+      "gross_rate": 0.01415,
+      "effective_rate": 0.01257,
+      "taxes": {
+        "county": 749442,
+        "local": 243915,
+        "school": 1817735,
+        "technical_college": 220077,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "5467",
+          "name": "Spencer",
+          "full_value": 214199800,
+          "levy": 1817735
+        }
+      ]
+    },
+    {
+      "code": "37076",
+      "type": "Town",
+      "name": "Stettin",
+      "split_county": false,
+      "population": 2608,
+      "full_value": 471883700,
+      "full_value_ex_tif": 471883700,
+      "assessment_level": 0.72,
+      "total_tax": 6226567,
+      "school_levy_credit": 734080,
+      "gross_rate": 0.0132,
+      "effective_rate": 0.01164,
+      "taxes": {
+        "county": 1651026,
+        "local": 904096,
+        "school": 3186613,
+        "technical_college": 484832,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6223",
+          "name": "Wausau",
+          "full_value": 389858188,
+          "levy": 2565850
+        },
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 82025512,
+          "levy": 620763
+        }
+      ]
+    },
+    {
+      "code": "37078",
+      "type": "Town",
+      "name": "Texas",
+      "split_county": false,
+      "population": 1626,
+      "full_value": 222102300,
+      "full_value_ex_tif": 222102300,
+      "assessment_level": 0.55,
+      "total_tax": 2916717,
+      "school_levy_credit": 326670,
+      "gross_rate": 0.01313,
+      "effective_rate": 0.01166,
+      "taxes": {
+        "county": 777091,
+        "local": 449664,
+        "school": 1461765,
+        "technical_college": 228197,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6223",
+          "name": "Wausau",
+          "full_value": 222102300,
+          "levy": 1461765
+        }
+      ]
+    },
+    {
+      "code": "37080",
+      "type": "Town",
+      "name": "Wausau",
+      "split_county": false,
+      "population": 2204,
+      "full_value": 324709500,
+      "full_value_ex_tif": 324709500,
+      "assessment_level": 0.9,
+      "total_tax": 4267346,
+      "school_levy_credit": 480821,
+      "gross_rate": 0.01314,
+      "effective_rate": 0.01166,
+      "taxes": {
+        "county": 1136093,
+        "local": 726562,
+        "school": 2071072,
+        "technical_college": 333619,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6223",
+          "name": "Wausau",
+          "full_value": 232037991,
+          "levy": 1527157
+        },
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 92671509,
+          "levy": 543915
+        }
+      ]
+    },
+    {
+      "code": "37082",
+      "type": "Town",
+      "name": "Weston",
+      "split_county": false,
+      "population": 670,
+      "full_value": 107964500,
+      "full_value_ex_tif": 107964500,
+      "assessment_level": 0.82,
+      "total_tax": 1387454,
+      "school_levy_credit": 146909,
+      "gross_rate": 0.01285,
+      "effective_rate": 0.01149,
+      "taxes": {
+        "county": 377746,
+        "local": 265108,
+        "school": 633673,
+        "technical_college": 110927,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 107964500,
+          "levy": 633673
+        }
+      ]
+    },
+    {
+      "code": "37084",
+      "type": "Town",
+      "name": "Wien",
+      "split_county": false,
+      "population": 886,
+      "full_value": 115333100,
+      "full_value_ex_tif": 115333100,
+      "assessment_level": 0.68,
+      "total_tax": 1324356,
+      "school_levy_credit": 133030,
+      "gross_rate": 0.01148,
+      "effective_rate": 0.01033,
+      "taxes": {
+        "county": 403527,
+        "local": 78225,
+        "school": 724106,
+        "technical_college": 118498,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 100314396,
+          "levy": 622569
+        },
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 14907019,
+          "levy": 100658
+        },
+        {
+          "code": "0196",
+          "name": "Athens",
+          "full_value": 111685,
+          "levy": 879
+        }
+      ]
+    }
+  ]
+}
