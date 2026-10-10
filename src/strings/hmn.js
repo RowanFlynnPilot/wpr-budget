@@ -270,10 +270,8 @@ export default {
     (chg < 0 ? `, poob ${Math.abs(chg).toLocaleString()} ntawm ${then} tsib xyoos dhau los` : chg > 0 ? `, nce ${chg.toLocaleString()} hauv tsib xyoos` : ", tsis hloov hauv tsib xyoos") +
     `. Qhov no kwv yees li ${per} ntawm general fund rau ib tug tub ntxhais kawm.`,
   "s.students.note": (y0, y1, perGF, perAll) => `Cov tub ntxhais kawm tag nrho lub koog tsev kawm (suav cov taub hau), ${y0}–${y1}. Qhov chaw: Wisconsin DPI WISEdash. Cov lej ib tug siv cov tub ntxhais no: ${perGF} ntawm general fund, los yog ${perAll} suav txhua nyiaj (net tom qab cov hloov). Txoj kab kev siv nyiaj muab txhua xyoo daim nyiaj txiag pom zoo ntawm general fund, los ntawm phau ntawv xyoo ntawd, faib los ntawm cov tub ntxhais kawm xyoo ntawd; yuav ntxiv kev sib piv thoob xeev thaum DPI cov ntaub ntawv nyiaj ib tug muaj.`,
-  "s.students.studentsLabel": "tus tub ntxhais",
   "s.students.legendEnroll": "Cov tub ntxhais kawm",
   "s.students.legendPerStudent": "Nyiaj siv general fund rau ib tus tub kawm",
-  "s.students.tipPerStudent": "rau ib tus tub kawm",
   "s.overtime.title": "Tus Nqi Se Mill Rate Tshaj Ib Nrab Caum Xyoo",
   "s.overtime.dek": (peak, mill, growth, firstYr, lastVal, lastYr) => `Tus nqi se tsev kawm ntawv tau poob ntawm qhov siab tshaj $${peak} rau ib $1,000 mus rau $${mill} niaj hnub no — txawm tias tus se nws nce los — vim lub koog tsev kawm cov vaj tse equalized nce sai dua: kwv yees ${growth}× txij ${firstYr}, mus rau ${lastVal} xyoo ${lastYr}.`,
   "s.overtime.legendRate": "Tus nqi se (sab laug)",

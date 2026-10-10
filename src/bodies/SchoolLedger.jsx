@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import {
-  ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, ComposedChart, Line, Area, ReferenceLine,
+  ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, ComposedChart, Line, Area, ReferenceLine, BarChart, Bar, LabelList,
 } from "recharts";
 import { useLang, useStrings } from "../i18n";
 import { usd, compact, pct } from "../format";
@@ -284,39 +284,39 @@ export default function SchoolLedger({ b, chrome }) {
           {t("s.students.dek", enrNow.toLocaleString(), enr.labels[enr.labels.length - 1], enrChange, enrThen.toLocaleString(), usd(perStudentGF))}
         </SectionHead>
         <div className="chart-wrap">
-          <div className="chart-legend">
-            <span><i className="sw" style={{ background: "var(--accent)" }} /> {t("s.students.legendEnroll")}</span>
-            <span><i className="sw" style={{ background: "var(--gold)" }} /> {t("s.students.legendPerStudent")}</span>
-          </div>
+          {/* Two panels, each from zero, instead of one chart with two truncated
+              scales: a ~5% enrollment drop and a ~8% per-student rise read as
+              what they are, not as two steep crossing lines. */}
           <ChartFrame summary={enrNote} table={{ columns: [{ key: "label", label: t("col.schoolYear") }, { key: "count", label: t("s.students.legendEnroll"), fmt: (v) => v.toLocaleString("en-US") }, { key: "perStudent", label: t("s.students.legendPerStudent"), fmt: usd }], rows: enrSeries }}>
-          <ResponsiveContainer width="100%" height={280}>
-            <ComposedChart data={enrSeries} margin={{ top: 8, right: 12, bottom: 4, left: 6 }}>
-              <CartesianGrid stroke="var(--rule)" vertical={false} />
-              <XAxis dataKey="label" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
-              <YAxis yAxisId="enr" domain={["dataMin - 200", "dataMax + 200"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={44} tickFormatter={(v) => v.toLocaleString()} />
-              <YAxis yAxisId="ps" orientation="right" domain={["dataMin - 400", "dataMax + 400"]} tick={{ fill: "var(--gold-ink)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={48} tickFormatter={(v) => "$" + (v / 1000).toFixed(1) + "K"} />
-              <Tooltip content={({ active, payload, label }) => {
-                if (!active || !payload || !payload.length) return null;
-                const c = payload.find((p) => p.dataKey === "count");
-                const ps = payload.find((p) => p.dataKey === "perStudent");
-                return (
-                  <div className="tip">
-                    <div className="tip-year">{label}</div>
-                    {c && <div><i className="sw" style={{ background: "var(--accent)" }} /> {c.value.toLocaleString()} {t("s.students.studentsLabel")}</div>}
-                    {ps && ps.value != null && <div><i className="sw" style={{ background: "var(--gold)" }} /> {usd(ps.value)} {t("s.students.tipPerStudent")}</div>}
-                  </div>
-                );
-              }} cursor={{ stroke: "var(--rule)" }} />
-              <Area yAxisId="enr" type="monotone" dataKey="count" name="Enrollment" stroke="var(--accent)" strokeWidth={2.5}
-                fill="var(--accent)" fillOpacity={0.12} dot={{ r: 3, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
-              <Line yAxisId="ps" type="monotone" dataKey="perStudent" name="Per student" stroke="var(--gold)" strokeWidth={2.5}
-                connectNulls dot={{ r: 3.5, fill: "var(--gold)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
-              {enrNotes.map((a) => (
-                <ReferenceLine key={a.x} yAxisId="enr" x={a.x} stroke="var(--ink-soft)" strokeDasharray="3 3" strokeOpacity={0.75}
-                  label={{ value: a.tag, position: "insideTopRight", fontSize: 10, fill: "var(--ink-soft)", fontFamily: "var(--sans)" }} />
-              ))}
-            </ComposedChart>
-          </ResponsiveContainer>
+          <div className="twin-charts">
+            {[
+              { key: "count", title: t("s.students.legendEnroll"), color: "var(--accent)", fmt: (v) => v.toLocaleString("en-US"), axis: (v) => v.toLocaleString("en-US"), notes: enrNotes },
+              { key: "perStudent", title: t("s.students.legendPerStudent"), color: "var(--gold)", fmt: usd, axis: (v) => "$" + Math.round(v / 1000) + "K", notes: [] },
+            ].map((panel) => (
+              <div key={panel.key}>
+                <h3 className="twin-title">{panel.title}</h3>
+                <ResponsiveContainer width="100%" height={230}>
+                  <BarChart data={enrSeries} margin={{ top: 22, right: 6, bottom: 4, left: 0 }}>
+                    <CartesianGrid stroke="var(--rule)" vertical={false} />
+                    <XAxis dataKey="label" tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval={0} />
+                    <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={46} tickFormatter={panel.axis} />
+                    <Tooltip cursor={{ fill: "var(--paper-2)" }} content={({ active, payload, label }) => (active && payload && payload.length && payload[0].value != null ? (
+                      <div className="tip"><div className="tip-year">{label}</div>{panel.fmt(payload[0].value)}</div>) : null)} />
+                    <Bar dataKey={panel.key} fill={panel.color} radius={[4, 4, 0, 0]} maxBarSize={46}>
+                      <LabelList dataKey={panel.key} position="top" content={({ x, y, width, value, index }) => (
+                        value != null && (index === enrSeries.length - 1 || enrSeries.findIndex((r) => r[panel.key] != null) === index)
+                          ? <text x={x + width / 2} y={y - 6} textAnchor="middle" fontSize={11} fontWeight={700} fill="var(--ink)" fontFamily="var(--sans)">{panel.fmt(value)}</text>
+                          : null)} />
+                    </Bar>
+                    {panel.notes.map((a) => (
+                      <ReferenceLine key={a.x} x={a.x} stroke="var(--ink-soft)" strokeDasharray="3 3" strokeOpacity={0.75}
+                        label={{ value: a.tag, position: "top", fontSize: 10, fill: "var(--ink-soft)", fontFamily: "var(--sans)" }} />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ))}
+          </div>
           </ChartFrame>
           <p className="note">{enrNote}</p>
           <ChartNotes notes={enrNotes} />

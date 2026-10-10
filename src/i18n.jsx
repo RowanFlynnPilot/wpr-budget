@@ -290,10 +290,8 @@ const EN = {
     (chg < 0 ? `, down ${Math.abs(chg).toLocaleString()} from ${then} five years ago` : chg > 0 ? `, up ${chg.toLocaleString()} over five years` : ", flat over five years") +
     `. That works out to about ${per} of general-fund spending per student.`,
   "s.students.note": (y0, y1, perGF, perAll) => `Districtwide certified enrollment (headcount), ${y0}–${y1}. Source: Wisconsin DPI WISEdash. Per-student figures use this enrollment: ${perGF} from the general fund, or ${perAll} counting all funds (net of transfers). The spending line divides each year's adopted general-fund budget, from that year's budget book, by that year's enrollment; a statewide comparison will be added when DPI's per-member finance data is available.`,
-  "s.students.studentsLabel": "students",
   "s.students.legendEnroll": "Students enrolled",
   "s.students.legendPerStudent": "General-fund spending per student",
-  "s.students.tipPerStudent": "per student",
   "s.overtime.title": "The mill rate over half a century",
   "s.overtime.dek": (peak, mill, growth, firstYr, lastVal, lastYr) => `The school tax rate has fallen from a peak of $${peak} per $1,000 to $${mill} today — even as the levy itself has grown — because the district's equalized property base has grown far faster: roughly ${growth}× since ${firstYr}, to ${lastVal} in ${lastYr}.`,
   "s.overtime.legendRate": "Mill rate (left)",

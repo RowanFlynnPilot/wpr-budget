@@ -270,10 +270,8 @@ export default {
     (chg < 0 ? `, ${Math.abs(chg).toLocaleString()} menos que ${then} hace cinco años` : chg > 0 ? `, ${chg.toLocaleString()} más en cinco años` : ", estable en cinco años") +
     `. Eso equivale a unos ${per} de gasto del fondo general por estudiante.`,
   "s.students.note": (y0, y1, perGF, perAll) => `Matrícula certificada de todo el distrito (recuento), ${y0}–${y1}. Fuente: Wisconsin DPI WISEdash. Las cifras por estudiante usan esta matrícula: ${perGF} del fondo general, o ${perAll} contando todos los fondos (neto de transferencias). La línea de gasto divide el presupuesto adoptado del fondo general de cada año, del libro presupuestario de ese año, entre la matrícula de ese año; se añadirá una comparación estatal cuando estén disponibles los datos por miembro de DPI.`,
-  "s.students.studentsLabel": "estudiantes",
   "s.students.legendEnroll": "Estudiantes matriculados",
   "s.students.legendPerStudent": "Gasto del fondo general por estudiante",
-  "s.students.tipPerStudent": "por estudiante",
   "s.overtime.title": "La tasa por milaje en medio siglo",
   "s.overtime.dek": (peak, mill, growth, firstYr, lastVal, lastYr) => `La tasa de impuesto escolar ha bajado de un máximo de $${peak} por $1,000 a $${mill} hoy — aun cuando el impuesto en sí ha crecido — porque la base imponible igualada del distrito ha crecido mucho más rápido: unas ${growth}× desde ${firstYr}, hasta ${lastVal} en ${lastYr}.`,
   "s.overtime.legendRate": "Tasa por milaje (izq.)",
