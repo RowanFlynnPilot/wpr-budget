@@ -421,11 +421,25 @@ export function ChartNotes({ notes }) {
 // src/sponsors.json; renders NOTHING while sponsors.enabled is false (the
 // surface is built but hidden). A per-entity sponsor overrides the suite-wide
 // title sponsor. Clearly labeled and rel="sponsored"; never interleaved with data.
+// Sales demo: "?demo" in the URL fills every UNSOLD slot with a "Your business
+// here" credit (and ChromeBar shows a ribbon saying it's a preview), so WPR can
+// show a prospect their name on the live tool. Sold slots are never replaced;
+// readers never see it; Share links drop the query.
+export const DEMO = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("demo");
+export const SPONSOR_MAILTO = `mailto:${SALES_EMAIL}?subject=${encodeURIComponent("Sponsoring Follow the Money")}`;
+
 export function SponsorSlot({ entityId }) {
   const t = useStrings();
-  if (!sponsors.enabled) return null;
-  const s = (entityId && sponsors.byEntity && sponsors.byEntity[entityId]) || sponsors.title;
-  if (!s || !s.name) return null;
+  const s = sponsors.enabled ? (entityId && sponsors.byEntity && sponsors.byEntity[entityId]) || sponsors.title : null;
+  if (!s || !s.name) {
+    if (!DEMO) return null;
+    return (
+      <a className="sponsor-slot sponsor-slot--demo" href={SPONSOR_MAILTO}>
+        <span className="sponsor-slot__label">{t("sponsor.presentedBy")}</span>
+        <span className="sponsor-slot__name">{t("demo.yourBrand")}</span>
+      </a>
+    );
+  }
   const logo = s.logo ? (s.logo.startsWith("http") ? s.logo : import.meta.env.BASE_URL + s.logo) : null;
   const inner = (
     <>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Receipt, Share2, Check, Home } from "lucide-react";
 import { LANGS, useLang, useStrings } from "./i18n";
-import { ENTITY_LOGOS, CORRECTIONS_URL } from "./ui";
+import { ENTITY_LOGOS, CORRECTIONS_URL, DEMO, SPONSOR_MAILTO } from "./ui";
 import logoUrl from "./assets/logo-32.png";
 import { track, currentView } from "./analytics";
 
@@ -77,6 +77,11 @@ export default function ChromeBar({ entities, activeId, routeId, onSelect, year,
           </nav>
         )}
       </div>
+      {DEMO && (
+        <div className="demo-ribbon" role="note">
+          {t("demo.ribbon")} <a href={SPONSOR_MAILTO}>{t("demo.ask")}</a>
+        </div>
+      )}
       {lang === "hmn" && (
         <div className="beta-banner" role="note">
           <b>{t("beta.title")}</b> <span>{t("beta.body")}</span>{" "}
