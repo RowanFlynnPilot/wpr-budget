@@ -4,6 +4,7 @@ import { useLang, useStrings } from "./i18n";
 import sponsors from "./sponsors.json";
 import { usd, compact, pct, downloadCSV, fmtDate } from "./format";
 import { consumePendingSection } from "./nav";
+import { track, currentView } from "./analytics";
 import marathonLogo from "./assets/marathon-county.jpg";
 import wausauLogo from "./assets/wausau-city.jpg";
 import schoolLogo from "./assets/wausau-school.jpg";
@@ -27,11 +28,40 @@ export const JURIS_COLORS = ["#16584a", "#7a5f1f", "#a8492f", "#3d5a80"]; // whi
 export const MEETING_TRACKER_URL = "https://rowanflynnpilot.github.io/marathon-meetings/";
 // Where readers report an error (WPR's contact page) — the Methodology section and the Hmong beta banner link it.
 export const CORRECTIONS_URL = "https://wausaupilotandreview.com/contact/";
+// WPR's donate, newsletter and sponsorship pages, tagged so WPR's own site
+// analytics can credit sign-ups and gifts to this tool.
+const fromTool = (url) => `${url}?utm_source=follow-the-money&utm_medium=tool&utm_campaign=support-band`;
+export const SUPPORT_URL = fromTool("https://wausaupilotandreview.com/support-our-publication/");
+export const NEWSLETTER_URL = fromTool("https://wausaupilotandreview.com/sign-up/");
+export const SALES_EMAIL = "weber.chris@wausaupilotandreview.com"; // WPR's one sales address
+
+// The closing band on the landing page, every Methodology section and the About
+// page: who built this, and the three ways to keep it going — give, subscribe,
+// sponsor. (The sibling City 2027 tool closes with the same band.)
+export function SupportBand({ about = true }) {
+  const t = useStrings();
+  return (
+    <aside className="support" aria-labelledby="support-title">
+      <h2 id="support-title">{t("support.title")}</h2>
+      <p>{t("support.body")}</p>
+      <div className="support-actions">
+        <a className="support-btn" href={SUPPORT_URL} target="_blank" rel="noopener noreferrer" onClick={countLink("donate")}>{t("support.donate")}</a>
+        <a href={NEWSLETTER_URL} target="_blank" rel="noopener noreferrer" onClick={countLink("newsletter")}>{t("support.newsletter")}</a>
+        <a href="#about/sponsor" onClick={countLink("sponsor")}>{t("support.sponsor")}</a>
+        {about && <a href="#about">{t("about.link")}</a>}
+      </div>
+    </aside>
+  );
+}
 
 // The view's source document, linked (opens the official PDF / state page).
 export function SourceLink({ source, children }) {
-  return <a className="source-link" href={source.url} target="_blank" rel="noopener noreferrer">{children}</a>;
+  return <a className="source-link" href={source.url} target="_blank" rel="noopener noreferrer" onClick={countLink("source")}>{children}</a>;
 }
+
+// onClick for an outbound link: counts which kind of link readers follow
+// ("source", "meeting-tracker", "donate" …) from which view.
+export const countLink = (to) => () => track("Link", { to, view: currentView() });
 
 /* ---------- hooks ---------- */
 
@@ -272,7 +302,7 @@ export function ChartFrame({ summary, table, children }) {
   return (
     <div className="chart-frame">
       <div role="img" aria-label={summary}>{children}</div>
-      <button type="button" className="table-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
+      <button type="button" className="table-toggle" aria-expanded={open} onClick={() => { if (!open) track("Chart table", { view: currentView() }); setOpen(!open); }}>
         {t(open ? "chart.hideTable" : "chart.showTable")}
       </button>
       {open && (
@@ -339,7 +369,8 @@ export function SponsorSlot({ entityId }) {
     </>
   );
   return s.url
-    ? <a className="sponsor-slot" href={s.url} target="_blank" rel="noopener noreferrer sponsored">{inner}</a>
+    ? <a className="sponsor-slot" href={s.url} target="_blank" rel="noopener noreferrer sponsored"
+        onClick={() => track("Sponsor click", { slot: entityId || "landing" })}>{inner}</a>
     : <span className="sponsor-slot">{inner}</span>;
 }
 
@@ -471,7 +502,11 @@ export function MuniPicker({ municipalities, value, onChange, step }) {
   return (
     <div className="school-pick">
       <label className="school-pick__q" htmlFor="muni-pick"><StepNum n={step} />{t("tb.muniQ")}</label>
-      <select id="muni-pick" className="muni-select" value={value} onChange={(e) => onChange(e.target.value)}>
+      <select id="muni-pick" className="muni-select" value={value} onChange={(e) => {
+        const m = municipalities.find((x) => x.code === e.target.value);
+        track("Municipality", { name: `${m.type} of ${m.name}` });
+        onChange(e.target.value);
+      }}>
         {["City", "Village", "Town"].map((type) => (
           <optgroup key={type} label={t("tb.group." + type)}>
             {municipalities.filter((m) => m.type === type).map((m) => (
@@ -512,6 +547,7 @@ export function SchoolPicker({ options, value, onChange, where, step }) {
 // the hint names where it's printed on a Wisconsin tax bill.
 export function HomeValueCalc({ id, label, outLabel, outValue, value, onChange, step }) {
   const t = useStrings();
+  const counted = useRef(false); // count a reader's first edit per calculator, never the value
   return (
     <div className="calc">
       <div className="calc-input">
@@ -519,7 +555,10 @@ export function HomeValueCalc({ id, label, outLabel, outValue, value, onChange, 
         <div className="calc-field">
           <span>$</span>
           <input id={id} type="text" inputMode="numeric" value={value.toLocaleString("en-US")} aria-describedby={id + "-hint"}
-            onChange={(e) => onChange(Math.min(parseInt(e.target.value.replace(/[^\d]/g, "")) || 0, 99999999))} />
+            onChange={(e) => {
+              if (!counted.current) { counted.current = true; track("Home value", { view: currentView() }); }
+              onChange(Math.min(parseInt(e.target.value.replace(/[^\d]/g, "")) || 0, 99999999));
+            }} />
         </div>
         <div className="calc-hint" id={id + "-hint"}>{t("calc.fmvHint")}</div>
       </div>
@@ -624,20 +663,21 @@ export function Methodology({ b, chrome }) {
         <li><b>{t("method.step.updatesLabel")}</b> {t("method.step.updates")}</li>
       </ol>
       <div className="downloads">
-        <a className="dl-btn" href={jsonUrl} download>{t("method.dlJson")}</a>
-        <button type="button" className="dl-btn" onClick={() => downloadCSV(`${ent.id}-${b.meta.budget_year}-spending.csv`, csvRows)}>
+        <a className="dl-btn" href={jsonUrl} download onClick={() => track("Download", { view: currentView(), format: "json" })}>{t("method.dlJson")}</a>
+        <button type="button" className="dl-btn" onClick={() => { track("Download", { view: currentView(), format: "csv" }); downloadCSV(`${ent.id}-${b.meta.budget_year}-spending.csv`, csvRows); }}>
           {t("method.dlCsv")}
         </button>
       </div>
       <p className="note">{t("method.reuse")}</p>
       <p className="note">{t("method.corrections")}{" "}
-        <a href={CORRECTIONS_URL} target="_blank" rel="noopener noreferrer">{t("method.correctionsLink")}</a></p>
+        <a href={CORRECTIONS_URL} target="_blank" rel="noopener noreferrer" onClick={countLink("corrections")}>{t("method.correctionsLink")}</a></p>
       <Glossary />
-      <a className="suite-link" href={MEETING_TRACKER_URL} target="_blank" rel="noopener noreferrer">
+      <a className="suite-link" href={MEETING_TRACKER_URL} target="_blank" rel="noopener noreferrer" onClick={countLink("meeting-tracker")}>
         <span className="suite-link__icon" aria-hidden="true">📋</span>
         <span><b>{t("suite.linkLead")}</b> {t("suite.linkBody", b.meta.status)}</span>
         <ArrowUpRight size={16} strokeWidth={2.5} className="suite-link__arrow" />
       </a>
+      <SupportBand />
     </section>
   );
 }

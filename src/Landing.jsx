@@ -3,7 +3,7 @@ import { Receipt, ArrowUpRight } from "lucide-react";
 import { useLang, useStrings } from "./i18n";
 import { fetchData } from "./data";
 import { usd, compact, fmtDate } from "./format";
-import { ENTITY_LOGOS, MEETING_TRACKER_URL, SponsorSlot, useAnchorOnMount, billRates, rememberMuni, WAUSAU_CITY_DOR } from "./ui";
+import { ENTITY_LOGOS, MEETING_TRACKER_URL, countLink, SupportBand, SponsorSlot, useAnchorOnMount, billRates, rememberMuni, WAUSAU_CITY_DOR } from "./ui";
 import ChromeBar from "./ChromeBar";
 
 // Suite landing page — the front door. Fetches every entity's data once (via
@@ -14,10 +14,8 @@ import ChromeBar from "./ChromeBar";
 // links like #marathon-county still skip it.
 export default function Landing({ entities, chrome }) {
   const t = useStrings();
-  const { lang } = useLang();
   const [byFile, setByFile] = useState(null);
   const [err, setErr] = useState(null);
-  useAnchorOnMount();
 
   useEffect(() => {
     const files = [...new Set(entities.map((e) => e.data))];
@@ -28,6 +26,14 @@ export default function Landing({ entities, chrome }) {
 
   if (err) return (<div className="ftm load"><p>{t("app.error")} — {err}</p></div>);
   if (!byFile) return (<div className="ftm load"><p>{t("app.loading")}</p></div>);
+  return <LandingBody byFile={byFile} entities={entities} chrome={chrome} />;
+}
+
+// Mounts once the data is in, so the focus-on-view-change finds the h1.
+function LandingBody({ byFile, entities, chrome }) {
+  const t = useStrings();
+  const { lang } = useLang();
+  useAnchorOnMount();
 
   const year = byFile[entities[0].data].meta.budget_year;
   // The combined-bill hook and the Tax Bill card: a $200,000 (fair market value)
@@ -97,12 +103,14 @@ export default function Landing({ entities, chrome }) {
 
       <div className="lp-credibility">
         <p className="note">{t("lp.credibility")}</p>
-        <a className="suite-link" href={MEETING_TRACKER_URL} target="_blank" rel="noopener noreferrer">
+        <a className="suite-link" href={MEETING_TRACKER_URL} target="_blank" rel="noopener noreferrer" onClick={countLink("meeting-tracker")}>
           <span className="suite-link__icon" aria-hidden="true">📋</span>
           <span><b>{t("suite.linkLead")}</b> {t("suite.linkBody")}</span>
           <ArrowUpRight size={16} strokeWidth={2.5} className="suite-link__arrow" />
         </a>
       </div>
+
+      <SupportBand />
 
       <footer className="foot">
         <p className="muted">{t("lp.footer")}</p>

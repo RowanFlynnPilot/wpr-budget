@@ -332,6 +332,32 @@ body{margin:0; background:#f5f1e8;}
 .suite-link span b{color:var(--accent);}
 .suite-link__arrow{flex-shrink:0; color:var(--accent); margin-left:auto;}
 
+/* Support band — who built this + give / subscribe / sponsor (landing, every
+   Methodology, About). Dark accent, gold on top (WPR's card convention). */
+.support{margin:40px 0 0; padding:30px 28px 32px; background:var(--accent); color:#fff;
+  border-top:4px solid var(--gold);}
+.support h2{font-size:clamp(24px,3.4vw,32px); line-height:1.15; color:#fff;}
+.support p{margin:10px 0 0; max-width:62ch; font-size:16px; line-height:1.55; color:#e3eeea;}
+.support-actions{display:flex; flex-wrap:wrap; align-items:center; gap:12px 22px; margin-top:20px;}
+.support-actions a{color:#fff; font-weight:600; font-size:15px; text-underline-offset:3px;}
+.support-actions .support-btn{background:#fff; color:var(--accent); text-decoration:none; padding:10px 18px;
+  font-weight:700; letter-spacing:.01em;}
+.support-actions .support-btn:hover{background:var(--paper);}
+.support :focus-visible{outline-color:#fff;}
+@media (max-width:680px){ .support{margin-left:-16px; margin-right:-16px; padding:26px 16px 28px;} }
+
+/* About page */
+.about-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--rule);
+  border:1px solid var(--rule); margin-top:30px;}
+.about-stats div{background:var(--paper); padding:22px 18px; display:flex; flex-direction:column; gap:6px;}
+.about-stats b{font-family:var(--serif); font-size:clamp(30px,4vw,44px); font-weight:600; line-height:1; letter-spacing:-0.02em;}
+.about-stats span{font-size:14px; line-height:1.4; color:var(--ink-soft);}
+@media (max-width:760px){ .about-stats{grid-template-columns:repeat(2,1fr);} }
+.about-sec{margin-top:38px; max-width:70ch;}
+.about-sec h2{font-size:clamp(22px,3vw,28px); margin-bottom:10px;}
+.about-sec p{font-size:16.5px; line-height:1.6; margin:0 0 12px; color:#2b2822;}
+.about-sec a{color:var(--accent); font-weight:600;}
+
 /* ---------- suite landing page ---------- */
 .lp-hero{padding-bottom:24px;}
 .lp-hook{display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%;

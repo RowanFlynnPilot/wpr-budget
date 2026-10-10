@@ -3,6 +3,7 @@ import { Receipt, Share2, Check, Home } from "lucide-react";
 import { LANGS, useLang, useStrings } from "./i18n";
 import { ENTITY_LOGOS, CORRECTIONS_URL } from "./ui";
 import logoUrl from "./assets/logo-32.png";
+import { track, currentView } from "./analytics";
 
 // Shared WPR brand chrome bar, with the entity switcher (rendered only when
 // the suite has more than one entity) and a share control. Two-tier: brand +
@@ -23,8 +24,10 @@ export default function ChromeBar({ entities, activeId, routeId, onSelect, year,
     try {
       if (navigator.share) {
         await navigator.share({ title, url });
+        track("Share", { view: currentView(), method: "native" });
       } else {
         await navigator.clipboard.writeText(url);
+        track("Share", { view: currentView(), method: "copy" });
         setShared(true);
         setTimeout(() => setShared(false), 1800);
       }
@@ -40,7 +43,7 @@ export default function ChromeBar({ entities, activeId, routeId, onSelect, year,
             <img className="chrome-bar__logo-img" src={logoUrl} alt="Wausau Pilot &amp; Review" />
             <span className="chrome-bar__wordmark">Wausau Pilot &amp; Review</span>
           </a>
-          {activeId && (
+          {routeId && (
             <button type="button" className="chrome-bar__home" onClick={() => onSelect(null)}>
               <Home size={14} strokeWidth={2.5} aria-hidden="true" />
               <span>{t("lp.home")}</span>
@@ -49,7 +52,7 @@ export default function ChromeBar({ entities, activeId, routeId, onSelect, year,
         </div>
         <div className="chrome-bar__right">
           <select className="chrome-bar__lang" value={lang} aria-label={t("chrome.language")}
-            onChange={(e) => setLang(e.target.value)}>
+            onChange={(e) => { setLang(e.target.value); track("Language", { lang: e.target.value }); }}>
             {LANGS.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
           </select>
           <button type="button" className="chrome-bar__share" onClick={onShare}

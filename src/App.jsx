@@ -31,14 +31,17 @@ const Ledger = lazy(() => import("./bodies/Ledger"));
 const CityLedger = lazy(() => import("./bodies/CityLedger"));
 const SchoolLedger = lazy(() => import("./bodies/SchoolLedger"));
 const TaxBillOverview = lazy(() => import("./bodies/TaxBillOverview"));
+const About = lazy(() => import("./About"));
 
 const BODY_BY_KIND = { county: Ledger, city: CityLedger, school: SchoolLedger, taxbill: TaxBillOverview };
 
 // Parse "#<entity-id>[~<edition>][/<section>]". Anything that isn't a known
 // entity id (bare URL, "#home", unknown) means the suite landing page
 // (route === null); an unknown edition is dropped like an unknown section.
+// "#about[/<section>]" is the About page — not an entity, no data file of its own.
 function parseHash() {
   const [routeToken, section] = window.location.hash.slice(1).split("/");
+  if (routeToken === "about") return { route: "about", section: section || null };
   const [id, editionId] = routeToken.split("~");
   const ent = entities.find((e) => e.id === id);
   if (!ent) return { route: null, section: null };
@@ -127,7 +130,7 @@ export default function App() {
   // flight must not let A's late response overwrite B's data — with the route
   // gate below, that would strand the view on the loading screen.
   useEffect(() => {
-    if (!route) return;
+    if (!route || route === "about") return;
     let stale = false;
     setErr(null); // a failed view must not strand every later view on its error
     const { ent, dataFile } = resolveRoute(route);
@@ -148,6 +151,7 @@ export default function App() {
   // tabs and history read better).
   useEffect(() => {
     if (!route) { document.title = SITE; return; }
+    if (route === "about") { document.title = `About — ${SITE}`; return; }
     const { ent, edition } = resolveRoute(route);
     document.title = `${ent.name}${edition ? `, ${edition.year} proposed budget` : ""} — ${SITE}`;
   }, [route]);
@@ -157,6 +161,19 @@ export default function App() {
     const chrome = { entities, activeId: null, routeId: null, edition: null, onSelect, annotations };
     if (err) return <LangProvider><Frame chrome={chrome} msg="app.error" detail={err} /></LangProvider>;
     return <LangProvider><Landing entities={entities} chrome={chrome} /></LangProvider>;
+  }
+
+  if (route === "about") {
+    const chrome = { entities, activeId: null, routeId: "about", edition: null, onSelect, annotations };
+    return (
+      <LangProvider>
+        <ViewBoundary key={route} chrome={chrome}>
+          <Suspense fallback={<Frame chrome={chrome} msg="app.loading" />}>
+            <About entities={entities} chrome={chrome} />
+          </Suspense>
+        </ViewBoundary>
+      </LangProvider>
+    );
   }
 
   const { ent, edition, dataFile } = resolveRoute(route);
