@@ -152,10 +152,9 @@ python scripts/verify.py
 python scripts/extract_budget.py 2026-Annual-Budget.pdf public/marathon-county.json \
        2025-Annual-Budget.pdf --cache
 # The FIRST PDF may also be the Administrator's PROPOSED edition (posted late Sept;
-# the board adopts in November). meta.status records which edition it was. Tested
-# 2026-10-09 against the 2027 proposed book (NOT yet committed — the UI still says
-# "Adopted" everywhere; see Current state):
-python scripts/extract_budget.py sources/2027-Annual-Budget-Proposed.pdf <out>.json \
+# the board adopts in November). meta.status records which edition it was. The
+# 2027 proposed edition is served (see Editions) and is built with:
+python scripts/extract_budget.py sources/2027-Annual-Budget-Proposed.pdf public/marathon-county-2027-proposed.json \
        2026-Annual-Budget.pdf 2025-Annual-Budget.pdf --cache
 
 # City of Wausau (separate extractor, separate schema — see extract_wausau.py):

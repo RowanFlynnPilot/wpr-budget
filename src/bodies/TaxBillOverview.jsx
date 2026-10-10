@@ -18,13 +18,13 @@ export default function TaxBillOverview({ b, chrome }) {
   const t = useStrings();
   const [homeValue, setHomeValue] = useHomeValue();
   const [muniCode, setMuniCode] = useMuniChoice();
-  const [school, setSchool] = useSchoolChoice();
   useAnchorOnMount();
 
   const year = b.meta.tax_year;
   // A saved choice from an older data year that no longer exists starts over at Wausau.
   const muni = b.municipalities.find((m) => m.code === muniCode)
     || b.municipalities.find((m) => m.code === WAUSAU_CITY_DOR);
+  const [school, setSchool] = useSchoolChoice(muni.code);
   const bill = useMemo(() => billRates(muni, school), [muni, school]);
   const inSuite = (id) => id && chrome.entities.some((e) => e.id === id);
   const splitRows = useMemo(() => bill.rows

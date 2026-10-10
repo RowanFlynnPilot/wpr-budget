@@ -46,6 +46,9 @@ FUND_NAMES = {
     "700": "Employee Benefits Fund",
     "710": "Property and Casualty Insurance Fund",
 }
+# Departments deliberately allowed to end (see build_history's orphan check).
+RETIRED_DEPARTMENTS = ()
+
 # By-fund rows the book prints with no fund number (fund_no null). 2027 added a
 # State Special Charges levy line; any other unnumbered row is an error.
 UNNUMBERED_FUND_ROWS = ("State Special Charges",)
@@ -164,6 +167,8 @@ def parse_six_col_table(text, is_fund, label):
                 raise ValueError(f"{label}: Total row prints {len(values)} values; expected {len(SIX_COLS)}")
             total = dict(zip(SIX_COLS, values))
             break  # table ends at its total; ignore any per-line detail that follows
+        if len(values) > len(SIX_COLS):
+            raise ValueError(f"{label}: row '{full_label}' prints {len(values)} values; the table has {len(SIX_COLS)} columns")
         names.append(full_label)
         candidates.append(placements(values))
 
@@ -187,7 +192,10 @@ def parse_six_col_table(text, is_fund, label):
             else:
                 raise ValueError(f"{label}: row '{full_label}' has no fund number and isn't in UNNUMBERED_FUND_ROWS")
         else:
-            record["department"] = re.sub(r"\s+", " ", full_label)
+            # One spelling per name across books: the 2025 book typeset "Sheriff’s
+            # Office" with a curly apostrophe, which split it from the 2026+ rows in
+            # `history` and dropped the largest department from the trend chart.
+            record["department"] = re.sub(r"\s+", " ", full_label).replace("\u2019", "'")
         rows.append(record)
     return rows, total
 
@@ -477,6 +485,17 @@ def build_history(extractions):
     """
     extractions = sorted(extractions, key=lambda e: e["meta"]["budget_year"], reverse=True)
     years = sorted(e["meta"]["budget_year"] for e in extractions)
+
+    # A department in an earlier book but not the latest is almost always a
+    # re-spelling (the 2025 book's curly-apostrophe "Sheriff’s Office" split
+    # the largest department's history and dropped it from the trend chart).
+    # Fail loud; a genuinely eliminated department goes in RETIRED_DEPARTMENTS.
+    latest = {d["department"] for d in extractions[0]["departments"]}
+    orphans = sorted({d["department"] for e in extractions[1:] for d in e["departments"]}
+                     - latest - set(RETIRED_DEPARTMENTS))
+    if orphans:
+        raise ValueError(f"departments in a prior book but not the latest: {orphans} — normalize the name, "
+                         f"or list a deliberately retired department in RETIRED_DEPARTMENTS")
 
     # Prior-year slices don't parse the levy-history table, so their meta carries
     # no mill rate. The latest book's levy_history covers every year, so fill any

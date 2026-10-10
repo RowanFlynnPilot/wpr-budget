@@ -20,7 +20,7 @@ export const ENTITY_LOGOS = {
 
 // Jurisdiction colors for the "your tax bill" split, sorted by rate
 // descending: accent, gold, rust, slate.
-export const JURIS_COLORS = ["#16584a", "#9a7b2e", "#a8492f", "#3d5a80"];
+export const JURIS_COLORS = ["#16584a", "#7a5f1f", "#a8492f", "#3d5a80"]; // white labels on each: >= 4.5:1
 
 // Companion civic-transparency tool — the budgets adopted here are debated and
 // voted in the meetings the tracker covers.
@@ -323,8 +323,26 @@ function usePersisted(key, initial) {
   };
   return [v, set];
 }
-export const useMuniChoice = () => usePersisted("wpr-budget-muni", WAUSAU_CITY_DOR);
-export const useSchoolChoice = () => usePersisted("wpr-budget-school", "");
+const MUNI_KEY = "wpr-budget-muni";
+export const useMuniChoice = () => usePersisted(MUNI_KEY, WAUSAU_CITY_DOR);
+// For a link that promises a specific municipality's bill (the landing hook).
+export function rememberMuni(code) {
+  try { localStorage.setItem(MUNI_KEY, code); } catch (e) { /* ignore */ }
+}
+// The school district is remembered PER municipality — a pick made for one
+// town must never pre-select a district on another town's (or the City page's) bill.
+const SCHOOLS_KEY = "wpr-budget-schools";
+export function useSchoolChoice(muniCode) {
+  const [byMuni, setByMuni] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(SCHOOLS_KEY)) || {}; } catch (e) { return {}; }
+  });
+  const set = (code) => {
+    const next = { ...byMuni, [muniCode]: code };
+    setByMuni(next);
+    try { localStorage.setItem(SCHOOLS_KEY, JSON.stringify(next)); } catch (e) { /* ignore */ }
+  };
+  return [byMuni[muniCode] || "", set];
+}
 
 // The bill rates for a home in municipality `muni`, school district `code`
 // (the municipality's largest district if `code` isn't one of its own).
@@ -501,14 +519,14 @@ export function Methodology({ b, chrome }) {
   const jsonUrl = import.meta.env.BASE_URL + chrome.dataFile;
   const kindNoun = t("method.kind." + ent.kind);
   const csvRows = ent.kind === "city"
-    ? b.general_fund.expenditures.map((r) => ({ department: r.category, fund: "General Fund", budget_2025: r.prior, budget_2026: r.proposed }))
+    ? b.general_fund.expenditures.map((r) => ({ department: r.category, fund: "General Fund", [`budget_${b.meta.budget_year - 1}`]: r.prior, [`budget_${b.meta.budget_year}`]: r.proposed }))
     : ent.kind === "school"
     ? b.funds.map((f) => ({ fund_no: f.fund_no, fund: f.name, revenues: f.revenues, expenditures: f.expenditures, prior_expenditures: f.prior_expenditures }))
     : b.departments.map((d) => ({ department: d.department, tax_levy: d.tax_levy, operating_revenues: d.operating_revenues, operating_expenditures: d.operating_expenditures, personnel_expenditures: d.personnel_expenditures }));
   return (
     <section id="methodology" className="block">
       <SectionHead kicker={t("method.kicker")} title={t("method.title")}>
-        {t("method.intro", b.meta.entity, b.meta.budget_year, kindNoun)}
+        {t("method.intro", b.meta.entity, b.meta.budget_year, kindNoun, b.meta.status)}
       </SectionHead>
       <ol className="method">
         <li><b>{t("method.step.sourceLabel")}</b> {t("method.step.source", b.meta.budget_year, b.meta.entity, b.meta.status)}</li>
@@ -525,7 +543,7 @@ export function Methodology({ b, chrome }) {
       <p className="note">{t("method.reuse")}</p>
       <a className="suite-link" href={MEETING_TRACKER_URL} target="_blank" rel="noopener noreferrer">
         <span className="suite-link__icon" aria-hidden="true">📋</span>
-        <span><b>{t("suite.linkLead")}</b> {t("suite.linkBody")}</span>
+        <span><b>{t("suite.linkLead")}</b> {t("suite.linkBody", b.meta.status)}</span>
         <ArrowUpRight size={16} strokeWidth={2.5} className="suite-link__arrow" />
       </a>
     </section>

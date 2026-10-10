@@ -131,6 +131,10 @@ def parse_tif(text):
         mg = re.search(r"TID\s+(\d+)\s*[–-]\s*(\()?\s*([\d.]+)%\s*(\))?", s)
         if mp:
             payments.append({"tid": int(mp.group(1)), "amount": money(mp.group(2)), "note": mp.group(3).strip()})
+        elif re.search(r"TID\s+\d+", s) and "%" in s and not mg:
+            # Every 'TID n ... x%' line is a growth figure; one the pattern can't
+            # read (a new separator, say) must not silently drop out of the list.
+            raise ValueError(f"TID growth line not parsed: {s!r}")
         elif mg:
             if bool(mg.group(2)) != bool(mg.group(4)):
                 raise ValueError(f"unbalanced parentheses in TID growth line: {s!r}")

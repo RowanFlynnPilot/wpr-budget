@@ -168,6 +168,11 @@ def extract(xlsx):
             raise ValueError(f"{label}: district codes {territory} leave technical colleges {colleges} "
                              f"(unknown: {unknown}) — add to TECH_COLLEGES")
         m["technical_colleges"] = [{"code": c, "name": TECH_COLLEGES[c]} for c in sorted(colleges, reverse=True)]
+        # DOR lists a district with no value in some towns (Town of Hamburg 2025:
+        # Merrill Area, $0 value, $0 levy) — no home is in it, and a 0/0 rate
+        # would render as $NaN, so it isn't offered. (Dropped only after the
+        # colleges are derived above, which subtracts every listed school code.)
+        m["school_districts"] = sds = [s for s in sds if s["full_value"] > 0]
 
         # Method check: the tool's bill rate (billRates in src/ui.jsx — levies
         # over the TIF-out value, the school district's levy over its value, the

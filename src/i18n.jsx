@@ -64,8 +64,9 @@ const EN = {
   // shared methodology
   "method.kicker": "How We Built This",
   "method.title": "Methodology & open data",
-  "method.intro": (entity, year, kindNoun) =>
-    `Every figure on this page is pulled straight from ${entity}'s official adopted ${year} budget — the same document the ${kindNoun} publishes — and checked against the budget's own printed totals. Nothing here is hand-typed or estimated.`,
+  "method.intro": (entity, year, kindNoun, status) => (status === "proposed"
+    ? `Every figure on this page is pulled straight from ${entity}'s ${year} PROPOSED budget — the Administrator's recommended budget as presented to the County Board, not yet adopted — and checked against the budget's own printed totals. Nothing here is hand-typed or estimated.`
+    : `Every figure on this page is pulled straight from ${entity}'s official adopted ${year} budget — the same document the ${kindNoun} publishes — and checked against the budget's own printed totals. Nothing here is hand-typed or estimated.`),
   "method.kind.county": "county",
   "method.kind.city": "city",
   "method.kind.school": "district",
@@ -75,15 +76,15 @@ const EN = {
   "method.step.extractionLabel": "Extraction.",
   "method.step.verification": "Each table is reconciled line-by-line against the budget's printed totals. If a number doesn't add up, the process stops rather than publish a wrong figure.",
   "method.step.verificationLabel": "Verification.",
-  "method.step.updates": "Refreshed once a year, when a new budget is adopted.",
+  "method.step.updates": "Refreshed when a new budget is proposed and again when it is adopted.",
   "method.step.updatesLabel": "Updates.",
   "method.dlJson": "Download the full data (JSON)",
   "method.dlCsv": "Download spending (CSV)",
   "method.reuse": "This data is free to reuse. Built and maintained by Wausau Pilot & Review as part of its civic transparency work.",
   "suite.linkLead": "See the decisions behind the budget.",
-  "suite.linkBody": "This budget was debated and adopted in public meetings — follow them in WPR's Central Wisconsin Meeting Tracker.",
-
-  // shared calculator
+  "suite.linkBody": (status) => (status === "proposed"
+    ? "This proposal is being debated now, in public meetings, before the board votes — follow them in WPR's Central Wisconsin Meeting Tracker."
+    : "This budget was debated and adopted in public meetings — follow them in WPR's Central Wisconsin Meeting Tracker."),
   "calc.estProperty": "Estimated annual property tax",
   "calc.fmvHint": "On your tax bill as “Est. Fair Mkt.” — not the assessed value.",
 
@@ -120,6 +121,7 @@ const EN = {
   "title.outstandingDebt": "Outstanding debt",
   "stat.totalBudget": "Total budget",
   "stat.millRate": "Mill rate",
+  "stat.proposed": (label) => `Proposed ${label}`,
 
   // School body
   "s.dek": (entity) => `Every dollar in the ${entity}'s budget — where it comes from, where it goes, and what it means for your tax bill. Adopted by the Board of Education.`,
@@ -134,7 +136,7 @@ const EN = {
   "s.where.dek": (gf) => `The general fund — ${gf} — pays for the district's day-to-day operations. Schools don't budget salaries building-by-building, so the honest view is by object: toggle between what the money buys and where it comes from.`,
   "s.where.showPeople": (showing) => `${showing ? "Hide" : "Show"} what salaries & benefits buy`,
   "s.where.noteSpend": (share) => `Change shown vs. the prior-year budget. People — salaries and benefits — are ${share}% of the general fund; teacher salaries alone are its single largest cost.`,
-  "s.where.noteRev": "Change shown vs. the prior-year budget. State equalization aid, not the local levy, is the district's largest revenue source.",
+  "s.where.noteRev": "Change shown vs. the prior-year budget. State aid, not the local levy, is the district's largest revenue source.",
   "s.flow.dek": "Every general-fund dollar, traced from where it comes from, through the fund, to what it pays for. Hover any ribbon to follow the money.",
   "s.flow.note": "General Fund revenue sources (left) into the fund (center) and out to spending by object (right). Hover a flow for its amount.",
   "s.allfunds.title": "All funds, by purpose",
@@ -161,7 +163,7 @@ const EN = {
   "s.overtime.calloutTitle": (cents) => `Why the rate fell ${cents}¢ this year`,
   "s.taxbill.dek": (rate) => `The school district is one line on your property-tax bill, at $${rate} per $1,000 of value. Enter your home's value to see your estimated school taxes and which district fund each dollar supports.`,
   "s.taxbill.homeLabel": "Your home's fair market value",
-  "s.taxbill.estOut": "Estimated annual school tax",
+  "s.taxbill.estOut": "Estimated annual school tax, before the state school levy credit",
   "s.taxbill.totalRow": "Your school taxes",
   "s.taxbill.note": (fiscal, rate) => `Estimated from the ${fiscal} school mill rate of $${rate} per $1,000 of equalized value. This is only the school district's share — your full bill also includes the county, your municipality, and the technical college. Actual bills vary with credits and exemptions.`,
   "s.debt.kick": "What the District Owes",
@@ -177,18 +179,18 @@ const EN = {
   "c.stat.cityShare": "City share of tax bill",
   "c.stat.cityShareSub": (total) => `of $${total} total rate`,
   "c.where.dek": (gf) => `The general fund — ${gf} — pays for day-to-day city services. Toggle to see what it spends by department, and where that money comes from.`,
-  "c.where.noteDept": "Change shown vs. the 2025 adopted budget. Police and Fire together are the largest share of city spending.",
-  "c.where.noteRev": "Change shown vs. the 2025 adopted budget. Property taxes are the city's single largest revenue source.",
+  "c.where.noteDept": (prior) => `Change shown vs. the ${prior} adopted budget. Police and Fire together are the largest share of city spending.`,
+  "c.where.noteRev": (prior) => `Change shown vs. the ${prior} adopted budget. Property taxes are the city's single largest revenue source.`,
   "c.flow.dek": "Every general-fund dollar, traced from where it comes from, through the fund, to what it pays for. Hover any ribbon to follow the money.",
   "c.flow.note": "General Fund revenue sources (left) into the fund (center) and out to departments (right). The largest five of each are named; the rest are grouped. Hover a flow for its amount.",
   "c.allfunds.title": "All funds, by category",
   "c.allfunds.dek": (total) => `Beyond the general fund, the city's ${total} all-funds budget covers capital projects, debt service, enterprise and special-revenue funds. Here it is by type of spending.`,
-  "c.allfunds.note": "Change shown vs. the 2025 adopted budget, all funds.",
+  "c.allfunds.note": (prior) => `Change shown vs. the ${prior} adopted budget, all funds.`,
   "c.overtime.title": "The levy over time",
   "c.overtime.dek": (first, firstYr, last, lastYr, pct) => `The city's property-tax levy has risen from ${first} in ${firstYr} to ${last} in ${lastYr} — up ${pct}%.`,
   "c.overtime.note": (y0, y1) => `Actual property-tax levy as adopted, ${y0}–${y1}.`,
   "c.overtime.calloutTitle": "The city is at its levy ceiling",
-  "c.overtime.calloutBody": (exception, year) => `For the eleventh year running, Wausau's levy sits above the basic state limit — ${exception} over in ${year}, allowed only through the debt-service exemption. And in 2027, the federal ARPA and SAFER grants that pay for 15 first-responder positions expire, leaving an estimated $1.5 million for the levy to absorb — the structural gap the mayor's budget message calls a "ticking time bomb."`,
+  "c.overtime.calloutBody": (exception, year, since, atLeast) => `Every year since ${atLeast ? "at least " : ""}${since}, Wausau's levy has sat above the basic state limit — ${exception} over in ${year}, allowed only through the debt-service exemption. The federal ARPA and SAFER grants that paid for 15 first-responder positions have since run out — the "ticking time bomb" of the mayor's 2026 budget message — and in April 2026 voters approved a $1.45 million levy increase above the limit to keep 12 firefighter/paramedic positions.`,
   "c.workforce.kick": "The People",
   "c.workforce.title": "The city's workforce over time",
   "c.workforce.dek": (now, then, year) => `The city budgets ${now} full-time-equivalent positions in ${year}, up from ${then} a decade ago. Pick a department to see how its staffing has changed.`,
@@ -204,7 +206,8 @@ const EN = {
   "c.dev.kick": "Betting on Growth",
   "c.dev.title": "Tax increment districts",
   "c.dev.dek": (count) => `The city runs ${count} active tax increment districts (TIDs) — areas where the growth in property value is captured to repay public investment in development. Here is how much each district's value grew last year.`,
-  "c.dev.note": (decrease) => `Valuation growth, 2025. The budget also includes the developer incentive payments above. A net TID levy decrease of ${decrease} this year reflects the closure of District 6.`,
+  "c.dev.note": (year, decrease) => `Valuation growth, ${year}. The budget also includes the developer incentive payments above, and a net TID levy decrease of ${decrease}.`,
+  "c.dev.noteClosure2026": "That decrease reflects the closure of District 6.",
   "c.debt.kick": "What the City Owes",
   "c.debt.dek": (outstanding, pct) => `The city carries ${outstanding} in general-obligation debt — ${pct}% of its legal borrowing limit. Here is how it is scheduled to be paid down.`,
   "c.debt.note": (y0, total0, yN) => `Annual principal + interest on existing general-obligation debt. The ${y0} payment is ${total0}; the schedule runs through ${yN}.`,
@@ -227,10 +230,10 @@ const EN = {
   "co.stat.countyLevy": "County tax levy",
   "co.where.dek": "The county's general fund pays for day-to-day government. Toggle to see what it spends — and where the money comes from before the property-tax levy fills the gap.",
   "co.where.pending": (hearing) => `The general fund's breakdown by function isn't in the Administrator's proposed book — the county prints it in the public-hearing notice it publishes ahead of the ${hearing} hearing, and it will appear here then. Meanwhile, the department ledger below shows the proposed general fund, department by department.`,
-  "co.where.note": (flow) => (flow === "expenditures"
-    ? "Change shown vs. the 2025 adopted budget. Public safety alone is roughly two-fifths of general-fund spending."
-    : "Change shown vs. the 2025 adopted budget. Whatever these sources don't cover is made up by the property-tax levy.") +
-    " The mini-trend traces each row from 2024 (actual) through 2025 (budget) to 2026 (adopted).",
+  "co.where.note": (flow, year, psShare) => (flow === "expenditures"
+    ? `Change shown vs. the ${year - 1} adopted budget.${psShare ? ` Public safety alone is ${psShare}% of general-fund spending.` : ""}`
+    : `Change shown vs. the ${year - 1} adopted budget. Whatever these sources don't cover is made up by the property-tax levy.`) +
+    ` The mini-trend traces each row from ${year - 2} (actual) through ${year - 1} (budget) to ${year} (adopted).`,
   "co.dept.kick": "The Drill-Down",
   "co.dept.title": "Department by department",
   "co.dept.dek": (n) => `${n} departments and cost centers. Each one's total spending equals the tax levy that supports it plus the revenue it raises on its own. Click any row to open the books.`,
@@ -287,13 +290,13 @@ const EN = {
   "tb.sec.title": "Your complete property-tax bill",
   "tb.sec.dek": "The county, your municipality, your school district and the technical college all tax the same home. Pick where you live, enter your value to see the split — then click any line to explore where that government spends it.",
   "tb.homeLabel": "Your home's fair market value",
-  "tb.estOut": "Your total annual property tax",
+  "tb.estOut": "Estimated annual tax, before lottery & first-dollar credits",
   "tb.muniQ": "Where is your home?",
   "tb.group.City": "Cities",
   "tb.group.Village": "Villages",
   "tb.group.Town": "Towns",
   "tb.splitPart": "(Marathon County part)",
-  "tb.collegeAveraged": (where) => `The ${where} is split between two technical college districts; the state reports one college levy for the whole town, so the college line is their combined average.`,
+  "tb.collegeAveraged": (where) => `The ${where} is split between two technical college districts. The state's town-level data reports one combined college levy, so the college line here blends the two colleges' rates; your bill shows the one for your school district.`,
   "tb.schoolQ": "Which school district is your home in?",
   "tb.schoolNote": (where) => `The ${where} spans more than one school district, and each has its own school tax rate. Your tax bill names yours.`,
   "tb.explore": "Explore",
@@ -305,7 +308,7 @@ const EN = {
   // Landing page
   "lp.home": "Overview",
   "lp.heroDek": "See where every local tax dollar in the Wausau area goes — across your county, your city, and your school district — and what it means for your property-tax bill.",
-  "lp.combined": (bill) => `On a $200,000 home in the City of Wausau, your total local property tax is about ${bill} — split across four governments.`,
+  "lp.combined": (bill) => `On a $200,000 home in the City of Wausau, your total local property tax is about ${bill} before state lottery and first-dollar credits — split across four governments.`,
   "lp.seeBreakdown": "See the breakdown",
   "lp.season": (name, year, hearing) => `${name}'s proposed ${year} budget is out — public hearing ${hearing}.`,
   "lp.seasonCta": "See what's proposed",
@@ -316,7 +319,7 @@ const EN = {
   "lp.desc.city": "General-fund departments, the money-flow, an 11-year workforce, and the property-tax split.",
   "lp.desc.school": "Spending by object, enrollment, half a century of mill rates, and school debt.",
   "lp.desc.taxbill": "Your whole local property-tax bill — for any home in Marathon County, split across every government that taxes it.",
-  "lp.credibility": "Every figure comes straight from each government's adopted budget and is reconciled against its own printed totals — open data, free to reuse, refreshed each year.",
+  "lp.credibility": "Every figure comes straight from each government's own budget documents and the state's certified tax data, and is reconciled against their printed totals — open data, free to reuse, refreshed as new budgets are proposed and adopted.",
   "lp.footer": "A civic-transparency project of Wausau Pilot & Review.",
 };
 
@@ -366,8 +369,9 @@ const ES = {
 
   "method.kicker": "Cómo lo hicimos",
   "method.title": "Metodología y datos abiertos",
-  "method.intro": (entity, year, kindNoun) =>
-    `Cada cifra en esta página proviene directamente del presupuesto oficial adoptado de ${year} de ${entity} — el mismo documento que publica ${kindNoun} — y se coteja con los totales impresos del propio presupuesto. Nada aquí se escribe a mano ni se estima.`,
+  "method.intro": (entity, year, kindNoun, status) => (status === "proposed"
+    ? `Cada cifra de esta página proviene directamente del presupuesto PROPUESTO de ${year} de ${entity} — el presupuesto recomendado por el Administrador tal como se presentó a la Junta del Condado, aún no adoptado — y se coteja con los totales impresos del propio presupuesto. Nada aquí está escrito a mano ni estimado.`
+    : `Cada cifra en esta página proviene directamente del presupuesto oficial adoptado de ${year} de ${entity} — el mismo documento que publica ${kindNoun} — y se coteja con los totales impresos del propio presupuesto. Nada aquí se escribe a mano ni se estima.`),
   "method.kind.county": "el condado",
   "method.kind.city": "la ciudad",
   "method.kind.school": "el distrito",
@@ -377,14 +381,15 @@ const ES = {
   "method.step.extractionLabel": "Extracción.",
   "method.step.verification": "Cada tabla se concilia línea por línea con los totales impresos del presupuesto. Si una cifra no cuadra, el proceso se detiene en lugar de publicar un dato erróneo.",
   "method.step.verificationLabel": "Verificación.",
-  "method.step.updates": "Se actualiza una vez al año, cuando se adopta un nuevo presupuesto.",
+  "method.step.updates": "Se actualiza cuando se propone un nuevo presupuesto y otra vez cuando se adopta.",
   "method.step.updatesLabel": "Actualizaciones.",
   "method.dlJson": "Descargar todos los datos (JSON)",
   "method.dlCsv": "Descargar gastos (CSV)",
   "method.reuse": "Estos datos son de libre reutilización. Creado y mantenido por Wausau Pilot & Review como parte de su trabajo de transparencia cívica.",
   "suite.linkLead": "Vea las decisiones detrás del presupuesto.",
-  "suite.linkBody": "Este presupuesto se debatió y adoptó en reuniones públicas — sígalas en el Rastreador de Reuniones del Centro de Wisconsin de WPR.",
-
+  "suite.linkBody": (status) => (status === "proposed"
+    ? "Esta propuesta se debate ahora en reuniones públicas, antes de la votación de la junta — sígalas en el Rastreador de Reuniones del Centro de Wisconsin de WPR."
+    : "Este presupuesto se debatió y adoptó en reuniones públicas — sígalas en el Rastreador de Reuniones del Centro de Wisconsin de WPR."),
   "calc.estProperty": "Impuesto anual estimado a la propiedad",
   "calc.fmvHint": "En su factura de impuestos aparece como “Est. Fair Mkt.”, no como valor tasado.",
 
@@ -418,6 +423,7 @@ const ES = {
   "title.outstandingDebt": "Deuda pendiente",
   "stat.totalBudget": "Presupuesto total",
   "stat.millRate": "Tasa por milaje",
+  "stat.proposed": (label) => `Propuesta · ${label}`,
 
   "s.dek": (entity) => `Cada dólar del presupuesto de ${entity}: de dónde viene, a dónde va y qué significa para su factura de impuestos. Adoptado por la Junta de Educación.`,
   "s.stat.allFundsNet": "todos los fondos, neto",
@@ -431,7 +437,7 @@ const ES = {
   "s.where.dek": (gf) => `El fondo general — ${gf} — paga las operaciones diarias del distrito. Las escuelas no presupuestan salarios edificio por edificio, así que la vista más honesta es por objeto: alterne entre lo que compra el dinero y de dónde viene.`,
   "s.where.showPeople": (showing) => `${showing ? "Ocultar" : "Ver"} qué pagan los salarios y beneficios`,
   "s.where.noteSpend": (share) => `Cambio mostrado respecto al presupuesto del año anterior. El personal — salarios y beneficios — es el ${share}% del fondo general; los salarios docentes por sí solos son su mayor costo.`,
-  "s.where.noteRev": "Cambio mostrado respecto al presupuesto del año anterior. La ayuda estatal de igualación, no el impuesto local, es la mayor fuente de ingresos del distrito.",
+  "s.where.noteRev": "Cambio frente al presupuesto del año anterior. La ayuda estatal, no el impuesto local, es la mayor fuente de ingresos del distrito.",
   "s.flow.dek": "Cada dólar del fondo general, rastreado desde su origen, a través del fondo, hasta lo que paga. Pase el cursor por cualquier cinta para seguir el dinero.",
   "s.flow.note": "Fuentes de ingreso del fondo general (izquierda) hacia el fondo (centro) y hacia el gasto por objeto (derecha). Pase el cursor por un flujo para ver su monto.",
   "s.allfunds.title": "Todos los fondos, por propósito",
@@ -458,7 +464,7 @@ const ES = {
   "s.overtime.calloutTitle": (cents) => `Por qué la tasa bajó ${cents}¢ este año`,
   "s.taxbill.dek": (rate) => `El distrito escolar es una línea de su factura de impuestos a la propiedad, a $${rate} por $1,000 de valor. Ingrese el valor de su casa para ver su impuesto escolar estimado y qué fondo del distrito apoya cada dólar.`,
   "s.taxbill.homeLabel": "El valor de mercado de su casa",
-  "s.taxbill.estOut": "Impuesto escolar anual estimado",
+  "s.taxbill.estOut": "Impuesto escolar anual estimado, antes del crédito escolar estatal",
   "s.taxbill.totalRow": "Sus impuestos escolares",
   "s.taxbill.note": (fiscal, rate) => `Estimado a partir de la tasa escolar ${fiscal} de $${rate} por $1,000 de valor igualado. Esta es solo la parte del distrito escolar — su factura completa también incluye el condado, su municipio y el colegio técnico. Las facturas reales varían según créditos y exenciones.`,
   "s.debt.kick": "Lo que debe el distrito",
@@ -473,18 +479,18 @@ const ES = {
   "c.stat.cityShare": "Parte de la ciudad en su factura",
   "c.stat.cityShareSub": (total) => `de $${total} de tasa total`,
   "c.where.dek": (gf) => `El fondo general — ${gf} — paga los servicios diarios de la ciudad. Alterne para ver lo que gasta por departamento y de dónde viene ese dinero.`,
-  "c.where.noteDept": "Cambio mostrado respecto al presupuesto adoptado de 2025. La policía y los bomberos juntos son la mayor parte del gasto municipal.",
-  "c.where.noteRev": "Cambio mostrado respecto al presupuesto adoptado de 2025. El impuesto a la propiedad es la mayor fuente de ingresos de la ciudad.",
+  "c.where.noteDept": (prior) => `Cambio mostrado respecto al presupuesto adoptado de ${prior}. La policía y los bomberos juntos son la mayor parte del gasto municipal.`,
+  "c.where.noteRev": (prior) => `Cambio mostrado respecto al presupuesto adoptado de ${prior}. El impuesto a la propiedad es la mayor fuente de ingresos de la ciudad.`,
   "c.flow.dek": "Cada dólar del fondo general, rastreado desde su origen, a través del fondo, hasta lo que paga. Pase el cursor por cualquier cinta para seguir el dinero.",
   "c.flow.note": "Fuentes de ingreso del fondo general (izquierda) hacia el fondo (centro) y hacia los departamentos (derecha). Se nombran los cinco mayores de cada lado; el resto se agrupa. Pase el cursor por un flujo para ver su monto.",
   "c.allfunds.title": "Todos los fondos, por categoría",
   "c.allfunds.dek": (total) => `Más allá del fondo general, el presupuesto de todos los fondos de ${total} de la ciudad cubre proyectos de capital, servicio de deuda, fondos empresariales y de ingresos especiales. Aquí está por tipo de gasto.`,
-  "c.allfunds.note": "Cambio mostrado respecto al presupuesto adoptado de 2025, todos los fondos.",
+  "c.allfunds.note": (prior) => `Cambio mostrado respecto al presupuesto adoptado de ${prior}, todos los fondos.`,
   "c.overtime.title": "El impuesto con el tiempo",
   "c.overtime.dek": (first, firstYr, last, lastYr, pct) => `El impuesto a la propiedad de la ciudad ha subido de ${first} en ${firstYr} a ${last} en ${lastYr} — un ${pct}% más.`,
   "c.overtime.note": (y0, y1) => `Impuesto a la propiedad real, tal como se adoptó, ${y0}–${y1}.`,
   "c.overtime.calloutTitle": "La ciudad está en su tope de impuesto",
-  "c.overtime.calloutBody": (exception, year) => `Por undécimo año consecutivo, el impuesto de Wausau supera el límite estatal básico — ${exception} por encima en ${year}, permitido solo por la exención del servicio de deuda. Y en 2027, las subvenciones federales ARPA y SAFER que pagan 15 puestos de primeros auxilios expiran, dejando unos $1.5 millones que el impuesto deberá absorber — la brecha estructural que el mensaje presupuestario del alcalde llama una "bomba de tiempo".`,
+  "c.overtime.calloutBody": (exception, year, since, atLeast) => `Cada año desde ${atLeast ? "al menos " : ""}${since}, el impuesto de Wausau ha superado el límite estatal básico — ${exception} por encima en ${year}, permitido solo por la exención del servicio de deuda. Las subvenciones federales ARPA y SAFER que pagaban 15 puestos de primeros auxilios ya se agotaron — la "bomba de tiempo" del mensaje presupuestario del alcalde para 2026 — y en abril de 2026 los votantes aprobaron un aumento de $1.45 millones por encima del límite para mantener 12 puestos de bomberos/paramédicos.`,
   "c.workforce.kick": "El personal",
   "c.workforce.title": "El personal de la ciudad con el tiempo",
   "c.workforce.dek": (now, then, year) => `La ciudad presupuesta ${now} puestos equivalentes a tiempo completo en ${year}, frente a ${then} hace una década. Elija un departamento para ver cómo ha cambiado su personal.`,
@@ -500,7 +506,8 @@ const ES = {
   "c.dev.kick": "Apostando al crecimiento",
   "c.dev.title": "Distritos de incremento de impuestos",
   "c.dev.dek": (count) => `La ciudad opera ${count} distritos activos de incremento de impuestos (TID) — áreas donde el aumento del valor de la propiedad se capta para reembolsar la inversión pública en desarrollo. Esto es cuánto creció el valor de cada distrito el año pasado.`,
-  "c.dev.note": (decrease) => `Crecimiento de valuación, 2025. El presupuesto también incluye los pagos de incentivos a desarrolladores anteriores. Una disminución neta del impuesto TID de ${decrease} este año refleja el cierre del Distrito 6.`,
+  "c.dev.note": (year, decrease) => `Crecimiento de valuación, ${year}. El presupuesto también incluye los pagos de incentivos a desarrolladores anteriores y una disminución neta del impuesto TID de ${decrease}.`,
+  "c.dev.noteClosure2026": "Esa disminución refleja el cierre del Distrito 6.",
   "c.debt.kick": "Lo que debe la ciudad",
   "c.debt.dek": (outstanding, pct) => `La ciudad tiene ${outstanding} en deuda de obligación general — el ${pct}% de su límite legal de endeudamiento. Así está programado su pago.`,
   "c.debt.note": (y0, total0, yN) => `Capital + intereses anuales sobre la deuda de obligación general existente. El pago de ${y0} es ${total0}; el calendario llega hasta ${yN}.`,
@@ -521,10 +528,10 @@ const ES = {
   "co.stat.countyLevy": "Impuesto del condado",
   "co.where.dek": "El fondo general del condado paga el gobierno diario. Alterne para ver lo que gasta — y de dónde viene el dinero antes de que el impuesto a la propiedad cubra la diferencia.",
   "co.where.pending": (hearing) => `El desglose del fondo general por función no figura en el libro propuesto por el Administrador: el condado lo imprime en el aviso de audiencia pública que publica antes de la audiencia del ${hearing}, y aparecerá aquí entonces. Mientras tanto, el registro de departamentos más abajo muestra el fondo general propuesto, departamento por departamento.`,
-  "co.where.note": (flow) => (flow === "expenditures"
-    ? "Cambio mostrado respecto al presupuesto adoptado de 2025. La seguridad pública por sí sola es cerca de dos quintas partes del gasto del fondo general."
-    : "Cambio mostrado respecto al presupuesto adoptado de 2025. Lo que estas fuentes no cubren lo aporta el impuesto a la propiedad.") +
-    " La mini-tendencia traza cada fila desde 2024 (real) pasando por 2025 (presupuesto) hasta 2026 (adoptado).",
+  "co.where.note": (flow, year, psShare) => (flow === "expenditures"
+    ? `Cambio mostrado respecto al presupuesto adoptado de ${year - 1}.${psShare ? ` La seguridad pública por sí sola es el ${psShare}% del gasto del fondo general.` : ""}`
+    : `Cambio mostrado respecto al presupuesto adoptado de ${year - 1}. Lo que estas fuentes no cubren lo aporta el impuesto a la propiedad.`) +
+    ` La mini-tendencia traza cada fila desde ${year - 2} (real) pasando por ${year - 1} (presupuesto) hasta ${year} (adoptado).`,
   "co.dept.kick": "El desglose",
   "co.dept.title": "Departamento por departamento",
   "co.dept.dek": (n) => `${n} departamentos y centros de costo. El gasto total de cada uno equivale al impuesto que lo financia más los ingresos que genera por su cuenta. Haga clic en cualquier fila para abrir los libros.`,
@@ -580,13 +587,13 @@ const ES = {
   "tb.sec.title": "Su factura completa de impuestos a la propiedad",
   "tb.sec.dek": "El condado, su municipio, su distrito escolar y el colegio técnico gravan la misma casa. Elija dónde vive e ingrese su valor para ver el reparto — luego haga clic en cualquier línea para explorar en qué lo gasta ese gobierno.",
   "tb.homeLabel": "El valor de mercado de su casa",
-  "tb.estOut": "Su impuesto anual total a la propiedad",
+  "tb.estOut": "Impuesto anual estimado, antes de los créditos de lotería y primer dólar",
   "tb.muniQ": "¿Dónde está su casa?",
   "tb.group.City": "Ciudades",
   "tb.group.Village": "Villas",
   "tb.group.Town": "Pueblos",
   "tb.splitPart": "(parte del condado de Marathon)",
-  "tb.collegeAveraged": (where) => `${where} se divide entre dos distritos de colegio técnico; el estado reporta un solo gravamen del colegio para todo el pueblo, así que la línea del colegio es su promedio combinado.`,
+  "tb.collegeAveraged": (where) => `${where} se divide entre dos distritos de colegio técnico. Los datos estatales por municipio reportan un solo gravamen combinado del colegio, así que la línea del colegio combina las tasas de ambos; su factura muestra la de su distrito escolar.`,
   "tb.schoolQ": "¿En qué distrito escolar está su casa?",
   "tb.schoolNote": (where) => `El territorio de ${where} abarca más de un distrito escolar, y cada uno tiene su propia tasa escolar. Su factura de impuestos indica el suyo.`,
   "tb.explore": "Explorar",
@@ -597,7 +604,7 @@ const ES = {
 
   "lp.home": "Inicio",
   "lp.heroDek": "Vea a dónde va cada dólar de impuestos locales en el área de Wausau — en su condado, su ciudad y su distrito escolar — y qué significa para su factura de impuestos a la propiedad.",
-  "lp.combined": (bill) => `En una casa de $200,000 en la Ciudad de Wausau, su impuesto local total a la propiedad es de unos ${bill} — repartido entre cuatro gobiernos.`,
+  "lp.combined": (bill) => `En una casa de $200,000 en la Ciudad de Wausau, su impuesto local total a la propiedad es de unos ${bill} antes de los créditos estatales de lotería y de primer dólar — repartido entre cuatro gobiernos.`,
   "lp.seeBreakdown": "Ver el desglose",
   "lp.season": (name, year, hearing) => `Ya se publicó el presupuesto propuesto de ${year} de ${name}: audiencia pública el ${hearing}.`,
   "lp.seasonCta": "Vea lo que se propone",
@@ -608,7 +615,7 @@ const ES = {
   "lp.desc.city": "Departamentos del fondo general, el flujo del dinero, 11 años de personal y el reparto del impuesto.",
   "lp.desc.school": "Gasto por objeto, matrícula, medio siglo de tasas y deuda escolar.",
   "lp.desc.taxbill": "Toda su factura local de impuestos — para cualquier casa del condado de Marathon, repartida entre cada gobierno que la grava.",
-  "lp.credibility": "Cada cifra proviene directamente del presupuesto adoptado de cada gobierno y se coteja con sus propios totales impresos — datos abiertos, de libre reutilización, actualizados cada año.",
+  "lp.credibility": "Cada cifra proviene directamente de los documentos presupuestarios de cada gobierno y de los datos fiscales certificados por el estado, y se coteja con sus totales impresos — datos abiertos, de libre uso, actualizados cuando se proponen y se adoptan nuevos presupuestos.",
   "lp.footer": "Un proyecto de transparencia cívica de Wausau Pilot & Review.",
 };
 
@@ -659,8 +666,9 @@ const HMN = {
 
   "method.kicker": "Peb Ua Li Cas",
   "method.title": "Txoj Kev Ua & Cov Ntaub Ntawv Qhib",
-  "method.intro": (entity, year, kindNoun) =>
-    `Txhua tus lej ntawm nplooj no muab ncaj qha los ntawm ${entity} daim nyiaj txiag pom zoo rau xyoo ${year} — tib daim ntawv uas ${kindNoun} tshaj tawm — thiab kuaj nrog cov lej tag nrho luam tawm hauv daim nyiaj txiag. Tsis muaj dab tsi sau tes lossis kwv yees.`,
+  "method.intro": (entity, year, kindNoun, status) => (status === "proposed"
+    ? `Txhua tus lej hauv nplooj no muab ncaj qha los ntawm ${entity} daim nyiaj txiag xyoo ${year} NPAJ TSEG — tus Thawj Tswj (Administrator) daim uas muab rau Pawg Saib Xyuas Lub Nroog, tseem tsis tau pom zoo — thiab kuaj nrog daim nyiaj txiag cov lej luam tawm. Tsis muaj dab tsi ntawm no yog sau tes lossis kwv yees.`
+    : `Txhua tus lej ntawm nplooj no muab ncaj qha los ntawm ${entity} daim nyiaj txiag pom zoo rau xyoo ${year} — tib daim ntawv uas ${kindNoun} tshaj tawm — thiab kuaj nrog cov lej tag nrho luam tawm hauv daim nyiaj txiag. Tsis muaj dab tsi sau tes lossis kwv yees.`),
   "method.kind.county": "lub nroog",
   "method.kind.city": "lub zos",
   "method.kind.school": "lub tsev kawm ntawv",
@@ -670,14 +678,15 @@ const HMN = {
   "method.step.extractionLabel": "Rho tawm.",
   "method.step.verification": "Txhua lub rooj raug kuaj ib kab zuj zus nrog cov lej luam tawm. Yog ib tug lej tsis sib npaug, txoj kev nres es tsis tshaj tawm tus lej yuam kev.",
   "method.step.verificationLabel": "Kuaj xyuas.",
-  "method.step.updates": "Hloov kho ib xyoos ib zaug, thaum muaj daim nyiaj txiag tshiab pom zoo.",
+  "method.step.updates": "Hloov tshiab thaum muaj daim nyiaj txiag tshiab npaj tseg thiab dua thaum nws raug pom zoo.",
   "method.step.updatesLabel": "Hloov tshiab.",
   "method.dlJson": "Rub tag nrho cov ntaub ntawv (JSON)",
   "method.dlCsv": "Rub cov nuj nqis (CSV)",
   "method.reuse": "Cov ntaub ntawv no pub dawb siv dua. Tsim thiab saib xyuas los ntawm Wausau Pilot & Review ua ib feem ntawm nws txoj haujlwm pej xeem nthuav qhia.",
   "suite.linkLead": "Saib cov kev txiav txim tom qab daim nyiaj txiag.",
-  "suite.linkBody": "Daim nyiaj txiag no raug sib tham thiab pom zoo hauv cov rooj sib tham pej xeem — taug qab lawv hauv WPR Central Wisconsin Meeting Tracker.",
-
+  "suite.linkBody": (status) => (status === "proposed"
+    ? "Daim npaj tseg no tab tom raug sib tham hauv cov rooj sib tham pej xeem, ua ntej pawg pov npav — taug qab lawv hauv WPR Central Wisconsin Meeting Tracker."
+    : "Daim nyiaj txiag no raug sib tham thiab pom zoo hauv cov rooj sib tham pej xeem — taug qab lawv hauv WPR Central Wisconsin Meeting Tracker."),
   "calc.estProperty": "Kwv yees se vaj tse txhua xyoo",
   "calc.fmvHint": "Ntawm koj daim nqi se nws hu ua “Est. Fair Mkt.” — tsis yog tus nqi assessed.",
 
@@ -711,6 +720,7 @@ const HMN = {
   "title.outstandingDebt": "Cov Nuj Nqis Tseem Tshuav",
   "stat.totalBudget": "Tag nrho daim nyiaj txiag",
   "stat.millRate": "Tus nqi se (mill rate)",
+  "stat.proposed": (label) => `${label} (npaj tseg)`,
 
   "s.dek": (entity) => `Txhua nyuas nyiaj hauv ${entity} daim nyiaj txiag — los qhov twg los, mus qhov twg, thiab txhais li cas rau koj daim nqi se. Pom zoo los ntawm Pawg Saib Xyuas Kev Kawm (Board of Education).`,
   "s.stat.allFundsNet": "txhua nyiaj, net",
@@ -724,7 +734,7 @@ const HMN = {
   "s.where.dek": (gf) => `Lub nyiaj general fund — ${gf} — them rau cov haujlwm niaj hnub ntawm lub koog tsev kawm. Tsev kawm ntawv tsis faib nyiaj hli ib lub tsev zuj zus, yog li qhov pom tseeb tshaj yog faib raws hom (by object): hloov saib cov nyiaj yuav dab tsi thiab los qhov twg los.`,
   "s.where.showPeople": (showing) => `${showing ? "Zais" : "Saib"} cov nyiaj hli & txiaj ntsig yuav dab tsi`,
   "s.where.noteSpend": (share) => `Qhov hloov piv rau xyoo dhau los. Cov neeg — nyiaj hli thiab txiaj ntsig — yog ${share}% ntawm lub general fund; nyiaj hli xib fwb nkaus xwb yog tus nqi loj tshaj.`,
-  "s.where.noteRev": "Qhov hloov piv rau xyoo dhau los. Nyiaj pab los ntawm xeev (equalization aid), tsis yog se hauv zos, yog qhov nyiaj tau los loj tshaj ntawm lub koog tsev kawm.",
+  "s.where.noteRev": "Qhov hloov piv rau xyoo dhau los daim nyiaj txiag. Lub xeev cov nyiaj pab, tsis yog tus se hauv zos, yog lub tsev kawm qhov nyiaj tau los loj tshaj.",
   "s.flow.dek": "Txhua nyuas nyiaj general fund, taug qab los qhov twg los, hla lub nyiaj, mus rau qhov nws them. Coj nas saib ib txoj kab los taug qab cov nyiaj.",
   "s.flow.note": "Cov nyiaj tau los rau general fund (sab laug) mus rau lub nyiaj (nruab nrab) thiab tawm mus rau kev siv raws hom (sab xis). Coj nas saib ib qho ntws kom pom nws tus nqi.",
   "s.allfunds.title": "Txhua lub nyiaj, raws lub hom phiaj",
@@ -751,7 +761,7 @@ const HMN = {
   "s.overtime.calloutTitle": (cents) => `Vim li cas tus nqi poob ${cents}¢ xyoo no`,
   "s.taxbill.dek": (rate) => `Lub koog tsev kawm yog ib kab ntawm koj daim nqi se vaj tse, ntawm $${rate} rau ib $1,000 tus nqi. Sau koj lub tsev tus nqi los saib koj cov se tsev kawm kwv yees thiab lub nyiaj twg ntawm lub koog tsev kawm txhua nyiaj pab.`,
   "s.taxbill.homeLabel": "Koj lub tsev tus nqi lag luam (fair market value)",
-  "s.taxbill.estOut": "Se tsev kawm txhua xyoo kwv yees",
+  "s.taxbill.estOut": "Se tsev kawm txhua xyoo kwv yees, ua ntej lub xeev school levy credit",
   "s.taxbill.totalRow": "Koj cov se tsev kawm",
   "s.taxbill.note": (fiscal, rate) => `Kwv yees los ntawm ${fiscal} tus nqi se tsev kawm $${rate} rau ib $1,000 tus nqi equalized. Qhov no yog tsuas yog lub koog tsev kawm feem — koj daim nqi tag nrho kuj muaj lub nroog (county), koj lub zos, thiab lub tsev kawm technical college. Cov nqi tiag tiag hloov raws cov credit thiab exemption.`,
   "s.debt.kick": "Yam Lub Koog Tsev Kawm Tshuav Nuj",
@@ -766,18 +776,18 @@ const HMN = {
   "c.stat.cityShare": "Lub zos feem ntawm koj daim nqi",
   "c.stat.cityShareSub": (total) => `ntawm $${total} tus nqi tag nrho`,
   "c.where.dek": (gf) => `Lub general fund — ${gf} — them rau cov kev pab cuam niaj hnub hauv lub zos. Hloov los saib nws siv li cas raws chaw haujlwm, thiab cov nyiaj ntawd los qhov twg los.`,
-  "c.where.noteDept": "Qhov hloov piv rau xyoo 2025 daim nyiaj txiag pom zoo. Tub ceev xwm thiab tub tua hluav taws ua ke yog feem loj tshaj ntawm kev siv nyiaj hauv lub zos.",
-  "c.where.noteRev": "Qhov hloov piv rau xyoo 2025 daim nyiaj txiag pom zoo. Se vaj tse yog qhov nyiaj tau los loj tshaj ntawm lub zos.",
+  "c.where.noteDept": (prior) => `Qhov hloov piv rau xyoo ${prior} daim nyiaj txiag pom zoo. Tub ceev xwm thiab tub tua hluav taws ua ke yog feem loj tshaj ntawm kev siv nyiaj hauv lub zos.`,
+  "c.where.noteRev": (prior) => `Qhov hloov piv rau xyoo ${prior} daim nyiaj txiag pom zoo. Se vaj tse yog qhov nyiaj tau los loj tshaj ntawm lub zos.`,
   "c.flow.dek": "Txhua nyuas nyiaj general fund, taug qab los qhov twg los, hla lub nyiaj, mus rau qhov nws them. Coj nas saib ib txoj kab los taug qab cov nyiaj.",
   "c.flow.note": "Cov nyiaj tau los rau general fund (sab laug) mus rau lub nyiaj (nruab nrab) thiab tawm mus rau cov chaw haujlwm (sab xis). Tsib qhov loj tshaj ntawm ob sab raug muab npe; lwm cov raug muab sib sau. Coj nas saib ib qho ntws kom pom nws tus nqi.",
   "c.allfunds.title": "Txhua lub nyiaj, raws pawg",
   "c.allfunds.dek": (total) => `Dhau lub general fund, lub zos daim nyiaj txiag txhua nyiaj ${total} them rau cov project loj, them nuj nqis, enterprise thiab special-revenue funds. Ntawm no yog raws hom kev siv.`,
-  "c.allfunds.note": "Qhov hloov piv rau xyoo 2025 daim nyiaj txiag pom zoo, txhua nyiaj.",
+  "c.allfunds.note": (prior) => `Qhov hloov piv rau xyoo ${prior} daim nyiaj txiag pom zoo, txhua nyiaj.`,
   "c.overtime.title": "Tus se raws sij hawm",
   "c.overtime.dek": (first, firstYr, last, lastYr, pct) => `Lub zos tus se vaj tse tau nce ntawm ${first} xyoo ${firstYr} mus rau ${last} xyoo ${lastYr} — nce ${pct}%.`,
   "c.overtime.note": (y0, y1) => `Tus se vaj tse tiag raws li pom zoo, ${y0}–${y1}.`,
   "c.overtime.calloutTitle": "Lub zos nyob ntawm nws qhov se siab tshaj",
-  "c.overtime.calloutBody": (exception, year) => `Tau kaum ib xyoo lawm, Wausau tus se nyob siab dua xeev qhov pib — ${exception} dhau xyoo ${year}, tso cai tsuas yog los ntawm debt-service exemption. Thiab xyoo 2027, cov nyiaj pab ARPA thiab SAFER uas them 15 txoj haujlwm pab thawj zaug yuav xaus, tseg kwv yees $1.5 lab rau tus se yuav tsum ris — qhov sib txawv uas tus tswv zos daim ntawv nyiaj txiag hu ua "lub foob pob teem caij".`,
+  "c.overtime.calloutBody": (exception, year, since, atLeast) => `Txhua xyoo txij ${atLeast ? "tsawg kawg " : ""}${since} los, Wausau tus se nyob siab dua lub xeev qhov txwv pib — ${exception} dhau xyoo ${year}, tso cai tsuas yog los ntawm debt-service exemption. Cov nyiaj pab ARPA thiab SAFER uas them 15 txoj haujlwm pab thawj zaug tam sim no tag lawm — "lub foob pob teem caij" hauv tus tswv zos daim ntawv nyiaj txiag xyoo 2026 — thiab lub Plaub Hlis 2026 cov neeg pov npav tau pom zoo ntxiv $1.45 lab rau tus se dhau qhov txwv kom khaws 12 txoj haujlwm tua hluav taws/paramedic.`,
   "c.workforce.kick": "Cov Neeg",
   "c.workforce.title": "Lub zos cov neeg ua haujlwm raws sij hawm",
   "c.workforce.dek": (now, then, year) => `Lub zos npaj nyiaj rau ${now} txoj haujlwm full-time-equivalent xyoo ${year}, nce ntawm ${then} kaum xyoo dhau los. Xaiv ib lub chaw haujlwm los saib nws cov neeg hloov li cas.`,
@@ -793,7 +803,8 @@ const HMN = {
   "c.dev.kick": "Twv Rau Kev Loj Hlob",
   "c.dev.title": "Tax increment districts",
   "c.dev.dek": (count) => `Lub zos khiav ${count} lub tax increment districts (TIDs) — cheeb tsam uas kev nce ntawm tus nqi vaj tse raug khaws los them rov qab kev nqis peev pej xeem rau kev loj hlob. Ntawm no yog txhua lub district tus nqi nce npaum li cas xyoo dhau los.`,
-  "c.dev.note": (decrease) => `Kev nce ntawm tus nqi, 2025. Daim nyiaj txiag kuj suav cov nyiaj them developer saum toj. Ib qho TID se poob net ${decrease} xyoo no qhia txog kev kaw District 6.`,
+  "c.dev.note": (year, decrease) => `Kev nce ntawm tus nqi, ${year}. Daim nyiaj txiag kuj suav cov nyiaj them developer saum toj, thiab ib qho TID se poob net ${decrease}.`,
+  "c.dev.noteClosure2026": "Qhov poob ntawd qhia txog kev kaw District 6.",
   "c.debt.kick": "Yam Lub Zos Tshuav Nuj",
   "c.debt.dek": (outstanding, pct) => `Lub zos tshuav ${outstanding} hauv general-obligation debt — ${pct}% ntawm nws qhov txwv qiv nyiaj raws txoj cai. Ntawm no yog nws tau teem caij them.`,
   "c.debt.note": (y0, total0, yN) => `Tus nqi qiv + paj txhua xyoo rau general-obligation debt tam sim no. Qhov them xyoo ${y0} yog ${total0}; lub sij hawm them mus txog ${yN}.`,
@@ -814,10 +825,10 @@ const HMN = {
   "co.stat.countyLevy": "Se hauv lub nroog",
   "co.where.dek": "Lub nroog lub general fund them rau kev kav niaj hnub. Hloov los saib nws siv dab tsi — thiab cov nyiaj los qhov twg los ua ntej se vaj tse los txhaws qhov tsis txaus.",
   "co.where.pending": (hearing) => `Daim ntawv faib general fund raws hauj lwm tsis nyob hauv phau npaj tseg — lub nroog luam nws rau hauv daim ntawv ceeb toom kev sib hais pej xeem (public hearing) ua ntej ${hearing}, thiab nws yuav tshwm ntawm no thaum ntawd. Tam sim no, daim ntawv chaw haujlwm hauv qab qhia general fund npaj tseg raws chaw haujlwm.`,
-  "co.where.note": (flow) => (flow === "expenditures"
-    ? "Qhov hloov piv rau xyoo 2025 daim nyiaj txiag pom zoo. Kev ruaj ntseg pej xeem nkaus xwb yog kwv yees ob feem tsib ntawm kev siv general fund."
-    : "Qhov hloov piv rau xyoo 2025 daim nyiaj txiag pom zoo. Yam cov chaw no tsis them, se vaj tse yog tus them.") +
-    " Cov mini-trend taug txhua kab txij 2024 (tiag) hla 2025 (npaj) mus rau 2026 (pom zoo).",
+  "co.where.note": (flow, year, psShare) => (flow === "expenditures"
+    ? `Qhov hloov piv rau xyoo ${year - 1} daim nyiaj txiag pom zoo.${psShare ? ` Kev ruaj ntseg pej xeem nkaus xwb yog ${psShare}% ntawm kev siv general fund.` : ""}`
+    : `Qhov hloov piv rau xyoo ${year - 1} daim nyiaj txiag pom zoo. Yam cov chaw no tsis them, se vaj tse yog tus them.`) +
+    ` Cov mini-trend taug txhua kab txij ${year - 2} (tiag) hla ${year - 1} (npaj) mus rau ${year} (pom zoo).`,
   "co.dept.kick": "Tshawb Nrhiav",
   "co.dept.title": "Ib Lub Chaw Haujlwm Zuj Zus",
   "co.dept.dek": (n) => `${n} lub chaw haujlwm thiab koom haum. Txhua lub tag nrho kev siv sib npaug rau tus se uas txhawb nws ntxiv rau cov nyiaj nws khwv tau nws tus kheej. Nyem ib kab los qhib cov phau ntawv.`,
@@ -873,13 +884,13 @@ const HMN = {
   "tb.sec.title": "Koj daim nqi se vaj tse tag nrho",
   "tb.sec.dek": "Lub county, koj lub zos, koj lub school district thiab lub technical college sau se rau tib lub tsev. Xaiv qhov koj nyob, sau koj tus nqi los saib qhov faib — ces nyem ib kab los tshawb qhov koom haum ntawd siv li cas.",
   "tb.homeLabel": "Koj lub tsev tus nqi lag luam (fair market value)",
-  "tb.estOut": "Koj se vaj tse tag nrho txhua xyoo",
+  "tb.estOut": "Kwv yees se txhua xyoo, ua ntej lottery & first-dollar credit",
   "tb.muniQ": "Koj lub tsev nyob qhov twg?",
   "tb.group.City": "Cov City",
   "tb.group.Village": "Cov Village",
   "tb.group.Town": "Cov Town",
   "tb.splitPart": "(feem hauv Marathon County)",
-  "tb.collegeAveraged": (where) => `${where} faib ua ob lub technical college district; lub xeev qhia ib tus nqi se college rau tag nrho lub town, yog li kab college yog lawv qhov nruab nrab.`,
+  "tb.collegeAveraged": (where) => `${where} faib ua ob lub technical college district. Lub xeev cov ntaub ntawv rau txhua lub zos qhia ib tus nqi se college ua ke, yog li kab college no muab ob lub college tus nqi sib xyaw; koj daim nqi se qhia lub rau koj lub school district.`,
   "tb.schoolQ": "Koj lub tsev nyob hauv lub school district twg?",
   "tb.schoolNote": (where) => `${where} muaj ntau tshaj ib lub school district, thiab txhua lub muaj nws tus nqi se tsev kawm. Koj daim nqi se qhia koj lub.`,
   "tb.explore": "Tshawb",
@@ -890,7 +901,7 @@ const HMN = {
 
   "lp.home": "Tsev",
   "lp.heroDek": "Saib txhua nyuas nyiaj se hauv zos hauv cheeb tsam Wausau mus qhov twg — hauv koj lub nroog, koj lub zos, thiab koj lub tsev kawm ntawv — thiab txhais li cas rau koj daim nqi se vaj tse.",
-  "lp.combined": (bill) => `Rau ib lub tsev $200,000 hauv City of Wausau, koj cov se vaj tse hauv zos tag nrho yog li ${bill} — faib rau plaub lub koom haum kav.`,
+  "lp.combined": (bill) => `Rau ib lub tsev $200,000 hauv City of Wausau, koj cov se vaj tse hauv zos tag nrho yog li ${bill} ua ntej lub xeev cov lottery thiab first-dollar credit — faib rau plaub lub koom haum kav.`,
   "lp.seeBreakdown": "Saib qhov faib",
   "lp.season": (name, year, hearing) => `${name} daim nyiaj txiag xyoo ${year} npaj tseg tawm lawm — kev sib hais pej xeem ${hearing}.`,
   "lp.seasonCta": "Saib dab tsi npaj tseg",
@@ -901,7 +912,7 @@ const HMN = {
   "lp.desc.city": "Cov chaw haujlwm general fund, nyiaj ntws, 11 xyoo cov neeg ua haujlwm, thiab se faib.",
   "lp.desc.school": "Kev siv raws hom, cov tub ntxhais kawm, ib nrab caum xyoo tus nqi se, thiab nuj nqis tsev kawm.",
   "lp.desc.taxbill": "Koj daim nqi se hauv zos tag nrho — rau txhua lub tsev hauv Marathon County, faib rau txhua lub koom haum uas sau se.",
-  "lp.credibility": "Txhua tus lej los ncaj qha ntawm txhua lub koom haum daim nyiaj txiag pom zoo thiab raug kuaj nrog lawv cov lej luam tawm — cov ntaub ntawv qhib, pub dawb siv dua, hloov tshiab txhua xyoo.",
+  "lp.credibility": "Txhua tus lej los ncaj qha ntawm txhua lub koom haum cov ntaub ntawv nyiaj txiag thiab lub xeev cov ntaub ntawv se uas tau lees paub, thiab raug kuaj nrog lawv cov lej luam tawm — cov ntaub ntawv qhib, pub dawb siv dua, hloov tshiab thaum muaj daim nyiaj txiag tshiab npaj tseg thiab pom zoo.",
   "lp.footer": "Ib qho haujlwm nthuav qhia pej xeem los ntawm Wausau Pilot & Review.",
 };
 

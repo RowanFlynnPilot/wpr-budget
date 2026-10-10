@@ -48,6 +48,12 @@ export default function Ledger({ b, chrome }) {
     .sort((a, c) => c.proposed_next - a.proposed_next), [flow, b.general_fund]);
   const gfTotal = useMemo(() => gfRows.reduce((s, r) => s + r.proposed_next, 0), [gfRows]);
   const gfMax = useMemo(() => Math.max(...gfRows.map((r) => r.proposed_next)), [gfRows]);
+  // Public safety's share of GF spending, for the note (computed, not asserted).
+  const publicSafetyShare = useMemo(() => {
+    const exp = b.general_fund ? b.general_fund.expenditures : [];
+    const ps = exp.find((r) => r.category === "Public Safety");
+    return ps ? Math.round((ps.proposed_next / exp.reduce((s, r) => s + r.proposed_next, 0)) * 100) : null;
+  }, [b.general_fund]);
 
   const sortedDepts = useMemo(() => {
     const val = (d) => (sortKey === "spend" ? deptSpend(d) : sortKey === "levy" ? d.tax_levy
@@ -164,9 +170,9 @@ export default function Ledger({ b, chrome }) {
           : t("co.dek", b.meta.entity, fmtDate(b.meta.adopted, lang))}</p>
 
         <div className="stat-strip">
-          <Stat icon="💰" label={t("stat.totalBudget")} value={compact(b.meta.total_expenditures)} sub={budgetPctChange != null ? <Delta value={budgetPctChange} neutral /> : null} />
-          <Stat icon="🏛️" label={t("co.stat.countyLevy")} value={usd(b.meta.tax_levy)} sub={<Delta value={levyPctChange} />} />
-          <Stat icon="🏠" label={t("stat.millRate")} value={"$" + b.meta.tax_rate.toFixed(2)} sub={<Delta value={ratePctChange} />} />
+          <Stat icon="💰" label={proposed ? t("stat.proposed", t("stat.totalBudget")) : t("stat.totalBudget")} value={compact(b.meta.total_expenditures)} sub={budgetPctChange != null ? <Delta value={budgetPctChange} neutral /> : null} />
+          <Stat icon="🏛️" label={proposed ? t("stat.proposed", t("co.stat.countyLevy")) : t("co.stat.countyLevy")} value={usd(b.meta.tax_levy)} sub={<Delta value={levyPctChange} />} />
+          <Stat icon="🏠" label={proposed ? t("stat.proposed", t("stat.millRate")) : t("stat.millRate")} value={"$" + b.meta.tax_rate.toFixed(2)} sub={<Delta value={ratePctChange} />} />
         </div>
       </header>
 
@@ -177,7 +183,7 @@ export default function Ledger({ b, chrome }) {
       {/* WHERE IT GOES */}
       <section id="where" className="block">
         <SectionHead kicker={t("kick.generalFund")} title={t("title.whereDollarGoes")}>
-          {t("co.where.dek")}
+          {b.general_fund && t("co.where.dek")}
         </SectionHead>
 
         {!b.general_fund ? (
@@ -205,7 +211,7 @@ export default function Ledger({ b, chrome }) {
             </div>
           ))}
         </div>
-        <p className="note">{t("co.where.note", flow)}</p>
+        <p className="note">{t("co.where.note", flow, b.meta.budget_year, publicSafetyShare)}</p>
         {divisor !== "total" && (
           <p className="note">{t("pc.note", demo.population.toLocaleString("en-US"), demo.households.toLocaleString("en-US"), demo.basis)}</p>
         )}
@@ -288,7 +294,7 @@ export default function Ledger({ b, chrome }) {
             <ComposedChart data={levyTrend} margin={{ top: 8, right: 12, bottom: 4, left: 10 }}>
               <CartesianGrid stroke="var(--rule)" vertical={false} />
               <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
-              <YAxis yAxisId="levy" tick={{ fill: "var(--gold)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
+              <YAxis yAxisId="levy" tick={{ fill: "var(--gold-ink)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
               <YAxis yAxisId="rate" orientation="right" domain={["dataMin - 0.25", "dataMax + 0.25"]} tick={{ fill: "var(--accent)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(1)} width={42} />
               <Tooltip content={<LevyTip />} cursor={{ fill: "var(--paper-2)" }} />
               <Bar yAxisId="levy" dataKey="levy" fill="var(--gold)" fillOpacity={0.82} radius={[2, 2, 0, 0]} maxBarSize={34}>
@@ -380,7 +386,7 @@ export default function Ledger({ b, chrome }) {
               <CartesianGrid stroke="var(--rule)" vertical={false} />
               <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
               <YAxis yAxisId="rate" domain={["dataMin - 0.25", "dataMax + 0.25"]} tick={{ fill: "var(--accent)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(1)} width={42} />
-              <YAxis yAxisId="bill" orientation="right" domain={["dataMin - 25", "dataMax + 25"]} tick={{ fill: "var(--gold)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + Math.round(v)} width={48} />
+              <YAxis yAxisId="bill" orientation="right" domain={["dataMin - 25", "dataMax + 25"]} tick={{ fill: "var(--gold-ink)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + Math.round(v)} width={48} />
               <Tooltip content={<BillTip />} />
               <Line yAxisId="rate" type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
               <Line yAxisId="bill" type="monotone" dataKey="bill" stroke="var(--gold)" strokeWidth={2.5} strokeDasharray="5 3" dot={false} activeDot={{ r: 4 }} />

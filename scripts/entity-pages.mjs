@@ -9,12 +9,14 @@ import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 
 const BASE = "https://rowanflynnpilot.github.io/wpr-budget/";
 const entities = JSON.parse(readFileSync("src/entities.json", "utf8"));
+// The tax-bill card states the municipality count from the data, not a literal.
+const munis = JSON.parse(readFileSync("public/marathon-tax-districts.json", "utf8")).municipalities.length;
 
 const DESC = {
   county: (e) => `Where the money comes from and where it goes in ${e.name}'s adopted budget — every department, the tax levy, the mill rate, and outstanding debt.`,
   city: (e) => `Where the money comes from and where it goes in the ${e.name} adopted budget — the general fund, the money flow, the workforce, and your tax bill.`,
   school: (e) => `Where the money goes in the ${e.name} budget — spending by object, enrollment, a half-century of mill rates, and the school share of your tax bill.`,
-  taxbill: () => "Your complete property-tax bill for any home in Marathon County — all 61 cities, villages and towns, every school district — split across the county, your municipality, your school district and the technical college.",
+  taxbill: () => `Your complete property-tax bill for any home in Marathon County — all ${munis} cities, villages and towns, every school district — split across the county, your municipality, your school district and the technical college.`,
 };
 
 // A budget-season PROPOSED edition gets its own stub too (/<entity-id>-<edition-id>/),

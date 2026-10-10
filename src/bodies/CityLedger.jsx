@@ -86,10 +86,18 @@ export default function CityLedger({ b, extra, chrome }) {
   const levy = b.levy_history;
   const levyFirst = levy[0], levyLast = levy[levy.length - 1];
   const levyPct = (levyLast.levy / levy[levy.length - 2].levy - 1) * 100;
+  // The current unbroken run of years with the levy above the basic state limit
+  // (exception > 0), counted back from the latest year. If it reaches the start
+  // of the book's table, the honest claim is "since at least" that year.
+  const overRun = (() => {
+    let i = levy.length - 1;
+    while (i > 0 && levy[i - 1].exception > 0) i -= 1;
+    return { since: levy[i].year, atLeast: i === 0 };
+  })();
 
   // The tax bill for a City of Wausau home, from the DOR taxing-district data
   // (every tax-bill view's one source and basis — see billRates in ui.jsx).
-  const [school, setSchool] = useSchoolChoice();
+  const [school, setSchool] = useSchoolChoice(WAUSAU_CITY_DOR);
   const taxYear = extra.taxDistricts.meta.tax_year;
   const muni = extra.taxDistricts.municipalities.find((m) => m.code === WAUSAU_CITY_DOR);
   const bill = useMemo(() => billRates(muni, school), [muni, school]);
@@ -179,7 +187,7 @@ export default function CityLedger({ b, extra, chrome }) {
             </div>
           ))}
         </div>
-        <p className="note">{gfFlow === "departments" ? t("c.where.noteDept") : t("c.where.noteRev")}</p>
+        <p className="note">{gfFlow === "departments" ? t("c.where.noteDept", b.meta.budget_year - 1) : t("c.where.noteRev", b.meta.budget_year - 1)}</p>
         {divisor !== "total" && (
           <p className="note">{t("pc.note", demo.population.toLocaleString("en-US"), demo.households.toLocaleString("en-US"), demo.basis)}</p>
         )}
@@ -212,7 +220,7 @@ export default function CityLedger({ b, extra, chrome }) {
             </div>
           ))}
         </div>
-        <p className="note">{t("c.allfunds.note")}</p>
+        <p className="note">{t("c.allfunds.note", b.meta.budget_year - 1)}</p>
       </section>
 
       {/* OVER TIME — levy */}
@@ -225,7 +233,7 @@ export default function CityLedger({ b, extra, chrome }) {
             <ComposedChart data={levy} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
               <CartesianGrid stroke="var(--rule)" vertical={false} />
               <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
-              <YAxis tick={{ fill: "var(--gold)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
+              <YAxis tick={{ fill: "var(--gold-ink)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
               <Tooltip content={<BarTip seriesName="Tax levy" />} cursor={{ fill: "var(--paper-2)" }} />
               <Bar dataKey="levy" fill="var(--gold)" fillOpacity={0.82} radius={[2, 2, 0, 0]} maxBarSize={38} />
             </ComposedChart>
@@ -235,7 +243,7 @@ export default function CityLedger({ b, extra, chrome }) {
 
         <div className="callout">
           <div className="callout-title">{t("c.overtime.calloutTitle")}</div>
-          <p>{t("c.overtime.calloutBody", usd(levyLast.exception), levyLast.year)}</p>
+          <p>{t("c.overtime.calloutBody", usd(levyLast.exception), levyLast.year, overRun.since, overRun.atLeast)}</p>
         </div>
       </section>
 
@@ -306,7 +314,9 @@ export default function CityLedger({ b, extra, chrome }) {
           </div>
         )}
         <p className="note">
-          {t("c.dev.note", usd(tif.levy_decrease))}
+          {t("c.dev.note", b.meta.budget_year - 1, usd(tif.levy_decrease))}
+          {/* A fact specific to the FY2026 book's TID levy change. */}
+          {b.meta.budget_year === 2026 && " " + t("c.dev.noteClosure2026")}
         </p>
       </section>
 

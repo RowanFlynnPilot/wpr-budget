@@ -3,7 +3,7 @@ import { Receipt, ArrowUpRight } from "lucide-react";
 import { useLang, useStrings } from "./i18n";
 import { fetchData } from "./data";
 import { usd, compact, fmtDate } from "./format";
-import { ENTITY_LOGOS, MEETING_TRACKER_URL, SponsorSlot, useAnchorOnMount, billRates, WAUSAU_CITY_DOR } from "./ui";
+import { ENTITY_LOGOS, MEETING_TRACKER_URL, SponsorSlot, useAnchorOnMount, billRates, rememberMuni, WAUSAU_CITY_DOR } from "./ui";
 import ChromeBar from "./ChromeBar";
 
 // Suite landing page — the front door. Fetches every entity's data once (via
@@ -54,7 +54,7 @@ export default function Landing({ entities, chrome }) {
         <p className="dek">{t("lp.heroDek")}</p>
       </header>
 
-      <button type="button" className="lp-hook" onClick={() => chrome.onSelect(taxbillEnt.id)}>
+      <button type="button" className="lp-hook" onClick={() => { rememberMuni(WAUSAU_CITY_DOR); chrome.onSelect(taxbillEnt.id); }}>
         <span>{t("lp.combined", combinedBill)}</span>
         <span className="lp-hook-cta">{t("lp.seeBreakdown")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
       </button>

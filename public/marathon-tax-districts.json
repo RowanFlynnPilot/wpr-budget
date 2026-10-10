@@ -1537,12 +1537,6 @@
           "name": "Marathon City",
           "full_value": 2257759,
           "levy": 17087
-        },
-        {
-          "code": "3500",
-          "name": "Merrill Area",
-          "full_value": 0,
-          "levy": 0
         }
       ],
       "technical_colleges": [

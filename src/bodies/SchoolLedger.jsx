@@ -280,7 +280,7 @@ export default function SchoolLedger({ b, chrome }) {
               <CartesianGrid stroke="var(--rule)" vertical={false} />
               <XAxis dataKey="label" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
               <YAxis yAxisId="enr" domain={["dataMin - 200", "dataMax + 200"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={44} tickFormatter={(v) => v.toLocaleString()} />
-              <YAxis yAxisId="ps" orientation="right" domain={["dataMin - 400", "dataMax + 400"]} tick={{ fill: "var(--gold)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={48} tickFormatter={(v) => "$" + (v / 1000).toFixed(1) + "K"} />
+              <YAxis yAxisId="ps" orientation="right" domain={["dataMin - 400", "dataMax + 400"]} tick={{ fill: "var(--gold-ink)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={48} tickFormatter={(v) => "$" + (v / 1000).toFixed(1) + "K"} />
               <Tooltip content={({ active, payload, label }) => {
                 if (!active || !payload || !payload.length) return null;
                 const c = payload.find((p) => p.dataKey === "count");
@@ -323,7 +323,7 @@ export default function SchoolLedger({ b, chrome }) {
             <ComposedChart data={overTime} margin={{ top: 8, right: 14, bottom: 4, left: 6 }}>
               <CartesianGrid stroke="var(--rule)" vertical={false} />
               <XAxis dataKey="year" ticks={otTicks} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
-              <YAxis yAxisId="val" orientation="right" tick={{ fill: "var(--gold)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={42} tickFormatter={(v) => "$" + (v / 1e9).toFixed(0) + "B"} />
+              <YAxis yAxisId="val" orientation="right" tick={{ fill: "var(--gold-ink)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={42} tickFormatter={(v) => "$" + (v / 1e9).toFixed(0) + "B"} />
               <YAxis yAxisId="rate" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={34} tickFormatter={(v) => "$" + v} />
               <Tooltip content={({ active, payload, label }) => {
                 if (!active || !payload || !payload.length) return null;
