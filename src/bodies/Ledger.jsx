@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { useLang, useStrings } from "../i18n";
 import { usd, compact, pct, deptSpend, fmtDate } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, MillRate, SourceLink, ChartFrame, Delta, Balance, Spark, Highlights, HaveYourSay, rankLast, rankNote, risesOf, signedCompact, SubNav, SponsorSlot, EditionBanner,
+  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, MillRate, SourceLink, ChartFrame, Delta, Balance, Spark, Highlights, HaveYourSay, ChangesLog, rankLast, rankNote, risesOf, signedCompact, SubNav, SponsorSlot, EditionBanner,
   Methodology, HomeValueCalc, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
@@ -25,7 +25,7 @@ const SECTIONS_PROPOSED = ["where", "departments", "trends", "bill", "funds", "d
 // during budget season, the Administrator's PROPOSED one — which is labeled as
 // such everywhere and carries no General Fund summary (general_fund: null; it
 // is printed in the public-hearing notice the proposed book predates).
-export default function Ledger({ b, chrome }) {
+export default function Ledger({ b, extra, chrome }) {
   const t = useStrings();
   const { lang } = useLang();
   const proposed = b.meta.status === "proposed";
@@ -184,6 +184,7 @@ export default function Ledger({ b, chrome }) {
       <ChromeBar {...chrome} year={b.meta.budget_year} status={b.meta.status} />
 
       <EditionBanner chrome={chrome} adoptedYear={prevYear} />
+      <ChangesLog entries={extra.updates} />
 
       {/* masthead */}
       <header className="masthead">

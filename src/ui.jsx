@@ -328,6 +328,32 @@ export function EditionBanner({ chrome, adoptedYear }) {
   );
 }
 
+// "Changes since the proposal": what committees and the board have amended
+// since the book was presented, logged by hand by WPR's editors in the
+// edition's updates file ([{ date, body, summary, url|null }], newest shown
+// first). Renders nothing until the file has an entry. Summaries are written in
+// English and marked so.
+export function ChangesLog({ entries }) {
+  const t = useStrings();
+  const { lang } = useLang();
+  if (!entries || !entries.length) return null;
+  const rows = [...entries].sort((a, c) => (a.date < c.date ? 1 : -1));
+  return (
+    <aside className="changes" aria-labelledby="changes-title">
+      <h2 id="changes-title">{t("chg.title")}</h2>
+      <ol>
+        {rows.map((e, i) => (
+          <li key={i}>
+            <b>{fmtDate(e.date, lang, false)} · <span lang="en">{e.body}</span></b>{" "}
+            <span lang="en">{e.summary}</span>
+            {e.url && <> <a href={e.url} target="_blank" rel="noopener noreferrer" onClick={countLink("change-story")}>{t("chg.story")}</a></>}
+          </li>
+        ))}
+      </ol>
+    </aside>
+  );
+}
+
 // "Have your say" — on a PROPOSED edition only: the calendar to the vote (the
 // book's own budget-process timeline, curated as the edition's `milestones`),
 // and the three ways a resident can act before it: speak at the hearing, reach

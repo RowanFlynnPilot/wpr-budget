@@ -10,6 +10,7 @@
         "id": "2027-proposed",
         "year": 2027,
         "data": "marathon-county-2027-proposed.json",
+        "updates": "marathon-county-2027-updates.json",
         "hearing": "2026-11-02",
         "vote": "2026-11-10",
         "milestones": [

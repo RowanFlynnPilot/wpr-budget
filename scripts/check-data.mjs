@@ -35,6 +35,18 @@ for (const e of entities) {
   }
 }
 
+// an edition's change log: [{ date, body, summary, url|null }] — hand-edited, so checked strictly
+for (const e of entities) for (const ed of e.editions || []) {
+  if (!ed.updates) continue;
+  const log = read(`public/${ed.updates}`);
+  if (!Array.isArray(log)) { fail(ed.updates, "must be a JSON array"); continue; }
+  log.forEach((u, i) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(u.date || "")) fail(ed.updates, `entry ${i}: date must be YYYY-MM-DD`);
+    for (const k of ["body", "summary"]) if (typeof u[k] !== "string" || !u[k].trim()) fail(ed.updates, `entry ${i}: ${k} is required`);
+    if (u.url !== null && !/^https:\/\//.test(u.url || "")) fail(ed.updates, `entry ${i}: url must be an https link or null`);
+  });
+}
+
 // a next-year proposal covered by a sibling WPR tool
 for (const e of entities.filter((x) => x.companion)) {
   if (!/^https:\/\//.test(e.companion.url) || !Number.isInteger(e.companion.year)) fail(`entities.json ${e.id}`, "companion needs {year, https url}");

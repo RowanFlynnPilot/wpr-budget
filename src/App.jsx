@@ -136,8 +136,9 @@ export default function App() {
     if (!route || route === "about" || route === "card") return;
     let stale = false;
     setErr(null); // a failed view must not strand every later view on its error
-    const { ent, dataFile } = resolveRoute(route);
-    const extras = Object.entries(ent.with || {});
+    const { ent, edition, dataFile } = resolveRoute(route);
+    // An edition's change log (amendments since the proposal) rides along as `updates`.
+    const extras = Object.entries({ ...(ent.with || {}), ...(edition && edition.updates ? { updates: edition.updates } : {}) });
     Promise.all([fetchData(dataFile), ...extras.map(([, file]) => fetchData(file))])
       .then(([payload, ...more]) => {
         if (!stale) setData({ route, payload, extra: Object.fromEntries(extras.map(([key], i) => [key, more[i]])) });
