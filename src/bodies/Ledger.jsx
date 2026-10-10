@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { useLang, useStrings } from "../i18n";
 import { usd, compact, pct, deptSpend, fmtDate } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, Delta, Balance, Spark, Highlights, SubNav, SponsorSlot, EditionBanner,
+  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, Delta, Balance, Spark, Highlights, SubNav, SponsorSlot, EditionBanner,
   Methodology, HomeValueCalc, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
@@ -157,21 +157,21 @@ export default function Ledger({ b, chrome }) {
           <div className="kicker-row">
             <span className="pub">{t("common.publicLedger")}</span>
             <span className="dot">·</span>
-            <span>{b.meta.entity}</span>
+            <span>Follow the Money</span>
             <SponsorSlot entityId={chrome.activeId} />
           </div>
           {ENTITY_LOGOS[chrome.activeId] && (
-            <img className="masthead-logo" src={ENTITY_LOGOS[chrome.activeId]} alt={b.meta.entity} />
+            <img className="masthead-logo" src={ENTITY_LOGOS[chrome.activeId]} alt="" />
           )}
         </div>
-        <h1>Follow the Money</h1>
+        <h1>{b.meta.entity}</h1>
         <p className="dek">{proposed
           ? t("co.dekProposed", b.meta.entity, fmtDate(b.meta.presented, lang))
           : t("co.dek", b.meta.entity, fmtDate(b.meta.adopted, lang))}</p>
 
         <div className="stat-strip">
           <Stat icon="💰" label={proposed ? t("stat.proposed", t("stat.totalBudget")) : t("stat.totalBudget")} value={compact(b.meta.total_expenditures)} sub={budgetPctChange != null ? <Delta value={budgetPctChange} neutral /> : null} />
-          <Stat icon="🏛️" label={proposed ? t("stat.proposed", t("co.stat.countyLevy")) : t("co.stat.countyLevy")} value={usd(b.meta.tax_levy)} sub={<Delta value={levyPctChange} />} />
+          <Stat icon="🏛️" label={proposed ? t("stat.proposed", t("co.stat.countyLevy")) : t("co.stat.countyLevy")} value={<FullOrCompact n={b.meta.tax_levy} />} sub={<Delta value={levyPctChange} />} />
           <Stat icon="🏠" label={proposed ? t("stat.proposed", t("stat.millRate")) : t("stat.millRate")} value={"$" + b.meta.tax_rate.toFixed(2)} sub={<Delta value={ratePctChange} />} />
         </div>
       </header>

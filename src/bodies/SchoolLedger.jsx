@@ -5,7 +5,7 @@ import {
 import { useLang, useStrings } from "../i18n";
 import { usd, compact, pct } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, Delta, Highlights, SubNav, SponsorSlot, Methodology,
+  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, Delta, Highlights, SubNav, SponsorSlot, Methodology,
   HomeValueCalc, TaxSplit, ChartNotes, resolveNotes, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import { MoneyFlowSankey, DebtChart } from "../charts";
@@ -167,18 +167,18 @@ export default function SchoolLedger({ b, chrome }) {
           <div className="kicker-row">
             <span className="pub">{t("common.publicLedger")}</span>
             <span className="dot">·</span>
-            <span>{b.meta.entity}</span>
+            <span>Follow the Money</span>
             <SponsorSlot entityId={chrome.activeId} />
           </div>
           {ENTITY_LOGOS[chrome.activeId] && (
-            <img className="masthead-logo" src={ENTITY_LOGOS[chrome.activeId]} alt={b.meta.entity} />
+            <img className="masthead-logo" src={ENTITY_LOGOS[chrome.activeId]} alt="" />
           )}
         </div>
-        <h1>Follow the Money</h1>
+        <h1>{b.meta.entity}</h1>
         <p className="dek">{t("s.dek", b.meta.entity)}</p>
         <div className="stat-strip">
           <Stat icon="💰" label={t("stat.totalBudget")} value={compact(b.meta.net_expenditures)} sub={t("s.stat.allFundsNet")} />
-          <Stat icon="🏛️" label={t("s.stat.schoolLevy")} value={usd(b.meta.total_levy)}
+          <Stat icon="🏛️" label={t("s.stat.schoolLevy")} value={<FullOrCompact n={b.meta.total_levy} />}
             sub={levyPct === 0 ? t("s.stat.levyFlat", priorFy) : <Delta value={levyPct} />} />
           <Stat icon="🏠" label={t("stat.millRate")} value={b.meta.mill_rate.toFixed(2)}
             sub={t("s.stat.vsPrior", pct(millPct), priorFy)} />

@@ -55,7 +55,10 @@ export default function Landing({ entities, chrome }) {
       </header>
 
       <button type="button" className="lp-hook" onClick={() => { rememberMuni(WAUSAU_CITY_DOR); chrome.onSelect(taxbillEnt.id); }}>
-        <span>{t("lp.combined", combinedBill)}</span>
+        <span className="lp-hook-figure">
+          <b className="lp-hook-num">{combinedBill}</b>
+          <span>{t("lp.combinedCaption")}</span>
+        </span>
         <span className="lp-hook-cta">{t("lp.seeBreakdown")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
       </button>
 
@@ -64,7 +67,7 @@ export default function Landing({ entities, chrome }) {
       {entities.filter((e) => e.editions && e.editions.length).map((e) => {
         const ed = e.editions[0];
         return (
-          <a key={e.id} className="edition edition--pointer" href={"#" + e.id + "~" + ed.id}>
+          <a key={e.id} className="edition edition--pointer lp-season" href={"#" + e.id + "~" + ed.id}>
             <span>{t("lp.season", e.name, ed.year, fmtDate(ed.hearing, lang, false))}</span>
             <span className="lp-hook-cta">{t("lp.seasonCta")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
           </a>

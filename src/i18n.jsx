@@ -308,7 +308,7 @@ const EN = {
   // Landing page
   "lp.home": "Overview",
   "lp.heroDek": "See where every local tax dollar in the Wausau area goes — across your county, your city, and your school district — and what it means for your property-tax bill.",
-  "lp.combined": (bill) => `On a $200,000 home in the City of Wausau, your total local property tax is about ${bill} before state lottery and first-dollar credits — split across four governments.`,
+  "lp.combinedCaption": "Total local property tax on a $200,000 home in the City of Wausau, before state lottery and first-dollar credits — split across four governments.",
   "lp.seeBreakdown": "See the breakdown",
   "lp.season": (name, year, hearing) => `${name}'s proposed ${year} budget is out — public hearing ${hearing}.`,
   "lp.seasonCta": "See what's proposed",
@@ -604,7 +604,7 @@ const ES = {
 
   "lp.home": "Inicio",
   "lp.heroDek": "Vea a dónde va cada dólar de impuestos locales en el área de Wausau — en su condado, su ciudad y su distrito escolar — y qué significa para su factura de impuestos a la propiedad.",
-  "lp.combined": (bill) => `En una casa de $200,000 en la Ciudad de Wausau, su impuesto local total a la propiedad es de unos ${bill} antes de los créditos estatales de lotería y de primer dólar — repartido entre cuatro gobiernos.`,
+  "lp.combinedCaption": "Impuesto local total a la propiedad de una casa de $200,000 en la Ciudad de Wausau, antes de los créditos estatales de lotería y de primer dólar — repartido entre cuatro gobiernos.",
   "lp.seeBreakdown": "Ver el desglose",
   "lp.season": (name, year, hearing) => `Ya se publicó el presupuesto propuesto de ${year} de ${name}: audiencia pública el ${hearing}.`,
   "lp.seasonCta": "Vea lo que se propone",
@@ -901,7 +901,7 @@ const HMN = {
 
   "lp.home": "Tsev",
   "lp.heroDek": "Saib txhua nyuas nyiaj se hauv zos hauv cheeb tsam Wausau mus qhov twg — hauv koj lub nroog, koj lub zos, thiab koj lub tsev kawm ntawv — thiab txhais li cas rau koj daim nqi se vaj tse.",
-  "lp.combined": (bill) => `Rau ib lub tsev $200,000 hauv City of Wausau, koj cov se vaj tse hauv zos tag nrho yog li ${bill} ua ntej lub xeev cov lottery thiab first-dollar credit — faib rau plaub lub koom haum kav.`,
+  "lp.combinedCaption": "Tag nrho se vaj tse hauv zos rau ib lub tsev $200,000 hauv City of Wausau, ua ntej lub xeev cov lottery thiab first-dollar credit — faib rau plaub lub koom haum kav.",
   "lp.seeBreakdown": "Saib qhov faib",
   "lp.season": (name, year, hearing) => `${name} daim nyiaj txiag xyoo ${year} npaj tseg tawm lawm — kev sib hais pej xeem ${hearing}.`,
   "lp.seasonCta": "Saib dab tsi npaj tseg",

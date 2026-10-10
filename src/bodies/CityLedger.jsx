@@ -5,7 +5,7 @@ import {
 import { useStrings } from "../i18n";
 import { usd, compact } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, Delta, Highlights, SubNav, SponsorSlot, Methodology,
+  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, Delta, Highlights, SubNav, SponsorSlot, Methodology,
   HomeValueCalc, TaxSplit, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
   SchoolPicker, useSchoolChoice, billRates, WAUSAU_CITY_DOR,
 } from "../ui";
@@ -146,18 +146,18 @@ export default function CityLedger({ b, extra, chrome }) {
           <div className="kicker-row">
             <span className="pub">{t("common.publicLedger")}</span>
             <span className="dot">·</span>
-            <span>{b.meta.entity}</span>
+            <span>Follow the Money</span>
             <SponsorSlot entityId={chrome.activeId} />
           </div>
           {ENTITY_LOGOS[chrome.activeId] && (
-            <img className="masthead-logo" src={ENTITY_LOGOS[chrome.activeId]} alt={b.meta.entity} />
+            <img className="masthead-logo" src={ENTITY_LOGOS[chrome.activeId]} alt="" />
           )}
         </div>
-        <h1>Follow the Money</h1>
+        <h1>{b.meta.entity}</h1>
         <p className="dek">{t("c.dek", b.meta.entity)}</p>
         <div className="stat-strip">
           <Stat icon="💰" label={t("stat.totalBudget")} value={compact(b.meta.total_expenditures)} sub={t("c.stat.allFunds")} />
-          <Stat icon="🏛️" label={t("c.stat.cityLevy")} value={usd(b.meta.tax_levy)} sub={<Delta value={levyPct} />} />
+          <Stat icon="🏛️" label={t("c.stat.cityLevy")} value={<FullOrCompact n={b.meta.tax_levy} />} sub={<Delta value={levyPct} />} />
           <Stat icon="🏠" label={t("c.stat.cityShare")} value={cityShare + "%"} sub={t("c.stat.cityShareSub", jtotal.toFixed(2))} />
         </div>
       </header>

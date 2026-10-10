@@ -111,6 +111,12 @@ export function Stat({ icon, label, value, sub }) {
   );
 }
 
+// A dollar figure in full on desktop, compact on phones — for stat tiles that sit
+// three across on a narrow screen (the full figure is repeated nearby).
+export function FullOrCompact({ n }) {
+  return <><span className="lg-only">{usd(n)}</span><span className="sm-only">{compact(n)}</span></>;
+}
+
 export function Balance({ title, rows, total }) {
   return (
     <div className="balance">

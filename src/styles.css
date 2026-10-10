@@ -75,9 +75,14 @@ body{margin:0; background:#f5f1e8;}
   /* The controls cluster (language · share · FY) gets its own row so the added
      language selector never pushes past the edge. */
   .chrome-bar__right{flex:1 1 100%; flex-wrap:wrap; gap:8px 10px;}
-  /* Stack the entity buttons full-width so the labels never run off the edge. */
-  .chrome-bar__ent{flex:1 1 100%; justify-content:flex-start; font-size:12px; padding:6px 12px 6px 5px;}
+  /* The entity buttons as a 2x2 grid — four stacked full-width buttons took
+     ~175px, over a fifth of a phone screen, before any content. */
+  .chrome-bar__switch{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+  .chrome-bar__ent{justify-content:flex-start; min-width:0; font-size:12px; padding:6px 10px 6px 5px;}
+  .chrome-bar__ent span{overflow:hidden; text-overflow:ellipsis;}
   .chrome-bar__ent img, .chrome-bar__ent-icon{width:22px; height:22px;}
+  /* The FY label repeats the masthead (and the proposed-edition banner). */
+  .chrome-bar__meta{display:none;}
 }
 
 /* masthead */
@@ -304,6 +309,16 @@ body{margin:0; background:#f5f1e8;}
   background:var(--paper-2); border:1px solid var(--rule); border-left:3px solid var(--accent);
   transition:background .15s ease;}
 .lp-hook:hover{background:rgba(22,88,74,.07);}
+/* The suite's headline number, at display size with its caption beneath. */
+.lp-hook-figure{display:flex; flex-direction:column; gap:4px;}
+.lp-hook-num{font-family:var(--serif); font-size:clamp(36px,5vw,52px); font-weight:600; line-height:1;
+  color:var(--accent); font-variant-numeric:tabular-nums;}
+/* Phones: stack the hook's figure/caption and its call to action (side by
+   side they squeezed the text into a ~100px column), and the budget-season
+   pointer likewise. */
+@media (max-width:560px){
+  .lp-hook, .lp-season{flex-direction:column; align-items:flex-start; gap:10px;}
+}
 .lp-hook-cta{display:inline-flex; align-items:center; gap:5px; flex-shrink:0; font-family:var(--sans);
   font-size:13px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; color:var(--accent);}
 .lp-cards{display:grid; grid-template-columns:repeat(auto-fit, minmax(232px, 1fr)); gap:16px; margin-top:34px;}
@@ -454,12 +469,23 @@ body{margin:0; background:#f5f1e8;}
 
 @media(max-width:680px){
   .ftm{padding:0 16px 60px;}
+  /* full-bleed strips bleed exactly the page padding (16px here, 24px above) */
+  .chrome-bar, .beta-banner{margin:0 -16px; padding-left:16px; padding-right:16px;}
   .hide-sm{display:none !important;}
   .lg-only{display:none;}
   .sm-only{display:inline;}
-  .stat-strip{grid-template-columns:1fr;}
-  .stat{padding:26px 20px 22px;}
-  .stat-icon{font-size:30px; margin-bottom:10px;}
+  /* Phones: get the first numbers onto the first screen — a tighter masthead
+     and the three stat tiles side by side (they stacked to ~550px). */
+  .masthead{padding:26px 0 22px;}
+  .masthead-logo{width:56px; height:56px; border-radius:10px; padding:5px;}
+  .masthead h1{font-size:40px; margin-top:10px;}
+  .masthead .dek{font-size:16px; margin-top:12px;}
+  .stat-strip{grid-template-columns:repeat(3,1fr); margin-top:22px;}
+  .stat{padding:14px 8px 12px;}
+  .stat-icon{display:none;}
+  .stat-label{font-size:10px; letter-spacing:.06em; line-height:1.3; min-height:2.6em;}
+  .stat-value{font-size:23px; margin:6px 0 4px;}
+  .stat-sub{font-size:12px; line-height:1.3;}
   /* tabs: a clean swipeable single row instead of a ragged wrap */
   .subnav{flex-wrap:nowrap; justify-content:flex-start; overflow-x:auto;
     scrollbar-width:none; -webkit-overflow-scrolling:touch;}
