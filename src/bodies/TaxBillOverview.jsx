@@ -1,8 +1,9 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useStrings } from "../i18n";
 import { usd } from "../format";
+import { track } from "../analytics";
 import {
-  SponsorSlot, SourceLink, HomeValueCalc, TaxSplit, MuniPicker, SchoolPicker, billRates,
+  SponsorSlot, SourceLink, SectionHead, HomeValueCalc, TaxSplit, MuniPicker, SchoolPicker, billRates, billExtremes, placeLabel,
   useAnchorOnMount, useHomeValue, useMuniChoice, useSchoolChoice, WAUSAU_CITY_DOR,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
@@ -14,6 +15,68 @@ import ChromeBar from "../ChromeBar";
 // has one. Sourced from the Wisconsin DOR's Town, Village and City Taxes data
 // (b = public/marathon-tax-districts.json): every municipality's actual levies
 // and values for the latest certified year, on one basis (see billRates).
+// "Same home, different bill": every municipality's bill on the reader's own
+// home value, ranked dearest first. A municipality spanning several school
+// districts is ranked by its largest district (the thin line under its bar is
+// the range across them) — except the reader's own, which shows the district
+// they chose. Collapsed: the five dearest, the five cheapest, and the reader's.
+// A row is a button: it opens that municipality's bill above.
+const RANK_EDGE = 5;
+function Ranking({ municipalities, muni, school, homeValue, onPick }) {
+  const t = useStrings();
+  const [all, setAll] = useState(false);
+  const rows = useMemo(() => municipalities.map((m) => {
+    const rates = m.school_districts.map((sd) => billRates(m, sd.code).total);
+    const rate = m.code === muni.code ? billRates(m, school).total : rates[0];
+    return { m, rate, min: Math.min(...rates), max: Math.max(...rates) };
+  }).sort((a, c) => c.rate - a.rate), [municipalities, muni.code, school]);
+  const { lo, hi } = useMemo(() => billExtremes(municipalities), [municipalities]);
+  const top = Math.max(...rows.map((r) => r.max));
+  const dollars = (rate) => usd(Math.round((homeValue / 1000) * rate));
+  const mine = rows.findIndex((r) => r.m.code === muni.code);
+  const shown = all ? rows.map((r, i) => i)
+    : [...new Set([...rows.keys()].filter((i) => i < RANK_EDGE || i >= rows.length - RANK_EDGE).concat(mine))].sort((a, c) => a - c);
+  return (
+    <section id="compare" className="block">
+      <SectionHead kicker={t("tb.cmp.kick")} title={t("tb.cmp.title")}>
+        {t("tb.cmp.dek", usd(homeValue), rows.length)}
+      </SectionHead>
+      <p className="rank-lede">{t("tb.cmp.range", dollars(lo.rate), placeLabel(t, lo), dollars(hi.rate), placeLabel(t, hi), dollars(hi.rate - lo.rate))}</p>
+      <ol className="rank-list">
+        {shown.map((i, k) => {
+          const r = rows[i];
+          const on = i === mine;
+          const gap = k > 0 && i - shown[k - 1] > 1;
+          return (
+            <React.Fragment key={r.m.code}>
+              {gap && <li className="rank-gap" aria-hidden="true">⋯</li>}
+              <li className={"rank-row" + (on ? " on" : "")}>
+                <button type="button" aria-current={on || undefined} onClick={() => {
+                  track("Municipality", { name: `${r.m.type} of ${r.m.name}`, via: "ranking" });
+                  onPick(r.m.code);
+                }}>
+                  <span className="rank-n">{i + 1}</span>
+                  <span className="rank-name">{r.m.type} of {r.m.name}{r.m.split_county ? " " + t("tb.splitPart") : ""}
+                    {on && <em className="rank-yours">{t("tb.cmp.yours")}</em>}</span>
+                  <span className="rank-bar" aria-hidden="true">
+                    <i style={{ width: (r.rate / top) * 100 + "%" }} />
+                    {r.max > r.min && <s style={{ left: (r.min / top) * 100 + "%", width: ((r.max - r.min) / top) * 100 + "%" }} />}
+                  </span>
+                  <span className="rank-val">{dollars(r.rate)}</span>
+                </button>
+              </li>
+            </React.Fragment>
+          );
+        })}
+      </ol>
+      <button type="button" className="table-toggle" aria-expanded={all} onClick={() => setAll(!all)}>
+        {all ? t("tb.cmp.showFewer") : t("tb.cmp.showAll", rows.length)}
+      </button>
+      <p className="note">{t("tb.cmp.note")}</p>
+    </section>
+  );
+}
+
 export default function TaxBillOverview({ b, chrome }) {
   const t = useStrings();
   const [homeValue, setHomeValue] = useHomeValue();
@@ -63,6 +126,12 @@ export default function TaxBillOverview({ b, chrome }) {
         <p className="note">{t("tb.note", year, total.toFixed(2), bill.where)}</p>
         {bill.collegeAveraged && <p className="note">{t("tb.collegeAveraged", bill.where)}</p>}
       </section>
+
+      <Ranking municipalities={b.municipalities} muni={muni} school={bill.school.code} homeValue={homeValue}
+        onPick={(code) => {
+          setMuniCode(code);
+          document.getElementById("bill").scrollIntoView({ behavior: "instant", block: "start" });
+        }} />
 
       <footer className="foot">
         <p><b>{t("foot.sourceLabel")}</b> <SourceLink source={chrome.source}>{t("tb.foot.source", year)}</SourceLink></p>

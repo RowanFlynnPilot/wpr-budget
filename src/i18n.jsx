@@ -16,6 +16,17 @@ const STORAGE_KEY = "wpr-budget-lang";
 // ---- string tables -------------------------------------------------------
 // Keys are grouped by area. Values are strings, or functions for interpolation.
 const EN = {
+  "tb.cmp.kick": "Across the county",
+  "tb.cmp.title": "Same home, different bill",
+  "tb.cmp.dek": (value, n) => `What a ${value} home pays in local property tax in each of Marathon County's ${n} cities, villages and towns, before the lottery and first-dollar credits.`,
+  "tb.cmp.range": (lo, loPlace, hi, hiPlace, diff) => `From ${lo} in the ${loPlace} to ${hi} in the ${hiPlace}: ${diff} a year apart, for the same home.`,
+  "tb.cmp.placeSchool": (where, sd) => `${where}, ${sd} schools`,
+  "tb.cmp.yours": "your pick",
+  "tb.cmp.showAll": (n) => `Show all ${n}`,
+  "tb.cmp.showFewer": "Show fewer",
+  "tb.cmp.note": "Where a municipality spans more than one school district, its bar shows the largest district and the thin line beneath it the range across its districts; yours shows the district you chose. Pick any row to see its whole bill.",
+  "lp.compare": (lo, loPlace, hi, hiPlace) => `The same $200,000 home pays ${lo} in the ${loPlace} and ${hi} in the ${hiPlace}.`,
+  "lp.compareCta": (n) => `Compare all ${n}`,
   "wc.levyChange": "Change in the tax levy",
   "wc.riseRecord": (from) => `the largest rise in records back to ${from}`,
   "wc.riseSince": (year) => `the largest rise since ${year}`,
@@ -398,6 +409,17 @@ const EN = {
 };
 
 const ES = {
+  "tb.cmp.kick": "En todo el condado",
+  "tb.cmp.title": "La misma casa, otra factura",
+  "tb.cmp.dek": (value, n) => `Lo que paga una casa de ${value} en impuestos locales a la propiedad en cada una de las ${n} ciudades, villas y pueblos del condado de Marathon, antes de los créditos de lotería y de primer dólar.`,
+  "tb.cmp.range": (lo, loPlace, hi, hiPlace, diff) => `De ${lo} en ${loPlace} a ${hi} en ${hiPlace}: ${diff} al año de diferencia, por la misma casa.`,
+  "tb.cmp.placeSchool": (where, sd) => `${where}, escuelas de ${sd}`,
+  "tb.cmp.yours": "su elección",
+  "tb.cmp.showAll": (n) => `Ver los ${n}`,
+  "tb.cmp.showFewer": "Ver menos",
+  "tb.cmp.note": "Cuando un municipio abarca más de un distrito escolar, su barra muestra el distrito más grande y la línea fina debajo, el rango entre sus distritos; el suyo muestra el distrito que eligió. Elija cualquier fila para ver su factura completa.",
+  "lp.compare": (lo, loPlace, hi, hiPlace) => `La misma casa de $200,000 paga ${lo} en ${loPlace} y ${hi} en ${hiPlace}.`,
+  "lp.compareCta": (n) => `Compare los ${n}`,
   "wc.levyChange": "Cambio en el impuesto",
   "wc.riseRecord": (from) => `el mayor aumento en los registros desde ${from}`,
   "wc.riseSince": (year) => `el mayor aumento desde ${year}`,
@@ -769,6 +791,17 @@ const ES = {
 
 // Hmong (Hmoob Dawb / RPA). BETA — AI-drafted, pending community review.
 const HMN = {
+  "tb.cmp.kick": "Thoob plaws lub county",
+  "tb.cmp.title": "Tib lub tsev, daim nqi se txawv",
+  "tb.cmp.dek": (value, n) => `Ib lub tsev ${value} them se vaj tse hauv zos npaum li cas hauv txhua ${n} lub nroog, zos thiab town ntawm Marathon County, ua ntej cov lottery thiab first-dollar credits.`,
+  "tb.cmp.range": (lo, loPlace, hi, hiPlace, diff) => `Txij ${lo} hauv ${loPlace} mus txog ${hi} hauv ${hiPlace}: txawv ${diff} ib xyoos, rau tib lub tsev.`,
+  "tb.cmp.placeSchool": (where, sd) => `${where}, ${sd} cov tsev kawm ntawv`,
+  "tb.cmp.yours": "koj xaiv",
+  "tb.cmp.showAll": (n) => `Saib tag nrho ${n}`,
+  "tb.cmp.showFewer": "Saib tsawg dua",
+  "tb.cmp.note": "Qhov twg ib lub zos muaj ntau tshaj ib lub tsev kawm ntawv district, nws tus kab qhia lub district loj tshaj thiab txoj kab nyias hauv qab qhia qhov sib txawv ntawm nws cov district; koj li qhia lub district koj xaiv. Xaiv ib kab twg los saib nws daim nqi se tag nrho.",
+  "lp.compare": (lo, loPlace, hi, hiPlace) => `Tib lub tsev $200,000 them ${lo} hauv ${loPlace} thiab ${hi} hauv ${hiPlace}.`,
+  "lp.compareCta": (n) => `Piv tag nrho ${n}`,
   "wc.levyChange": "Qhov se hloov",
   "wc.riseRecord": (from) => `qhov nce siab tshaj plaws hauv cov ntaub ntawv txij li ${from}`,
   "wc.riseSince": (year) => `qhov nce siab tshaj plaws txij li ${year}`,

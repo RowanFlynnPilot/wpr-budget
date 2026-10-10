@@ -3,7 +3,7 @@ import { Receipt, ArrowUpRight } from "lucide-react";
 import { useLang, useStrings } from "./i18n";
 import { fetchData } from "./data";
 import { usd, compact, fmtDate } from "./format";
-import { ENTITY_LOGOS, MEETING_TRACKER_URL, countLink, SupportBand, SponsorSlot, useAnchorOnMount, billRates, rememberMuni, WAUSAU_CITY_DOR } from "./ui";
+import { ENTITY_LOGOS, MEETING_TRACKER_URL, countLink, SupportBand, SponsorSlot, useAnchorOnMount, billRates, billExtremes, placeLabel, rememberMuni, WAUSAU_CITY_DOR } from "./ui";
 import ChromeBar from "./ChromeBar";
 
 // Suite landing page — the front door. Fetches every entity's data once (via
@@ -67,6 +67,17 @@ function LandingBody({ byFile, entities, chrome }) {
         </span>
         <span className="lp-hook-cta">{t("lp.seeBreakdown")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
       </button>
+
+      {/* The statement: the same home, the county's cheapest and dearest places. */}
+      {(() => {
+        const { lo, hi } = billExtremes(byFile[taxbillEnt.data].municipalities);
+        return (
+          <a className="edition edition--pointer lp-season" href={"#" + taxbillEnt.id + "/compare"}>
+            <span>{t("lp.compare", usd(Math.round(200 * lo.rate)), placeLabel(t, lo), usd(Math.round(200 * hi.rate)), placeLabel(t, hi))}</span>
+            <span className="lp-hook-cta">{t("lp.compareCta", byFile[taxbillEnt.data].municipalities.length)} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
+          </a>
+        );
+      })()}
 
       {/* Budget season: any entity whose next-year PROPOSED book is out. The cards
           and headline figures above stay on the adopted budgets. */}

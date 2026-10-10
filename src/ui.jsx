@@ -517,6 +517,19 @@ export function billRates(muni, code) {
   };
 }
 
+// The cheapest and dearest place in the county for the same home: every
+// municipality x school district pairing, by total bill rate. Each: { m, sd, rate }.
+export function billExtremes(municipalities) {
+  const all = municipalities.flatMap((m) => m.school_districts.map((sd) => ({ m, sd, rate: billRates(m, sd.code).total })));
+  all.sort((a, c) => a.rate - c.rate);
+  return { lo: all[0], hi: all[all.length - 1] };
+}
+// "Town of Ringle, D.C. Everest Area schools" — the district named only where the place has more than one.
+export const placeLabel = (t, { m, sd }) => {
+  const where = `${m.type} of ${m.name}`;
+  return m.school_districts.length > 1 ? t("tb.cmp.placeSchool", where, sd.name) : where;
+};
+
 // "Where is your home?" — every Marathon County municipality, grouped.
 // A numbered step marker for the tax-bill flow (1 where, 2 school, 3 value).
 const StepNum = ({ n }) => (n ? <span className="step-num" aria-hidden="true">{n}</span> : null);
@@ -528,7 +541,7 @@ export function MuniPicker({ municipalities, value, onChange, step }) {
       <label className="school-pick__q" htmlFor="muni-pick"><StepNum n={step} />{t("tb.muniQ")}</label>
       <select id="muni-pick" className="muni-select" value={value} onChange={(e) => {
         const m = municipalities.find((x) => x.code === e.target.value);
-        track("Municipality", { name: `${m.type} of ${m.name}` });
+        track("Municipality", { name: `${m.type} of ${m.name}`, via: "picker" });
         onChange(e.target.value);
       }}>
         {["City", "Village", "Town"].map((type) => (
