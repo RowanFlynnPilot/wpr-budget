@@ -5,6 +5,7 @@ import { fetchData } from "./data";
 import { usd, compact, fmtDate } from "./format";
 import { ENTITY_LOGOS, MEETING_TRACKER_URL, countLink, SupportBand, SponsorSlot, useAnchorOnMount, billRates, billExtremes, rememberMuni, WAUSAU_CITY_DOR } from "./ui";
 import ChromeBar from "./ChromeBar";
+import { prefetchProps } from "./views";
 
 // Suite landing page — the front door. Fetches every entity's data once (via
 // the shared cache), shows a hero, the combined "your whole tax bill" hook, a
@@ -66,12 +67,12 @@ function LandingBody({ byFile, entities, chrome }) {
         const place = ({ m }) => `${m.type} of ${m.name}`;
         return (
           <div className="lp-statement">
-            <button type="button" className="lp-fig" onClick={() => { rememberMuni(WAUSAU_CITY_DOR); chrome.onSelect(taxbillEnt.id); }}>
+            <button type="button" className="lp-fig" onClick={() => { rememberMuni(WAUSAU_CITY_DOR); chrome.onSelect(taxbillEnt.id); }} {...prefetchProps(taxbillEnt)}>
               <b className="lp-hook-num">{combinedBill}</b>
               <span>{t("lp.combinedCaption")}</span>
               <span className="lp-hook-cta">{t("lp.seeBreakdown")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
             </button>
-            <a className="lp-fig" href={"#" + taxbillEnt.id + "/compare"}>
+            <a className="lp-fig" href={"#" + taxbillEnt.id + "/compare"} {...prefetchProps(taxbillEnt)}>
               <b className="lp-hook-num">{usd(Math.round(200 * lo.rate))}–{usd(Math.round(200 * hi.rate))}</b>
               <span>{t("lp.rangeCaption", place(lo), place(hi), n)}</span>
               <span className="lp-hook-cta">{t("lp.compareCta", n)} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
@@ -109,7 +110,7 @@ function LandingBody({ byFile, entities, chrome }) {
         {entities.map((e) => {
           const h = headline(e);
           return (
-            <button type="button" className="lp-card" key={e.id} onClick={() => chrome.onSelect(e.id)}>
+            <button type="button" className="lp-card" key={e.id} onClick={() => chrome.onSelect(e.id)} {...prefetchProps(e)}>
               <div className="lp-card-mark">
                 {e.kind === "taxbill"
                   ? <Receipt size={26} strokeWidth={1.75} aria-hidden="true" />

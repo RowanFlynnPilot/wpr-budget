@@ -3,6 +3,7 @@ import { LangProvider, useStrings } from "./i18n";
 import entities from "./entities.json";
 import annotations from "./annotations.json";
 import { fetchData } from "./data";
+import { BODY_LOADERS } from "./views";
 import { setPendingSection } from "./nav";
 import Landing from "./Landing";
 import ChromeBar from "./ChromeBar";
@@ -27,10 +28,10 @@ import ChromeBar from "./ChromeBar";
  * only when a body opens. One source of truth: no inline data, no fallback; a
  * missing file shows an error, not stale or invented numbers.
  */
-const Ledger = lazy(() => import("./bodies/Ledger"));
-const CityLedger = lazy(() => import("./bodies/CityLedger"));
-const SchoolLedger = lazy(() => import("./bodies/SchoolLedger"));
-const TaxBillOverview = lazy(() => import("./bodies/TaxBillOverview"));
+const Ledger = lazy(BODY_LOADERS.county);
+const CityLedger = lazy(BODY_LOADERS.city);
+const SchoolLedger = lazy(BODY_LOADERS.school);
+const TaxBillOverview = lazy(BODY_LOADERS.taxbill);
 const About = lazy(() => import("./About"));
 const Card = lazy(() => import("./Card"));
 

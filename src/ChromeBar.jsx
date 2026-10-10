@@ -4,6 +4,7 @@ import { LANGS, useLang, useStrings } from "./i18n";
 import { ENTITY_LOGOS, CORRECTIONS_URL, DEMO, SPONSOR_MAILTO } from "./ui";
 import logoUrl from "./assets/logo-32.png";
 import { track, currentView } from "./analytics";
+import { prefetchProps } from "./views";
 
 // Shared WPR brand chrome bar, with the entity switcher (rendered only when
 // the suite has more than one entity) and a share control. Two-tier: brand +
@@ -67,7 +68,7 @@ export default function ChromeBar({ entities, activeId, routeId, onSelect, year,
             {entities.map((e) => (
               <button key={e.id} type="button" aria-current={e.id === activeId ? "page" : undefined}
                 className={"chrome-bar__ent" + (e.id === activeId ? " on" : "")}
-                onClick={() => onSelect(e.id)}>
+                onClick={() => onSelect(e.id)} {...prefetchProps(e)}>
                 {e.kind === "taxbill"
                   ? <Receipt className="chrome-bar__ent-icon" size={18} strokeWidth={2} aria-hidden="true" />
                   : <img src={ENTITY_LOGOS[e.id]} alt="" />}
