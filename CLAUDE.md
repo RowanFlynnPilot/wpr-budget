@@ -54,28 +54,44 @@ per-department levy) are structurally different governments.
 | Marathon County | county | `scripts/extract_budget.py` | `public/marathon-county.json` | `Ledger` |
 | City of Wausau | city | `scripts/extract_wausau.py` | `public/wausau-city.json` | `CityLedger` |
 | Wausau School District | school | `scripts/extract_school.py` | `public/wausau-school.json` | `SchoolLedger` |
-| Your Tax Bill (overview) | taxbill | — (no extractor) | `public/wausau-city.json` (reuses the City's `tax_by_jurisdiction`) | `TaxBillOverview` |
-| *(supporting data)* | — | `scripts/extract_dor.py` | `public/marathon-tax-districts.json` | loaded via the manifest's `with` by City + Tax Bill |
+| Your Tax Bill (overview) | taxbill | `scripts/extract_dor.py` (state data) | `public/marathon-tax-districts.json` | `TaxBillOverview` |
+
+(The City body also loads `marathon-tax-districts.json`, via the manifest's
+`with` key, for its own tax-bill section.)
 
 **State taxing-district data (DOR).** `extract_dor.py` reads the Wisconsin DOR
 "Town, Village and City Taxes" workbook (`sources/dor-tvc25.xlsx`, from
 https://www.revenue.wi.gov/Pages/Report/tvc-bulletin.aspx — posted each June, no
 download block) into `public/marathon-tax-districts.json`: all 61 Marathon County
 municipalities with levies by government, full/TIF-out values, assessment level,
-school-levy credit, and each school district's share of value + levy (28
-municipalities span more than one district). Header text is checked per column;
-sums reconcile within $1 per part (DOR rounds each part to the dollar). Today it
-powers the **school-district choice** on both tax-bill views: ~5% of the City of
-Wausau's value is in **D.C. Everest**, whose school rate is lower — the City
-book's table assumes the Wausau School District, so those homeowners were shown
-~$0.75/$1,000 too much (~$150 on a $200K home). `schoolAdjusted()` (ui.jsx)
-swaps only the gross school rate (levy ÷ value, ÷ assessment level), since the
-city/county/college rates and school-levy credit are city-wide; the choice
-persists in localStorage like the home value. Next use: a bill for every
-municipality. App fetches a route's `with` files before rendering and passes
-them to the body as `extra`. NOTE: the City book's rates are per $1,000 of
-ASSESSED value (net of the school credit) — copy that said "equalized" was wrong
-and is fixed.
+school-levy credit, each school district's share of value + levy (28
+municipalities span more than one district), and its technical college(s).
+Header text is checked per column; sums reconcile within $1 per part (DOR rounds
+each part to the dollar); and a **method check** requires the tool's bill-rate
+formula to reproduce DOR's own published effective rate for every
+single-school-district municipality (33 of them; within 1¢ per $1,000).
+
+**Every tax-bill view uses this one source and ONE basis — per $1,000 of FAIR
+MARKET value** (DOR "full" value; on every WI tax bill as "Est. Fair Mkt.";
+`calc.fmvHint` says so under every calculator). Assessed values are NOT
+comparable across municipalities (ratios here run 0.54 → 1.02), and the County's
+and School District's own published rates were always equalized (= fair market)
+rates — the County calculator had been asking for "assessed value", which
+understated a low-ratio town's county tax by up to ~46%. `billRates(muni,
+schoolCode)` in ui.jsx: county/municipal/college levy ÷ TIF-out value; school =
+the district's levy ÷ its value, minus the school levy credit ÷ ALL value (TIF
+increment included); two-college towns (Day, Green Valley, McMillan) get the
+combined college levy, flagged. `TaxBillOverview` = a municipality select (61,
+grouped; split-county parts labeled) + a school-district toggle where needed;
+both choices persist in localStorage (never URLs). The City body's tax section
+and the Landing hook use the same function (City of Wausau, `WAUSAU_CITY_DOR`).
+Consequence: "a $200,000 home" now means market value — Wausau's hook reads
+~$3,609 (the City book's $18.94/assessed ≡ $18.04/market). The City book's
+`tax_by_jurisdiction` is still extracted (published open data) but no longer
+drives the UI — which also means a City PROPOSED edition no longer needs it.
+Not subtracted (and said so): lottery & first-dollar credits; special-district
+taxes (sanitary/lake districts). Next: subtract the lottery/first-dollar credits
+(DOR 2025lotcr.pdf / 2025fdcred.pdf, per municipality × school district).
 
 The last entry is NOT a government — it's a cross-entity **overview**: a City of Wausau
 homeowner's complete property-tax bill split across all four taxing jurisdictions
@@ -275,6 +291,19 @@ tif:            { valuation_growth[], developer_payments[], levy_decrease }
 The City has NO per-department tax levy (it levies city-wide and funds
 departments from the General Fund), so its schema and body deliberately differ
 from the County's.
+
+### marathon-tax-districts.json schema (Wisconsin DOR — every municipality)
+
+```
+meta:            { source, source_url, tax_year, county }
+municipalities[]: { code, type: City|Village|Town, name, split_county, population,
+                    full_value, full_value_ex_tif, assessment_level, total_tax,
+                    school_levy_credit, gross_rate, effective_rate,
+                    taxes: { county, local, school, technical_college, other },   # other = TIF increment + special districts
+                    school_districts[]: { code, name, full_value, levy },        # largest first
+                    technical_colleges[]: { code, name } }
+                 # sorted Cities, Villages, Towns, then by name
+```
 
 ### wausau-school.json schema (Wausau School District — separate again)
 

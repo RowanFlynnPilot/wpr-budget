@@ -38,9 +38,6 @@
     "name": "Your Tax Bill",
     "kind": "taxbill",
     "short": "Your Tax Bill",
-    "data": "wausau-city.json",
-    "with": {
-      "taxDistricts": "marathon-tax-districts.json"
-    }
+    "data": "marathon-tax-districts.json"
   }
 ]

@@ -7,7 +7,7 @@ import { usd, compact } from "../format";
 import {
   ENTITY_LOGOS, SectionHead, Stat, Delta, Highlights, SubNav, SponsorSlot, Methodology,
   HomeValueCalc, TaxSplit, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
-  SchoolPicker, useSchoolChoice, schoolAdjusted, WAUSAU_CITY_DOR,
+  SchoolPicker, useSchoolChoice, billRates, WAUSAU_CITY_DOR,
 } from "../ui";
 import { BarTip, MoneyFlowSankey, DebtChart } from "../charts";
 import ChromeBar from "../ChromeBar";
@@ -87,16 +87,16 @@ export default function CityLedger({ b, extra, chrome }) {
   const levyFirst = levy[0], levyLast = levy[levy.length - 1];
   const levyPct = (levyLast.levy / levy[levy.length - 2].levy - 1) * 100;
 
-  const j = b.tax_by_jurisdiction;
-  const ry = j.rate_years[0];
+  // The tax bill for a City of Wausau home, from the DOR taxing-district data
+  // (every tax-bill view's one source and basis — see billRates in ui.jsx).
   const [school, setSchool] = useSchoolChoice();
-  const bookRows = useMemo(() => j.rows.map((r) => ({ key: r.jurisdiction, label: r.jurisdiction, rate: r.rates[ry] })), [j.rows, ry]);
+  const taxYear = extra.taxDistricts.meta.tax_year;
   const muni = extra.taxDistricts.municipalities.find((m) => m.code === WAUSAU_CITY_DOR);
-  const adj = useMemo(() => schoolAdjusted(bookRows, j.total[ry], muni, school), [bookRows, j.total, ry, muni, school]);
-  const jtotal = adj.total;
-  const splitRows = useMemo(() => [...adj.rows].sort((a, c) => c.rate - a.rate), [adj.rows]);
+  const bill = useMemo(() => billRates(muni, school), [muni, school]);
+  const jtotal = bill.total;
+  const splitRows = useMemo(() => [...bill.rows].sort((a, c) => c.rate - a.rate), [bill.rows]);
   // The City's own share of the bill — the City row, not whichever row is largest.
-  const cityShare = Math.round((adj.rows.find((r) => /city of wausau/i.test(r.label)).rate / jtotal) * 100);
+  const cityShare = Math.round((bill.rows.find((r) => r.key === "municipality").rate / jtotal) * 100);
 
   const debt = b.debt;
 
@@ -272,14 +272,13 @@ export default function CityLedger({ b, extra, chrome }) {
           {t("c.taxbill.dek", cityShare)}
         </SectionHead>
 
-        <SchoolPicker options={adj.options} value={adj.chosen.code} onChange={setSchool} />
+        <SchoolPicker options={bill.schoolOptions} value={bill.school.code} onChange={setSchool} where={bill.where} />
 
         <HomeValueCalc id="homeval" label={t("c.taxbill.homeLabel")} outLabel={t("calc.estProperty")}
           outValue={usd(Math.round((homeValue / 1000) * jtotal))} value={homeValue} onChange={setHomeValue} />
 
         <TaxSplit rows={splitRows} total={jtotal} homeValue={homeValue} totalLabel={t("c.taxbill.totalRow")} />
-        <p className="note">{t("c.taxbill.note", ry, jtotal.toFixed(2))}</p>
-        {adj.delta !== 0 && <p className="note">{t("tb.schoolDerived", adj.chosen.name, extra.taxDistricts.meta.tax_year)}</p>}
+        <p className="note">{t("c.taxbill.note", taxYear, jtotal.toFixed(2))}</p>
       </section>
 
       {/* DEVELOPMENT — tax increment districts */}

@@ -2,50 +2,40 @@ import React, { useMemo } from "react";
 import { useStrings } from "../i18n";
 import { usd } from "../format";
 import {
-  SectionHead, Stat, SponsorSlot, HomeValueCalc, TaxSplit, SchoolPicker, useAnchorOnMount, useHomeValue,
-  useSchoolChoice, schoolAdjusted, WAUSAU_CITY_DOR,
+  SectionHead, Stat, SponsorSlot, HomeValueCalc, TaxSplit, MuniPicker, SchoolPicker, billRates,
+  useAnchorOnMount, useHomeValue, useMuniChoice, useSchoolChoice, WAUSAU_CITY_DOR,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
 
-// Cross-entity overview: a City of Wausau homeowner's COMPLETE local property-
-// tax bill, split across every taxing jurisdiction (city, county, school,
-// technical college), each row clickable through to its entity. Sourced from
-// the City book's tax_by_jurisdiction table — all jurisdictions, one year,
-// reconciled to the total — so it's the real breakdown of one bill, not four
-// numbers stitched together.
-
-// Maps a jurisdiction name to its suite entity id for the drill-down.
-function billEntityFor(name) {
-  const n = name.toLowerCase();
-  if (n.includes("city of wausau")) return "wausau-city";
-  if (n.includes("marathon county")) return "marathon-county";
-  if (n.includes("wausau school district")) return "wausau-school";
-  return null; // e.g. NC Technical College, D.C. Everest — not entities in the suite
-}
-
-export default function TaxBillOverview({ b, extra, chrome }) {
+// Cross-entity overview: ANY Marathon County homeowner's complete local
+// property-tax bill — pick the municipality (and, where it spans more than one,
+// the school district), enter the home's fair market value — split across every
+// taxing government, each row clickable through to its entity where the suite
+// has one. Sourced from the Wisconsin DOR's Town, Village and City Taxes data
+// (b = public/marathon-tax-districts.json): every municipality's actual levies
+// and values for the latest certified year, on one basis (see billRates).
+export default function TaxBillOverview({ b, chrome }) {
   const t = useStrings();
   const [homeValue, setHomeValue] = useHomeValue();
+  const [muniCode, setMuniCode] = useMuniChoice();
   const [school, setSchool] = useSchoolChoice();
   useAnchorOnMount();
 
-  const j = b.tax_by_jurisdiction;
-  const ry = j.rate_years[0];
+  const year = b.meta.tax_year;
+  // A saved choice from an older data year that no longer exists starts over at Wausau.
+  const muni = b.municipalities.find((m) => m.code === muniCode)
+    || b.municipalities.find((m) => m.code === WAUSAU_CITY_DOR);
+  const bill = useMemo(() => billRates(muni, school), [muni, school]);
   const inSuite = (id) => id && chrome.entities.some((e) => e.id === id);
-  const bookRows = useMemo(() => j.rows.map((r) => {
-    const id = billEntityFor(r.jurisdiction);
-    return { key: r.jurisdiction, label: r.jurisdiction, rate: r.rates[ry], drillId: inSuite(id) ? id : null };
-  }), [j.rows, ry]);
-  const muni = extra.taxDistricts.municipalities.find((m) => m.code === WAUSAU_CITY_DOR);
-  const adj = useMemo(() => schoolAdjusted(bookRows, j.total[ry], muni, school), [bookRows, j.total, ry, muni, school]);
-  const jtotal = adj.total;
-  const splitRows = useMemo(() => [...adj.rows].sort((a, c) => c.rate - a.rate), [adj.rows]);
-  const bill = Math.round((homeValue / 1000) * jtotal);
+  const splitRows = useMemo(() => bill.rows
+    .map((r) => ({ ...r, drillId: inSuite(r.drillId) ? r.drillId : null }))
+    .sort((a, c) => c.rate - a.rate), [bill.rows]);
+  const total = bill.total;
   const top = splitRows[0];
 
   return (
     <div className="ftm">
-      <ChromeBar {...chrome} year={b.meta.budget_year} />
+      <ChromeBar {...chrome} />
 
       <header className="masthead">
         <div className="masthead-head">
@@ -59,9 +49,9 @@ export default function TaxBillOverview({ b, extra, chrome }) {
         <h1>{t("tb.h1")}</h1>
         <p className="dek">{t("tb.dek")}</p>
         <div className="stat-strip">
-          <Stat icon="🧾" label={t("tb.stat.combinedRate")} value={"$" + jtotal.toFixed(2)} sub={t("tb.stat.combinedRateSub", ry)} />
+          <Stat icon="🧾" label={t("tb.stat.combinedRate")} value={"$" + total.toFixed(2)} sub={t("tb.stat.combinedRateSub", year)} />
           <Stat icon="🏛️" label={t("tb.stat.govts")} value={String(splitRows.length)} sub={t("tb.stat.govtsSub")} />
-          <Stat icon="🏠" label={t("tb.stat.largest")} value={Math.round((top.rate / jtotal) * 100) + "%"} sub={top.label.replace(/\s*\(net\)/i, "")} />
+          <Stat icon="🏠" label={t("tb.stat.largest")} value={Math.round((top.rate / total) * 100) + "%"} sub={top.label.replace(/\s*\(net\)/i, "")} />
         </div>
       </header>
 
@@ -70,20 +60,21 @@ export default function TaxBillOverview({ b, extra, chrome }) {
           {t("tb.sec.dek")}
         </SectionHead>
 
-        <SchoolPicker options={adj.options} value={adj.chosen.code} onChange={setSchool} />
+        <MuniPicker municipalities={b.municipalities} value={muni.code} onChange={setMuniCode} />
+        <SchoolPicker options={bill.schoolOptions} value={bill.school.code} onChange={setSchool} where={bill.where} />
 
         <HomeValueCalc id="homeval-all" label={t("tb.homeLabel")} outLabel={t("tb.estOut")}
-          outValue={usd(bill)} value={homeValue} onChange={setHomeValue} />
+          outValue={usd(Math.round((homeValue / 1000) * total))} value={homeValue} onChange={setHomeValue} />
 
-        <TaxSplit rows={splitRows} total={jtotal} homeValue={homeValue}
+        <TaxSplit rows={splitRows} total={total} homeValue={homeValue}
           totalLabel={t("tb.totalRow")} exploreLabel={t("tb.explore")}
           onDrill={(id) => chrome.onSelect(id)} />
-        <p className="note">{t("tb.note", ry, jtotal.toFixed(2))}</p>
-        {adj.delta !== 0 && <p className="note">{t("tb.schoolDerived", adj.chosen.name, extra.taxDistricts.meta.tax_year)}</p>}
+        <p className="note">{t("tb.note", year, total.toFixed(2), bill.where)}</p>
+        {bill.collegeAveraged && <p className="note">{t("tb.collegeAveraged", bill.where)}</p>}
       </section>
 
       <footer className="foot">
-        <p><b>{t("foot.sourceLabel")}</b> {t("tb.foot.source", ry)}</p>
+        <p><b>{t("foot.sourceLabel")}</b> {t("tb.foot.source", year)}</p>
         <p className="muted">{t("tb.foot.builtBy")}</p>
       </footer>
     </div>

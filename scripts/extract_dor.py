@@ -51,7 +51,12 @@ MUNI_COLS = {
     "county": (16, "COUNTY TAX"),
     "local": (17, "LOCAL TAX"),
     "other": (18, "OTHER TAXES"),
+    "territory": (19, "TERRITORY IN TAX DISTRICT"),
 }
+# Technical college districts, by the code the bulletin lists among the
+# districts "containing territory" (the codes that aren't school districts).
+# Three Marathon County towns (Day, Green Valley, McMillan) straddle both.
+TECH_COLLEGES = {"1500": "Northcentral Technical College", "1400": "Mid-State Technical College"}
 SD_COLS = {"sd_code": (0, "CODE"), "sd_name": (1, "SCHOOL NAME"), "code": (2, "DISTRICT CODE"),
            "full_value": (4, "WITHIN SCHOOL DISTRICT"), "levy": (6, "DISTRICT LEVY")}
 
@@ -121,6 +126,8 @@ def extract(xlsx):
             "effective_rate": float(r[MUNI_COLS["effective_rate"][0]]),
             "taxes": taxes,
             "school_districts": [],
+            "technical_colleges": [],
+            "_territory": str(r[MUNI_COLS["territory"][0]]).split(),
         }
     if not munis:
         raise ValueError(f"no {COUNTY} rows in the Municipal Data sheet")
@@ -152,6 +159,30 @@ def extract(xlsx):
             raise ValueError(f"{label}: school-district values sum to {sum(s['full_value'] for s in sds):,} "
                              f"vs TIF-out full value {m['full_value_ex_tif']:,}")
         sds.sort(key=lambda s: -s["full_value"])
+        # Every listed district must be one of this municipality's school
+        # districts or a known technical college; at least one college.
+        territory = m.pop("_territory")
+        colleges = [c for c in territory if c not in {s["code"] for s in sds}]
+        unknown = [c for c in colleges if c not in TECH_COLLEGES]
+        if unknown or not colleges:
+            raise ValueError(f"{label}: district codes {territory} leave technical colleges {colleges} "
+                             f"(unknown: {unknown}) — add to TECH_COLLEGES")
+        m["technical_colleges"] = [{"code": c, "name": TECH_COLLEGES[c]} for c in sorted(colleges, reverse=True)]
+
+        # Method check: the tool's bill rate (billRates in src/ui.jsx — levies
+        # over the TIF-out value, the school district's levy over its value, the
+        # school levy credit over ALL value) must reproduce DOR's own published
+        # effective rate wherever the municipality has a single school district.
+        # (DOR prints that rate to 5 decimals and its parts are whole dollars,
+        # hence one cent per $1,000; the Village of Unity's sliver in Marathon
+        # County is the loosest, at $0.006.)
+        if len(sds) == 1:
+            t = m["taxes"]
+            ours = ((t["county"] + t["local"] + t["technical_college"]) / m["full_value_ex_tif"]
+                    + sds[0]["levy"] / sds[0]["full_value"] - m["school_levy_credit"] / m["full_value"]) * 1000
+            if abs(ours - m["effective_rate"] * 1000) > 0.01:
+                raise ValueError(f"{label}: bill rate ${ours:.3f}/$1,000 vs DOR effective rate "
+                                 f"${m['effective_rate'] * 1000:.2f} — the rate method no longer matches DOR's")
 
     return {
         "meta": {

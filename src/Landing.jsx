@@ -3,7 +3,7 @@ import { Receipt, ArrowUpRight } from "lucide-react";
 import { useLang, useStrings } from "./i18n";
 import { fetchData } from "./data";
 import { usd, compact, fmtDate } from "./format";
-import { ENTITY_LOGOS, MEETING_TRACKER_URL, SponsorSlot, useAnchorOnMount } from "./ui";
+import { ENTITY_LOGOS, MEETING_TRACKER_URL, SponsorSlot, useAnchorOnMount, billRates, WAUSAU_CITY_DOR } from "./ui";
 import ChromeBar from "./ChromeBar";
 
 // Suite landing page — the front door. Fetches every entity's data once (via
@@ -30,19 +30,19 @@ export default function Landing({ entities, chrome }) {
   if (!byFile) return (<div className="ftm load"><p>Loading the ledger&hellip;</p></div>);
 
   const year = byFile[entities[0].data].meta.budget_year;
+  // The combined-bill hook and the Tax Bill card: a $200,000 (fair market value)
+  // City of Wausau home in the Wausau School District, from the same DOR data
+  // and computation as the Your Tax Bill view itself.
+  const taxbillEnt = entities.find((e) => e.kind === "taxbill");
+  const wausau = byFile[taxbillEnt.data].municipalities.find((m) => m.code === WAUSAU_CITY_DOR);
+  const combinedBill = usd(Math.round(200 * billRates(wausau, "").total));
   // Headline figure per card, straight from each entity's reconciled data.
   const headline = (e) => {
     const p = byFile[e.data];
     if (e.kind === "school") return { value: compact(p.meta.net_expenditures), label: t("lp.card.budget") };
-    if (e.kind === "taxbill") {
-      const ry = p.tax_by_jurisdiction.rate_years[0];
-      return { value: usd(Math.round(200 * p.tax_by_jurisdiction.total[ry])), label: t("lp.card.typicalBill") };
-    }
+    if (e.kind === "taxbill") return { value: combinedBill, label: t("lp.card.typicalBill") };
     return { value: compact(p.meta.total_expenditures), label: t("lp.card.budget") };
   };
-  const cityP = entities.find((e) => e.kind === "city");
-  const cj = cityP && byFile[cityP.data].tax_by_jurisdiction;
-  const combinedBill = cj ? usd(Math.round(200 * cj.total[cj.rate_years[0]])) : null;
 
   return (
     <div className="ftm">
@@ -54,12 +54,10 @@ export default function Landing({ entities, chrome }) {
         <p className="dek">{t("lp.heroDek")}</p>
       </header>
 
-      {combinedBill && (
-        <button type="button" className="lp-hook" onClick={() => chrome.onSelect("your-tax-bill")}>
-          <span>{t("lp.combined", combinedBill)}</span>
-          <span className="lp-hook-cta">{t("lp.seeBreakdown")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
-        </button>
-      )}
+      <button type="button" className="lp-hook" onClick={() => chrome.onSelect(taxbillEnt.id)}>
+        <span>{t("lp.combined", combinedBill)}</span>
+        <span className="lp-hook-cta">{t("lp.seeBreakdown")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
+      </button>
 
       {/* Budget season: any entity whose next-year PROPOSED book is out. The cards
           and headline figures above stay on the adopted budgets. */}

@@ -298,88 +298,126 @@ export function useHomeValue() {
   return [value, set];
 }
 
-// City of Wausau homes are split between two school districts (DOR: ~95% of the
-// city's value in the Wausau School District, ~5% in D.C. Everest). The City
-// book's rate table carries only the Wausau School District's rate, so these
-// identify that municipality and that district in the DOR taxing-district data.
-export const WAUSAU_CITY_DOR = "37291";
-export const BOOK_SCHOOL_DISTRICT = "6223"; // Wausau School District (DPI/DOR code)
+// ---------- the property-tax bill, for any Marathon County home ----------
+//
+// Every tax-bill view computes from ONE source — the Wisconsin DOR's Town,
+// Village and City Taxes data (public/marathon-tax-districts.json) — on ONE
+// basis: per $1,000 of the home's estimated FAIR MARKET value (DOR's "full"
+// value; printed on every Wisconsin tax bill as "Est. Fair Mkt."). Assessed
+// values aren't comparable across municipalities — assessment ratios here run
+// from 0.54 to 1.02 — while the county's and school district's own published
+// rates are already per $1,000 of fair market (equalized) value.
 
-// The school district a reader picked, shared across the tax-bill views and
-// persisted like the home value (localStorage only, never in URLs or shares).
-const SCHOOL_KEY = "wpr-budget-school";
-export function useSchoolChoice() {
-  const [code, setCode] = useState(() => {
-    try { return localStorage.getItem(SCHOOL_KEY) || BOOK_SCHOOL_DISTRICT; } catch (e) { return BOOK_SCHOOL_DISTRICT; }
+export const WAUSAU_CITY_DOR = "37291"; // DOR municipality code: City of Wausau
+const SUITE_IDS = { municipality: { "37291": "wausau-city" }, school: { "6223": "wausau-school" } };
+
+// Per-viewer choices, persisted like the home value (localStorage only — never
+// in URLs or shares): the municipality and the school district.
+function usePersisted(key, initial) {
+  const [v, setV] = useState(() => {
+    try { return localStorage.getItem(key) || initial; } catch (e) { return initial; }
   });
-  const set = (c) => {
-    setCode(c);
-    try { localStorage.setItem(SCHOOL_KEY, c); } catch (e) { /* ignore */ }
+  const set = (x) => {
+    setV(x);
+    try { localStorage.setItem(key, x); } catch (e) { /* ignore */ }
   };
-  return [code, set];
+  return [v, set];
 }
+export const useMuniChoice = () => usePersisted("wpr-budget-muni", WAUSAU_CITY_DOR);
+export const useSchoolChoice = () => usePersisted("wpr-budget-school", "");
 
-// The City book's jurisdiction rates (per $1,000 of ASSESSED value, school net
-// of the school-levy credit) re-based for a home in school district `code`.
-// Only the gross school rate differs between the city's school districts: the
-// city, county and college rates are levied city-wide, and the school-levy
-// credit is applied as one city-wide rate. So the swap is the difference of the
-// two districts' gross school rates (levy ÷ equalized value, from DOR), put on
-// the assessed basis by the city's assessment level. Returns the rows with the
-// school row relabeled/re-rated, the adjusted total, and the picker options
-// (null when the municipality has a single school district).
-export function schoolAdjusted(rows, total, muni, code) {
-  if (!muni) throw new Error(`DOR taxing-district data has no municipality ${WAUSAU_CITY_DOR}`);
-  const per1k = (s) => (s.levy / s.full_value) * 1000;
-  const book = muni.school_districts.find((s) => s.code === BOOK_SCHOOL_DISTRICT);
-  if (!book) throw new Error(`DOR data has no school district ${BOOK_SCHOOL_DISTRICT} in municipality ${muni.code}`);
-  const chosen = muni.school_districts.find((s) => s.code === code) || book;
-  const delta = chosen === book ? 0 : (per1k(chosen) - per1k(book)) / muni.assessment_level;
-  const schoolRows = rows.filter((r) => /school district/i.test(r.label));
-  if (schoolRows.length !== 1) throw new Error(`expected one school row in the tax table, found ${schoolRows.length}`);
+// The bill rates for a home in municipality `muni`, school district `code`
+// (the municipality's largest district if `code` isn't one of its own).
+//   county / municipality / college: levy ÷ the municipality's TIF-out value —
+//     the base levies are apportioned on, and the rate every home pays;
+//   school: that district's levy ÷ its value within the municipality, net of
+//     the state school levy credit — applied as one rate on ALL the
+//     municipality's value (TIF increment included).
+// A town split between two technical college districts gets their combined
+// levy over the whole town (DOR doesn't split it by college) — flagged
+// `collegeAveraged` so the view can say so. Rows carry the suite entity to
+// drill into, where one exists.
+export function billRates(muni, code) {
+  const per1k = (levy, value) => (levy / value) * 1000;
+  const sd = muni.school_districts.find((s) => s.code === code) || muni.school_districts[0];
+  const credit = per1k(muni.school_levy_credit, muni.full_value);
+  const where = `${muni.type} of ${muni.name}`;
+  const rows = [
+    { key: "county", label: "Marathon County", rate: per1k(muni.taxes.county, muni.full_value_ex_tif), drillId: "marathon-county" },
+    { key: "municipality", label: where, rate: per1k(muni.taxes.local, muni.full_value_ex_tif),
+      drillId: SUITE_IDS.municipality[muni.code] || null },
+    { key: "school", label: `${sd.name} School District (net)`, rate: per1k(sd.levy, sd.full_value) - credit,
+      drillId: SUITE_IDS.school[sd.code] || null },
+    { key: "college", label: muni.technical_colleges.map((c) => c.name).join(" / "),
+      rate: per1k(muni.taxes.technical_college, muni.full_value_ex_tif), drillId: null },
+  ];
   return {
-    rows: rows.map((r) => (r === schoolRows[0] && chosen !== book
-      ? { ...r, key: chosen.code, label: `${chosen.name} School District (net)`, rate: r.rate + delta, drillId: null }
-      : r)),
-    total: total + delta,
-    delta,
-    chosen,
-    options: muni.school_districts.length > 1
-      ? muni.school_districts.map((s) => ({ code: s.code, label: `${s.name} School District`, share: s.full_value / muni.full_value_ex_tif }))
-      : null,
+    rows,
+    total: rows.reduce((s, r) => s + r.rate, 0),
+    where,
+    school: sd,
+    collegeAveraged: muni.technical_colleges.length > 1,
+    schoolOptions: muni.school_districts.length > 1 ? muni.school_districts : null,
   };
 }
 
-export function SchoolPicker({ options, value, onChange }) {
+// "Where is your home?" — every Marathon County municipality, grouped.
+export function MuniPicker({ municipalities, value, onChange }) {
+  const t = useStrings();
+  return (
+    <div className="school-pick">
+      <label className="school-pick__q" htmlFor="muni-pick">{t("tb.muniQ")}</label>
+      <select id="muni-pick" className="muni-select" value={value} onChange={(e) => onChange(e.target.value)}>
+        {["City", "Village", "Town"].map((type) => (
+          <optgroup key={type} label={t("tb.group." + type)}>
+            {municipalities.filter((m) => m.type === type).map((m) => (
+              <option key={m.code} value={m.code}>
+                {`${m.type} of ${m.name}`}{m.split_county ? " " + t("tb.splitPart") : ""}
+              </option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+// "Which school district is your home in?" — only where the municipality spans
+// more than one (28 of Marathon County's 61 do).
+export function SchoolPicker({ options, value, onChange, where }) {
   const t = useStrings();
   if (!options) return null;
-  const other = options.find((o) => o.code !== BOOK_SCHOOL_DISTRICT);
   return (
     <div className="school-pick">
       <div className="school-pick__q">{t("tb.schoolQ")}</div>
       <div className="toggle" role="group" aria-label={t("tb.schoolQ")}>
-        {options.map((o) => (
-          <button key={o.code} type="button" aria-pressed={value === o.code} className={value === o.code ? "on" : ""}
-            onClick={() => onChange(o.code)}>{o.label}</button>
+        {options.map((s) => (
+          <button key={s.code} type="button" aria-pressed={value === s.code} className={value === s.code ? "on" : ""}
+            onClick={() => onChange(s.code)}>{s.name}</button>
         ))}
       </div>
-      <p className="note">{t("tb.schoolNote", Math.round(other.share * 100), other.label)}</p>
+      <p className="note">{t("tb.schoolNote", where)}</p>
     </div>
   );
 }
 
 // The "what's your home worth" input + estimated-bill output. Controlled: the
 // body owns the value because the tax split below derives from it too.
+// Every calculator asks for the same number — the home's estimated FAIR MARKET
+// value — because every rate in the suite is per $1,000 of it (see billRates);
+// the hint names where it's printed on a Wisconsin tax bill.
 export function HomeValueCalc({ id, label, outLabel, outValue, value, onChange }) {
+  const t = useStrings();
   return (
     <div className="calc">
       <div className="calc-input">
         <label htmlFor={id}>{label}</label>
         <div className="calc-field">
           <span>$</span>
-          <input id={id} type="text" inputMode="numeric" value={value.toLocaleString("en-US")}
+          <input id={id} type="text" inputMode="numeric" value={value.toLocaleString("en-US")} aria-describedby={id + "-hint"}
             onChange={(e) => onChange(Math.min(parseInt(e.target.value.replace(/[^\d]/g, "")) || 0, 99999999))} />
         </div>
+        <div className="calc-hint" id={id + "-hint"}>{t("calc.fmvHint")}</div>
       </div>
       <div className="calc-out">
         <span className="calc-out-label">{outLabel}</span>

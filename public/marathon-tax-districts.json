@@ -39,6 +39,12 @@
           "full_value": 5394598,
           "levy": 32207
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -67,6 +73,12 @@
           "name": "Colby",
           "full_value": 48462400,
           "levy": 289333
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -97,6 +109,12 @@
           "full_value": 178344600,
           "levy": 1087417
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1400",
+          "name": "Mid-State Technical College"
+        }
       ]
     },
     {
@@ -126,6 +144,12 @@
           "full_value": 537325900,
           "levy": 3126477
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -154,6 +178,12 @@
           "name": "D.C. Everest Area",
           "full_value": 353356000,
           "levy": 2073944
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -190,6 +220,12 @@
           "full_value": 217086333,
           "levy": 1274139
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -218,6 +254,12 @@
           "name": "Athens",
           "full_value": 86276800,
           "levy": 678649
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -248,6 +290,12 @@
           "full_value": 2140500,
           "levy": 13292
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -276,6 +324,12 @@
           "name": "Colby",
           "full_value": 1421000,
           "levy": 8484
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -306,6 +360,12 @@
           "full_value": 107919900,
           "levy": 669770
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -334,6 +394,12 @@
           "name": "Wittenberg-Birnamwood",
           "full_value": 14064900,
           "levy": 87343
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -364,6 +430,12 @@
           "full_value": 10703000,
           "levy": 66425
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -392,6 +464,12 @@
           "name": "D.C. Everest Area",
           "full_value": 53233900,
           "levy": 312444
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -428,6 +506,12 @@
           "full_value": 269150644,
           "levy": 1566076
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -456,6 +540,12 @@
           "name": "Wausau",
           "full_value": 433137700,
           "levy": 2850693
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -486,6 +576,12 @@
           "full_value": 206216800,
           "levy": 1560633
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -514,6 +610,12 @@
           "name": "Wausau",
           "full_value": 1365107900,
           "levy": 8984450
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -544,6 +646,12 @@
           "full_value": 740659000,
           "levy": 4347131
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -572,6 +680,12 @@
           "name": "Spencer",
           "full_value": 160520400,
           "levy": 1362202
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -602,6 +716,12 @@
           "full_value": 140083400,
           "levy": 945897
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -630,6 +750,12 @@
           "name": "Colby",
           "full_value": 15607300,
           "levy": 93180
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -660,6 +786,12 @@
           "full_value": 1645513200,
           "levy": 9657970
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -688,6 +820,12 @@
           "name": "Mosinee",
           "full_value": 127872700,
           "levy": 744038
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -724,6 +862,12 @@
           "full_value": 8839843,
           "levy": 66899
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -758,6 +902,12 @@
           "name": "Medford Area",
           "full_value": 8246496,
           "levy": 49423
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -794,6 +944,12 @@
           "full_value": 16120675,
           "levy": 100109
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -828,6 +984,12 @@
           "name": "Colby",
           "full_value": 36019975,
           "levy": 215049
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -864,6 +1026,12 @@
           "full_value": 58373114,
           "levy": 362274
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -898,6 +1066,12 @@
           "name": "Edgar",
           "full_value": 3077729,
           "levy": 19101
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -940,6 +1114,16 @@
           "full_value": 15806260,
           "levy": 92072
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        },
+        {
+          "code": "1400",
+          "name": "Mid-State Technical College"
+        }
       ]
     },
     {
@@ -968,6 +1152,12 @@
           "name": "D.C. Everest Area",
           "full_value": 161428900,
           "levy": 947471
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -998,6 +1188,12 @@
           "full_value": 108741500,
           "levy": 734265
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -1026,6 +1222,12 @@
           "name": "Wittenberg-Birnamwood",
           "full_value": 119875400,
           "levy": 744422
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -1074,6 +1276,12 @@
           "full_value": 25329053,
           "levy": 191688
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -1121,6 +1329,12 @@
           "full_value": 4711639,
           "levy": 41839
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -1155,6 +1369,12 @@
           "name": "Rosholt",
           "full_value": 287171,
           "levy": 2044
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -1203,6 +1423,16 @@
           "full_value": 644423,
           "levy": 3754
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        },
+        {
+          "code": "1400",
+          "name": "Mid-State Technical College"
+        }
       ]
     },
     {
@@ -1232,6 +1462,12 @@
           "full_value": 67833800,
           "levy": 394697
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -1260,6 +1496,12 @@
           "name": "Athens",
           "full_value": 86772700,
           "levy": 682550
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -1302,6 +1544,12 @@
           "full_value": 0,
           "levy": 0
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -1331,6 +1579,12 @@
           "full_value": 49309200,
           "levy": 333928
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -1359,6 +1613,12 @@
           "name": "Wausau",
           "full_value": 88040100,
           "levy": 579435
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -1395,6 +1655,12 @@
           "full_value": 38580285,
           "levy": 342589
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -1429,6 +1695,12 @@
           "name": "Abbotsford",
           "full_value": 915896,
           "levy": 8133
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -1465,6 +1737,12 @@
           "full_value": 22379033,
           "levy": 198724
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -1494,6 +1772,12 @@
           "full_value": 494376500,
           "levy": 2876572
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -1522,6 +1806,12 @@
           "name": "Marathon City",
           "full_value": 172177800,
           "levy": 1303029
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -1564,6 +1854,16 @@
           "full_value": 7114745,
           "levy": 60377
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        },
+        {
+          "code": "1400",
+          "name": "Mid-State Technical College"
+        }
       ]
     },
     {
@@ -1598,6 +1898,12 @@
           "name": "Marathon City",
           "full_value": 24430111,
           "levy": 184885
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -1634,6 +1940,12 @@
           "full_value": 19143126,
           "levy": 112356
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -1668,6 +1980,12 @@
           "name": "Antigo",
           "full_value": 37854632,
           "levy": 256356
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -1710,6 +2028,12 @@
           "full_value": 28409104,
           "levy": 166741
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -1751,6 +2075,12 @@
           "full_value": 6212150,
           "levy": 48865
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -1786,6 +2116,12 @@
           "full_value": 25034071,
           "levy": 155366
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -1815,6 +2151,12 @@
           "full_value": 292879000,
           "levy": 1718987
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -1843,6 +2185,12 @@
           "name": "Spencer",
           "full_value": 214199800,
           "levy": 1817735
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -1879,6 +2227,12 @@
           "full_value": 82025512,
           "levy": 620763
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -1907,6 +2261,12 @@
           "name": "Wausau",
           "full_value": 222102300,
           "levy": 1461765
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -1943,6 +2303,12 @@
           "full_value": 92671509,
           "levy": 543915
         }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
       ]
     },
     {
@@ -1971,6 +2337,12 @@
           "name": "D.C. Everest Area",
           "full_value": 107964500,
           "levy": 633673
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     },
@@ -2012,6 +2384,12 @@
           "name": "Athens",
           "full_value": 111685,
           "levy": 879
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
         }
       ]
     }
