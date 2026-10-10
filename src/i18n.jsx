@@ -16,6 +16,19 @@ const STORAGE_KEY = "wpr-budget-lang";
 // ---- string tables -------------------------------------------------------
 // Keys are grouped by area. Values are strings, or functions for interpolation.
 const EN = {
+  "card.title": "What does your home pay?",
+  "card.where": "Where",
+  "card.school": "School district",
+  "card.value": "Fair market value",
+  "card.perYear": "a year in local property taxes, before the lottery and first-dollar credits",
+  "card.part.county": "County",
+  "card.part.City": "City",
+  "card.part.Village": "Village",
+  "card.part.Town": "Town",
+  "card.part.school": "Schools",
+  "card.part.college": "Technical college",
+  "card.cta": (n) => `See where every dollar goes, and compare all ${n} municipalities`,
+  "card.source": (year) => `Wausau Pilot & Review, from Wisconsin Department of Revenue ${year} tax data`,
   "tb.shareTown": (where) => `Share the ${where}'s bill`,
   "tb.shareCopied": "Link copied",
   "tb.cmp.kick": "Across the county",
@@ -411,6 +424,19 @@ const EN = {
 };
 
 const ES = {
+  "card.title": "¿Cuánto paga su casa?",
+  "card.where": "Dónde",
+  "card.school": "Distrito escolar",
+  "card.value": "Valor de mercado",
+  "card.perYear": "al año en impuestos locales a la propiedad, antes de los créditos de lotería y de primer dólar",
+  "card.part.county": "Condado",
+  "card.part.City": "Ciudad",
+  "card.part.Village": "Villa",
+  "card.part.Town": "Pueblo",
+  "card.part.school": "Escuelas",
+  "card.part.college": "Colegio técnico",
+  "card.cta": (n) => `Vea a dónde va cada dólar y compare los ${n} municipios`,
+  "card.source": (year) => `Wausau Pilot & Review, con datos fiscales de ${year} del Departamento de Ingresos de Wisconsin`,
   "tb.shareTown": (where) => `Compartir la factura de ${where}`,
   "tb.shareCopied": "Enlace copiado",
   "tb.cmp.kick": "En todo el condado",
@@ -795,6 +821,19 @@ const ES = {
 
 // Hmong (Hmoob Dawb / RPA). BETA — AI-drafted, pending community review.
 const HMN = {
+  "card.title": "Koj lub tsev them npaum li cas?",
+  "card.where": "Qhov twg",
+  "card.school": "Tsev kawm ntawv district",
+  "card.value": "Tus nqi lag luam",
+  "card.perYear": "ib xyoos rau se vaj tse hauv zos, ua ntej cov lottery thiab first-dollar credits",
+  "card.part.county": "County",
+  "card.part.City": "Nroog (city)",
+  "card.part.Village": "Zos (village)",
+  "card.part.Town": "Town",
+  "card.part.school": "Tsev kawm ntawv",
+  "card.part.college": "Technical college",
+  "card.cta": (n) => `Saib txhua duas las mus qhov twg, thiab piv tag nrho ${n} lub zos`,
+  "card.source": (year) => `Wausau Pilot & Review, los ntawm Wisconsin Department of Revenue cov ntaub ntawv se xyoo ${year}`,
   "tb.shareTown": (where) => `Qhia ${where} daim nqi se`,
   "tb.shareCopied": "Tau luam qhov txuas",
   "tb.cmp.kick": "Thoob plaws lub county",

@@ -41,6 +41,14 @@ const pages = entities.flatMap((e) => [
   })),
 ]);
 
+// The About page (/about/): the link for grant applications and sponsors.
+pages.push({
+  slug: "about",
+  title: "About Follow the Money — Wausau Pilot & Review",
+  desc: `A free public ledger of the money behind local government in Marathon County: three budgets explained line by line and the complete property-tax bill for all ${munis} cities, villages and towns, in English, Spanish and Hmong — every number checked against the official documents.`,
+  route: "about",
+});
+
 // One page per municipality (/tax/<slug>/), for sharing a town's own bill in
 // its own Facebook group: the card states what a $200,000 home pays there, and
 // the page opens the Tax Bill view on that municipality (it writes the view's

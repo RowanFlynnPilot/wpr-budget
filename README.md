@@ -29,12 +29,50 @@ If you rename the repo, update `base` in `vite.config.js` to match
 
 ## Embedding on WordPress
 
-The app reports its content height to the parent page, so the iframe can match
-it exactly (no inner scrollbar):
+wausaupilotandreview.com sits behind a Cloudflare firewall that rejects any post
+containing a `<script` tag (the editor reports "Updating failed. The response is
+not a valid JSON response."; found by the sibling `wpr-city-budget`, Sept. 2026).
+So both snippets are bare iframes. Paste one into a **Custom HTML** block; saving
+needs an Editor or Administrator account (WordPress strips iframes from Author
+and Contributor posts).
+
+### In a story: the tax-bill card
+
+"What does your home pay?" — municipality, school district and home value, the
+year's bill and its split, and a link to the full tool. It fits its frame at
+every width, so readers scroll past it like an image:
 
 ```html
-<iframe id="ftm" src="https://rowanflynnpilot.github.io/wpr-budget/"
-        style="width:100%;border:0" scrolling="no" title="Follow the Money"></iframe>
+<div><div style="position:relative;padding-top:max(400px, min(calc(690px - 25.9%), calc(2533px - 333%)));"><iframe src="https://rowanflynnpilot.github.io/wpr-budget/#card" title="Follow the Money: what does your home pay?" loading="lazy" allow="web-share; clipboard-write" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"></iframe></div></div>
+```
+
+Without a script the frame can't measure the card, so its height is a formula of
+the column's width (`padding-top` percentages are shares of the outer `<div>`'s
+width; keep that `<div>`, block themes need it). Fitted on Oct. 10, 2026 to the
+card's measured height in English and Spanish: 587px at a 288px column (WPR's on
+a 320px phone), 509px at 375, 491px at 480, 438px just under 620px, where the
+controls go three across and the card drops to ~370px. The frame has at least
+24px to spare at every width from 288px up, and the card centers itself in it.
+**If the card's content changes, re-measure** `.card-inner`'s height at frame
+widths 288–1100 and refit.
+
+### On its own page: the full tool
+
+```html
+<iframe src="https://rowanflynnpilot.github.io/wpr-budget/" title="Follow the Money" allow="web-share; clipboard-write" style="display:block;width:100%;height:90vh;min-height:560px;border:0;"></iframe>
+```
+
+The bare URL opens the suite landing page; point it at a hash for one view
+(`…/wpr-budget/#marathon-county`, `#marathon-county~2027-proposed`,
+`#your-tax-bill`). The tool scrolls inside its frame, so give it a page of its
+own or put it last in a story. The `allow` attribute lets the Share buttons open
+the phone's share sheet or copy the link from inside the frame.
+
+The app still posts `{type: "wpr-budget:height", height}` to its parent on every
+layout change. Where a host page CAN run a script (not a WPR post), a listener
+can size the frame to the content exactly:
+
+```html
 <script>
 addEventListener("message", (e) => {
   if (e.origin === "https://rowanflynnpilot.github.io" && e.data && e.data.type === "wpr-budget:height")
@@ -43,10 +81,13 @@ addEventListener("message", (e) => {
 </script>
 ```
 
-The bare URL opens the suite landing page. To embed one government directly,
-point the iframe at its hash (e.g. `…/wpr-budget/#marathon-county`). For share
-links with entity-specific social cards, use the static stub pages
-(`…/wpr-budget/marathon-county/` etc.).
+### Share links
+
+For social cards that name the view, share the static pages: `…/wpr-budget/<entity-id>/`
+(e.g. `/marathon-county-2027-proposed/`), `…/wpr-budget/tax/<municipality>/`
+(e.g. `/tax/town-of-ringle/`: "Town of Ringle: $1,905 a year on a $200,000 home"),
+and `…/wpr-budget/about/` (the About page: the link for grant applications and
+sponsors).
 
 ## Updating the data (once a year)
 

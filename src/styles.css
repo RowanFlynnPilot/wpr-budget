@@ -359,6 +359,35 @@ body{margin:0; background:#f5f1e8;}
 .about-sec a{color:var(--accent); font-weight:600;}
 
 .share-town{margin-top:16px;}
+/* Story card (#card): a fixed-height WordPress embed, centered in its frame. */
+.ftm.ftm-card{max-width:none; padding:0; min-height:100vh; display:flex; align-items:center; justify-content:center;}
+.card-inner{width:100%; max-width:760px; padding:16px 18px;}
+.card-kicker{font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--accent);}
+.card-kicker span{color:var(--ink-soft);}
+.ftm .card-title{font-size:clamp(24px,5vw,34px); line-height:1.1; margin:6px 0 14px;}
+.card-controls{display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:10px 12px;}
+.card-controls label{display:flex; flex-direction:column; gap:5px; min-width:0;}
+.card-controls label > span:first-child{font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.card-controls .muni-select{width:100%; min-width:0; height:40px; padding:0 8px;}
+.card-controls .muni-select:disabled{opacity:1; color:var(--ink); background:var(--paper-2); border-color:var(--rule);}
+.card-field{display:flex; align-items:center; gap:2px; height:40px; border:1px solid var(--ink); background:var(--paper);
+  padding:0 10px; font-family:var(--serif); font-weight:600; font-size:18px; color:var(--ink-soft);}
+.card-field input{border:0; background:transparent; font:inherit; color:var(--ink); width:100%; min-width:0; padding:0; font-size:18px;}
+.card-result{margin:16px 0 8px; display:flex; align-items:baseline; gap:4px 12px; flex-wrap:wrap;}
+.card-result b{font-family:var(--serif); font-size:clamp(36px,7vw,48px); font-weight:600; line-height:1; color:var(--accent); letter-spacing:-0.02em;}
+.card-result span{font-size:13.5px; color:var(--ink-soft); line-height:1.35; max-width:44ch;}
+.ftm .card-bar{height:30px;}
+.card-legend{list-style:none; padding:0; margin:10px 0 0; display:flex; flex-wrap:wrap; gap:6px 18px; font-size:13px;}
+.card-legend li{display:flex; align-items:center; gap:6px; white-space:nowrap;}
+.card-legend i{width:10px; height:10px; display:inline-block;}
+.card-cta{display:inline-block; margin-top:14px; font-weight:700; color:var(--accent); font-size:14.5px; line-height:1.35;}
+.card-source{margin-top:6px; font-size:11.5px; color:var(--ink-soft);}
+@media (max-width:620px){
+  .card-controls{grid-template-columns:1fr 1fr;}
+  .card-controls label:first-child{grid-column:1 / 3;}
+}
+
 /* "Same home, different bill" — every municipality ranked (Tax Bill view) */
 .rank-lede{font-family:var(--serif); font-size:clamp(18px,2.2vw,22px); line-height:1.4; margin:4px 0 0; max-width:48ch;}
 .rank-list{list-style:none; margin:20px 0 0; padding:0; border-top:1px solid var(--rule);}
