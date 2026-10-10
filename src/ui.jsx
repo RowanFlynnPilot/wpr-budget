@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { useLang, useStrings } from "./i18n";
 import sponsors from "./sponsors.json";
@@ -685,6 +685,31 @@ export function SchoolPicker({ options, value, onChange, where, step }) {
   );
 }
 
+// A dollar amount typed with live thousands separators. Reformatting the value
+// ("2500000" -> "2,500,000") would throw the caret to the end; this puts it back
+// after the same number of digits, so editing mid-number works. `onValue` gets
+// the parsed whole dollars (capped).
+export function MoneyInput({ value, onValue, ...rest }) {
+  const ref = useRef(null);
+  const digitsBefore = useRef(null);
+  const text = value.toLocaleString("en-US");
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (digitsBefore.current == null || document.activeElement !== el) return;
+    let pos = 0, seen = 0;
+    while (pos < text.length && seen < digitsBefore.current) { if (/\d/.test(text[pos])) seen++; pos++; }
+    el.setSelectionRange(pos, pos);
+    digitsBefore.current = null;
+  }, [text]);
+  return (
+    <input ref={ref} type="text" inputMode="numeric" autoComplete="off" value={text} {...rest}
+      onChange={(e) => {
+        digitsBefore.current = e.target.value.slice(0, e.target.selectionStart).replace(/\D/g, "").length;
+        onValue(Math.min(parseInt(e.target.value.replace(/\D/g, ""), 10) || 0, 99999999));
+      }} />
+  );
+}
+
 // The "what's your home worth" input + estimated-bill output. Controlled: the
 // body owns the value because the tax split below derives from it too.
 // Every calculator asks for the same number — the home's estimated FAIR MARKET
@@ -699,10 +724,10 @@ export function HomeValueCalc({ id, label, outLabel, outValue, value, onChange, 
         <label htmlFor={id}><StepNum n={step} />{label}</label>
         <div className="calc-field">
           <span>$</span>
-          <input id={id} type="text" inputMode="numeric" value={value.toLocaleString("en-US")} aria-describedby={id + "-hint"}
-            onChange={(e) => {
+          <MoneyInput id={id} value={value} aria-describedby={id + "-hint"}
+            onValue={(v) => {
               if (!counted.current) { counted.current = true; track("Home value", { view: currentView() }); }
-              onChange(Math.min(parseInt(e.target.value.replace(/[^\d]/g, "")) || 0, 99999999));
+              onChange(v);
             }} />
         </div>
         <div className="calc-hint" id={id + "-hint"}>{t("calc.fmvHint")}</div>

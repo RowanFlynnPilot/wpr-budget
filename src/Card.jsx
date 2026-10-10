@@ -4,7 +4,7 @@ import { fetchData } from "./data";
 import { usd } from "./format";
 import { track } from "./analytics";
 import entities from "./entities.json";
-import { billRates, countLink, useHomeValue, useMuniChoice, useSchoolChoice, JURIS_COLORS, WAUSAU_CITY_DOR } from "./ui";
+import { billRates, countLink, MoneyInput, useHomeValue, useMuniChoice, useSchoolChoice, JURIS_COLORS, WAUSAU_CITY_DOR } from "./ui";
 
 // The story card (#card): "What does your home pay?" — municipality, school
 // district, home value, the year's bill and its split, and a link out to the
@@ -72,10 +72,10 @@ function CardBody({ d }) {
           </label>
           <label>
             <span>{t("card.value")}</span>
-            <span className="card-field">$<input type="text" inputMode="numeric" value={homeValue.toLocaleString("en-US")}
-              onChange={(e) => {
+            <span className="card-field">$<MoneyInput value={homeValue}
+              onValue={(v) => {
                 if (!counted.current) { counted.current = true; track("Home value", { view: "card" }); }
-                setHomeValue(Math.min(parseInt(e.target.value.replace(/[^\d]/g, "")) || 0, 99999999));
+                setHomeValue(v);
               }} /></span>
           </label>
         </div>
