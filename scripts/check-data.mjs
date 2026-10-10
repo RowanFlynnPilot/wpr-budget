@@ -109,6 +109,32 @@ for (const file of [countyEnt.data, ...(countyEnt.editions || []).map((ed) => ed
   if (new Set(slugs).size !== slugs.length) fail("marathon-tax-districts.json", "two municipalities share a page slug");
 }
 
+// ---- share cards: the figures drawn on public/og-*.png (scripts/og_cards.py) still match the data ----
+{
+  const cards = read("public/og-cards.json");
+  const stale = (where, msg) => fail(`og-cards.json ${where}`, `${msg} — rerun python scripts/og_cards.py`);
+  const d = read("public/marathon-tax-districts.json");
+  const pairs = d.municipalities.flatMap((m) => m.school_districts.map((sd) => ({ m, rate: billTotal(m, sd) })))
+    .sort((a, c) => a.rate - c.rate);
+  const [lo, hi] = [pairs[0], pairs.at(-1)];
+  const want = { lo: Math.round(200 * lo.rate), lo_place: `${lo.m.type} of ${lo.m.name}`, hi: Math.round(200 * hi.rate),
+    hi_place: `${hi.m.type} of ${hi.m.name}`, municipalities: d.municipalities.length };
+  const taxbillId = entities.find((e) => e.kind === "taxbill").id;
+  for (const k of ["suite", taxbillId]) {
+    if (JSON.stringify(cards[k]) !== JSON.stringify(want)) stale(k, `card says ${JSON.stringify(cards[k])}, data says ${JSON.stringify(want)}`);
+  }
+  for (const e of entities) for (const ed of e.editions || []) {
+    const slug = `${e.id}-${ed.id}`;
+    const c = cards[slug];
+    if (!c) { stale(slug, "no card for this edition"); continue; }
+    const b = read(`public/${ed.data}`);
+    const lh = b.levy_history, home = b.homeowner_impact.at(-1);
+    const pct = Math.round((lh.at(-1).levy / lh.at(-2).levy - 1) * 1000) / 10;
+    if (c.levy_pct !== pct || c.typical_bill !== Math.round(home.tax_amount) || c.typical_pct !== Math.round(home.pct_change_bill * 10) / 10
+      || c.hearing !== ed.hearing || c.vote !== ed.vote || c.year !== ed.year) stale(slug, "figures or dates differ from the data");
+  }
+}
+
 // ---- i18n: the three language tables carry exactly the same keys ----
 {
   const src = readFileSync("src/i18n.jsx", "utf8");

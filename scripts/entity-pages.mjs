@@ -5,7 +5,7 @@
 // the "build" script in package.json. Share links: use
 // https://rowanflynnpilot.github.io/wpr-budget/<entity-id>/ when the preview
 // card should name the entity.
-import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { readFileSync, mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { billTotal, muniSlug, MUNI_KEY } from "../src/taxmath.js";
 
 const BASE = "https://rowanflynnpilot.github.io/wpr-budget/";
@@ -63,11 +63,16 @@ const townPages = dor.municipalities.map((m) => {
     title: `${where}: ${amount} a year on a $200,000 home — Follow the Money · Wausau Pilot & Review`,
     desc: `What a $200,000 home in the ${where} pays in local property taxes at ${dor.meta.tax_year} rates${bills.length > 1 ? ", depending on its school district" : ""}, before the lottery and first-dollar credits — where every dollar goes, and how it compares with Marathon County's other ${munis - 1} cities, villages and towns.`,
     route: "your-tax-bill",
+    image: "og-your-tax-bill.png",
     remember: m.code,
   };
 });
 
-for (const { slug, title, desc, route, remember } of [...pages, ...townPages]) {
+// A page's card image: its own numbers card when scripts/og_cards.py made one
+// (og-<slug>.png), else the suite card.
+const cardFor = (slug) => (existsSync(`public/og-${slug}.png`) ? `og-${slug}.png` : "og-image.png");
+
+for (const { slug, title, desc, route, remember, image = cardFor(slug) } of [...pages, ...townPages]) {
   const target = BASE + "#" + route;
   const pageUrl = BASE + slug + "/";
   const before = remember ? `try{localStorage.setItem(${JSON.stringify(MUNI_KEY)},${JSON.stringify(remember)})}catch(e){}` : "";
@@ -84,13 +89,13 @@ for (const { slug, title, desc, route, remember } of [...pages, ...townPages]) {
     <meta property="og:title" content="${title}" />
     <meta property="og:description" content="${desc}" />
     <meta property="og:url" content="${pageUrl}" />
-    <meta property="og:image" content="${BASE}og-image.png" />
+    <meta property="og:image" content="${BASE}${image}" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${title}" />
     <meta name="twitter:description" content="${desc}" />
-    <meta name="twitter:image" content="${BASE}og-image.png" />
+    <meta name="twitter:image" content="${BASE}${image}" />
     <meta http-equiv="refresh" content="0; url=${target}" />
     <script>${before}location.replace(${JSON.stringify(target)});</script>
   </head>

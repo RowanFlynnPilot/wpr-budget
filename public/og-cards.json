@@ -1,0 +1,25 @@
+{
+  "suite": {
+    "lo": 1905,
+    "lo_place": "Town of Ringle",
+    "hi": 3683,
+    "hi_place": "City of Abbotsford",
+    "municipalities": 61
+  },
+  "your-tax-bill": {
+    "lo": 1905,
+    "lo_place": "Town of Ringle",
+    "hi": 3683,
+    "hi_place": "City of Abbotsford",
+    "municipalities": 61
+  },
+  "marathon-county-2027-proposed": {
+    "levy_pct": 8.2,
+    "levy_rank": "the largest rise in records back to 2018",
+    "typical_bill": 937,
+    "typical_pct": 6.0,
+    "hearing": "2026-11-02",
+    "vote": "2026-11-10",
+    "year": 2027
+  }
+}
