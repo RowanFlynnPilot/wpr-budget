@@ -2,6 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { useLang, useStrings } from "./i18n";
 import sponsors from "./sponsors.json";
+import RAMP from "./map-ramp.json";
 import { usd, compact, pct, downloadCSV, fmtDate } from "./format";
 import { consumePendingSection } from "./nav";
 import { track, currentView } from "./analytics";
@@ -640,6 +641,31 @@ export function billExtremes(municipalities, credits, value, primaryHome = true)
   const all = municipalities.flatMap((m) => m.school_districts.map((sd) => ({ m, sd, bill: netBill(m, sd, credits, value, primaryHome) })));
   all.sort((a, c) => a.bill - c.bill);
   return { lo: all[0], hi: all[all.length - 1] };
+}
+
+// The county map's shading: one continuous ramp, light (lowest bill) to dark
+// (highest) — f in [0, 1]. The stops live in src/map-ramp.json, which the share
+// card (scripts/og_cards.py) reads too, so the card and the page shade alike.
+export { RAMP };
+const rgbOf = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+export function rampColor(f) {
+  const x = Math.min(1, Math.max(0, f)) * (RAMP.length - 1);
+  const i = Math.min(RAMP.length - 2, Math.floor(x));
+  const [a, b] = [rgbOf(RAMP[i]), rgbOf(RAMP[i + 1])];
+  return `rgb(${a.map((v, k) => Math.round(v + (b[k] - v) * (x - i))).join(",")})`;
+}
+
+// Marathon County's municipalities as one SVG image (public/marathon-map.json):
+// each shape filled by fill(code), the county outline over them, then children.
+// shapeProps(shape) adds a shape's handlers where the map is interactive.
+export function CountyShapes({ map, fill, label, shapeProps, children }) {
+  return (
+    <svg viewBox={`0 0 ${map.meta.width} ${map.meta.height}`} role="img" aria-label={label}>
+      {map.shapes.map((s) => <path key={s.code} className="cmap-shape" d={s.d} fill={fill(s.code)} {...(shapeProps && shapeProps(s))} />)}
+      <path className="cmap-outline" d={map.outline} />
+      {children}
+    </svg>
+  );
 }
 
 // Is the home the owner's primary residence? Only then does the lottery &

@@ -5,7 +5,7 @@
 //
 //   node scripts/check-data.mjs      # exit 1 with every failure listed
 import { readFileSync, existsSync } from "node:fs";
-import { billDollars, billParts, billTotal, muniSlug, netBill, stateCredits } from "../src/taxmath.js";
+import { billDollars, billParts, billTotal, muniBills, muniSlug, netBill, stateCredits } from "../src/taxmath.js";
 import { countyShares, cityShares, schoolShares } from "../src/receipt.js";
 
 const failures = [];
@@ -181,6 +181,17 @@ for (const file of [countyEnt.data, ...(countyEnt.editions || []).map((ed) => ed
   const taxbillId = entities.find((e) => e.kind === "taxbill").id;
   for (const k of ["suite", taxbillId]) {
     if (JSON.stringify(cards[k]) !== JSON.stringify(want)) stale(k, `card says ${JSON.stringify(cards[k])}, data says ${JSON.stringify(want)}`);
+  }
+  // the Tax Bill card's map: every municipality shaded by its bill (muniBills), on these boundaries
+  const geo = read(`public/${entities.find((e) => e.kind === "taxbill").with.map}`);
+  const bills = Object.fromEntries(muniBills(d.municipalities, d.meta.credits, 200000).map((r) => [r.m.code, Math.round(r.bill)]));
+  const drawn = cards.map || {};
+  if (drawn.boundaries_as_of !== geo.meta.boundaries_as_of
+    || JSON.stringify(Object.entries(drawn.bills || {}).sort()) !== JSON.stringify(Object.entries(bills).sort())) stale("map", "the map's bills or boundaries differ from the data");
+  // the map's lightest and darkest places are the range the card (and the landing) print
+  const vals = Object.values(bills);
+  if (Math.min(...vals) !== want.lo || Math.max(...vals) !== want.hi) {
+    fail("og-cards.json map", `the map runs ${Math.min(...vals)}-${Math.max(...vals)} but the range is ${want.lo}-${want.hi}: an extreme sits in a municipality's smaller school district, so the map and the printed range disagree — decide how to show it`);
   }
   for (const e of entities) for (const ed of e.editions || []) {
     const slug = `${e.id}-${ed.id}`;

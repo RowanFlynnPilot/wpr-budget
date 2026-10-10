@@ -3,10 +3,55 @@ import { Receipt, ArrowUpRight } from "lucide-react";
 import { useLang, useStrings } from "./i18n";
 import { fetchData } from "./data";
 import { usd, compact, fmtDate } from "./format";
-import { ENTITY_LOGOS, MEETING_TRACKER_URL, countLink, SupportBand, SponsorSlot, useAnchorOnMount, billExtremes, rememberMuni, WAUSAU_CITY_DOR } from "./ui";
+import { ENTITY_LOGOS, MEETING_TRACKER_URL, countLink, SupportBand, SponsorSlot, useAnchorOnMount, billExtremes, rememberMuni, WAUSAU_CITY_DOR,
+  CountyShapes, RAMP, rampColor } from "./ui";
 import ChromeBar from "./ChromeBar";
-import { netBill } from "./taxmath";
+import { muniBills, netBill } from "./taxmath";
 import { prefetchProps } from "./views";
+
+// The statement's third row: the county, every municipality shaded by what the
+// same $200,000 home pays there (light → dark, the Tax Bill map's ramp), the
+// two ends of the range pinned with their bills (a label sits right of its pin
+// unless that would run off the map). The whole row opens the Tax
+// Bill view's map; its box keeps the map's shape while the data loads.
+function LandingMap({ map, figures, place, skel, href, prefetch }) {
+  const t = useStrings();
+  const ready = map && figures;
+  const dollars = (n) => usd(Math.round(n));
+  const pin = (end, cls) => {
+    const s = map.shapes.find((x) => x.code === end.m.code);
+    const [x, y] = s.label;
+    return (
+      <span className={"lp-pin " + cls + (x > map.meta.width * 0.82 ? " flip" : "")} aria-hidden="true"
+        style={{ left: (x / map.meta.width) * 100 + "%", top: (y / map.meta.height) * 100 + "%" }}>
+        <i /><b>{dollars(end.bill)}</b>
+      </span>
+    );
+  };
+  return (
+    <a className="lp-map" href={href} {...prefetch} aria-busy={!ready}>
+      <div className="lp-map-art">
+        {ready ? (<>
+          <CountyShapes map={map} fill={(code) => rampColor((figures.bills.get(code) - figures.lo.bill) / (figures.hi.bill - figures.lo.bill))}
+            label={t("lp.map.alt", figures.n, usd(200000), dollars(figures.lo.bill), place(figures.lo), dollars(figures.hi.bill), place(figures.hi))} />
+          {pin(figures.lo, "lo")}{pin(figures.hi, "hi")}
+        </>) : skel("skel-map")}
+      </div>
+      <div className="lp-map-side">
+        <span className="lp-map-head">{t("lp.map.head")}</span>
+        <span className="lp-map-note">{t("lp.map.note", usd(200000))}</span>
+        <span className="lp-map-ramp" style={{ background: `linear-gradient(90deg, ${RAMP.join(", ")})` }} aria-hidden="true" />
+        <span className="lp-map-ends">
+          {ready ? (<>
+            <span><b>{dollars(figures.lo.bill)}</b>{place(figures.lo)}</span>
+            <span><b>{dollars(figures.hi.bill)}</b>{place(figures.hi)}</span>
+          </>) : <>{skel("skel-line")}{skel("skel-line skel-short")}</>}
+        </span>
+        <span className="lp-hook-cta">{t("lp.map.cta")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
+      </div>
+    </a>
+  );
+}
 
 // Suite landing page — the front door. It paints at once: the hero, the
 // budget-season box and the cards come from the bundled manifest and strings;
@@ -22,17 +67,19 @@ export default function Landing({ entities, chrome }) {
   const [err, setErr] = useState(null);
   useAnchorOnMount();
 
+  const taxbillEnt = entities.find((e) => e.kind === "taxbill");
   useEffect(() => {
-    const files = [...new Set(entities.map((e) => e.data))];
+    // every entity's file, plus the county map's boundaries (fetched once, shared
+    // with the Tax Bill view through the cache)
+    const files = [...new Set([...entities.map((e) => e.data), taxbillEnt.with.map])];
     Promise.all(files.map((f) => fetchData(f).then((j) => [f, j])))
       .then((pairs) => setByFile(Object.fromEntries(pairs)))
       .catch((e) => setErr(String(e.message || e)));
-  }, [entities]);
+  }, [entities, taxbillEnt]);
 
   // The combined-bill hook and the Tax Bill card: a $200,000 (fair market value)
   // City of Wausau home in the Wausau School District, after the state's credits
   // for a primary home — the same DOR data and computation as Your Tax Bill.
-  const taxbillEnt = entities.find((e) => e.kind === "taxbill");
   const dor = byFile && byFile[taxbillEnt.data];
   const figures = dor && (() => {
     const wausau = dor.municipalities.find((m) => m.code === WAUSAU_CITY_DOR);
@@ -40,8 +87,11 @@ export default function Landing({ entities, chrome }) {
     return {
       combined: usd(Math.round(netBill(wausau, wausau.school_districts[0], dor.meta.credits, 200000))),
       lo, hi, n: dor.municipalities.length,
+      // the map: each municipality's bill (largest school district), as on the Tax Bill view
+      bills: new Map(muniBills(dor.municipalities, dor.meta.credits, 200000).map((r) => [r.m.code, r.bill])),
     };
   })();
+  const map = byFile && byFile[taxbillEnt.with.map];
   const place = ({ m }) => `${m.type} of ${m.name}`;
   const skel = (cls) => <span className={"skel " + cls} aria-hidden="true" />;
   // Headline figure per card, straight from each entity's reconciled data.
@@ -77,6 +127,7 @@ export default function Landing({ entities, chrome }) {
           <span>{figures ? t("lp.rangeCaption", place(figures.lo), place(figures.hi), figures.n) : <>{skel("skel-line")}{skel("skel-line skel-short")}</>}</span>
           <span className="lp-hook-cta">{figures ? t("lp.compareCta", figures.n) : skel("skel-num")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
         </a>
+        <LandingMap map={map} figures={figures} place={place} skel={skel} href={"#" + taxbillEnt.id + "/compare"} prefetch={prefetchProps(taxbillEnt)} />
       </div>
 
       {/* Budget season: next year's proposals — an edition served here, or a

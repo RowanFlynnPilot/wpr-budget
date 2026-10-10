@@ -59,6 +59,19 @@ export function billDollars(rates, value, credits) {
   return { lines, levied, lottery: levied - net - firstDollar, firstDollar, net };
 }
 
+// Every municipality's bill on one home, dearest first: [{ m, bill, min, max }].
+// A municipality spanning several school districts shows its largest one (`bill`)
+// and the range across them (`min`/`max`) — except the reader's own (`own` =
+// { code, school }), which shows the district they chose. The Tax Bill view's
+// ranking and map, the landing's map and the share card all use this.
+export function muniBills(municipalities, credits, value, primaryHome = true, own = null) {
+  return municipalities.map((m) => {
+    const bills = m.school_districts.map((sd) => netBill(m, sd, credits, value, primaryHome));
+    const sd = (own && m.code === own.code && m.school_districts.find((x) => x.code === own.school)) || m.school_districts[0];
+    return { m, bill: netBill(m, sd, credits, value, primaryHome), min: Math.min(...bills), max: Math.max(...bills) };
+  }).sort((a, c) => c.bill - a.bill);
+}
+
 // Where the Tax Bill view keeps the reader's municipality (localStorage only);
 // a town share page writes it before opening the view.
 export const MUNI_KEY = "wpr-budget-muni";

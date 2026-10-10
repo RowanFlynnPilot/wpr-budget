@@ -3,8 +3,10 @@
     python scripts/og_cards.py
 
 Writes public/og-image.png (the suite), public/og-your-tax-bill.png (the Tax Bill
-view and every /tax/<town>/ page) and public/og-<entity>-<edition>.png for each
-budget-season edition, plus public/og-cards.json with every figure drawn.
+view and every /tax/<town>/ page - with the county map, every municipality
+shaded by its bill as on the page) and public/og-<entity>-<edition>.png for each
+budget-season edition, plus public/og-cards.json with every figure drawn (the
+map's: each municipality's bill and the boundaries' date).
 scripts/check-data.mjs recomputes those figures from the data with the app's own
 formula (src/taxmath.js) and fails the deploy when a card is stale, so: rerun this
 after any data change that moves them, and commit the PNGs with the JSON.
@@ -13,9 +15,11 @@ Fonts: Georgia Bold + Arial, from the Windows font folder (the same faces as the
 original suite card); Pillow ships with pdfplumber (scripts/requirements.txt).
 """
 import json
+import math
+import re
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
 PUBLIC = ROOT / "public"
@@ -31,6 +35,7 @@ RUST = (168, 73, 47)
 ACCENT = (22, 88, 74)
 INK = (28, 26, 22)
 SOFT = (90, 84, 70)
+PAPER_MAP = (245, 241, 232)  # --paper: the map's borders
 PILLS = [("Marathon County", ACCENT), ("City of Wausau", GOLD), ("Wausau Schools", RUST), ("Your Tax Bill", TEAL)]
 
 
@@ -121,6 +126,88 @@ def extremes(dor):
             "municipalities": len(dor["municipalities"])}
 
 
+def map_bills(dor):
+    # muniBills in src/taxmath.js: each municipality's bill on a $200,000 primary
+    # home, in its largest school district (DOR lists districts largest first)
+    credits = dor["meta"]["credits"]
+    return {m["code"]: net_bill(m, m["school_districts"][0], credits) for m in dor["municipalities"]}
+
+
+def js_round(x):
+    # Math.round, as check-data recomputes these (Python's round() is banker's)
+    return math.floor(x + 0.5)
+
+
+# ---- the county map (public/marathon-map.json), shaded as rampColor in ui.jsx ----
+RAMP = [tuple(int(h[i:i + 2], 16) for i in (1, 3, 5))
+        for h in json.loads((ROOT / "src" / "map-ramp.json").read_text(encoding="utf-8"))]
+
+
+def ramp_color(f):
+    x = min(1, max(0, f)) * (len(RAMP) - 1)
+    i = min(len(RAMP) - 2, math.floor(x))
+    a, b = RAMP[i], RAMP[i + 1]
+    return tuple(js_round(v + (b[k] - v) * (x - i)) for k, v in enumerate(a))
+
+
+def rings(d):
+    """An SVG path of 'M x y l dx dy ... z' rings (extract_map.py) -> point lists."""
+    out, ring, mode = [], None, None
+    tokens = re.findall(r"[Mlz]|-?\d+", d)
+    i = 0
+    while i < len(tokens):
+        if tokens[i] in ("M", "l", "z"):
+            mode = tokens[i]
+            if mode == "z":
+                out.append(ring)
+            i += 1
+            continue
+        x, y = int(tokens[i]), int(tokens[i + 1])
+        i += 2
+        if mode == "M":
+            ring = [(x, y)]
+        else:
+            ring.append((ring[-1][0] + x, ring[-1][1] + y))
+    return out
+
+
+def county_map(geo, fill_of, width, pins=()):
+    """The map, `width` px wide (drawn at 3x and scaled down for smooth edges):
+    each municipality filled even-odd (an enclave is its neighbor's own shape),
+    paper borders, the county outline; pins = [(code, label, solid)] on top."""
+    k = 3
+    W, H = geo["meta"]["width"], geo["meta"]["height"]
+    s = width * k / W
+    size = (width * k, round(H * s))
+    art = Image.new("RGBA", size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(art)
+    pt = lambda p: (p[0] * s, p[1] * s)  # noqa: E731
+    for shape in geo["shapes"]:
+        mask = Image.new("1", size, 0)
+        for r in rings(shape["d"]):
+            one = Image.new("1", size, 0)
+            ImageDraw.Draw(one).polygon([pt(p) for p in r], fill=1)
+            mask = ImageChops.logical_xor(mask, one)
+        art.paste(fill_of(shape["code"]) + (255,), (0, 0), mask)
+    for shape in geo["shapes"]:
+        for r in rings(shape["d"]):
+            draw.line([pt(p) for p in r + r[:1]], fill=PAPER_MAP, width=2, joint="curve")
+    for r in rings(geo["outline"]):
+        draw.line([pt(p) for p in r + r[:1]], fill=SOFT, width=4, joint="curve")
+    art = art.resize((width, round(H * width / W)), Image.LANCZOS)
+    d = ImageDraw.Draw(art)
+    for code, label, solid in pins:
+        x, y = next(sh["label"] for sh in geo["shapes"] if sh["code"] == code)
+        x, y = x * width / W, y * width / W
+        d.ellipse([x - 6, y - 6, x + 6, y + 6], fill=INK if solid else PAPER_MAP, outline=INK, width=3)
+        f = SANS_B(20)
+        tw = d.textlength(label, font=f)
+        lx = x + 12 if x + 12 + tw + 12 <= art.width else x - 12 - tw - 12
+        d.rectangle([lx, y - 15, lx + tw + 12, y + 15], fill=PAPER_MAP, outline=INK, width=2)
+        d.text((lx + 6, y - 12), label, font=f, fill=INK)
+    return art
+
+
 def edition_figures(b, ed):
     lh = b["levy_history"]
     rises = [(lh[i]["year"], lh[i]["levy"] / lh[i - 1]["levy"]) for i in range(1, len(lh))]
@@ -159,16 +246,34 @@ def suite_card(x):
     return im
 
 
-def taxbill_card(x):
+def taxbill_card(x, geo, bills):
     im, d = frame("FOLLOW THE MONEY  ·  YOUR TAX BILL")
-    d.text((70, 186), "What does your home pay?", font=fit(d, "What does your home pay?", SERIF, 80), fill=INK)
-    d.text((72, 300), f"{usd(x['lo'])} – {usd(x['hi'])}", font=SERIF(92), fill=ACCENT)
-    line = (f"a year on the same $200,000 home, depending on which of Marathon County's "
-            f"{x['municipalities']} cities, villages and towns it sits in. See your whole bill.")
-    y = 418
-    for ln in wrap(d, line, SANS(30), W - 144):
-        d.text((72, y), ln, font=SANS(30), fill=SOFT)
-        y += 40
+    d.text((70, 182), "What does your home pay?", font=fit(d, "What does your home pay?", SERIF, 76), fill=INK)
+    # left: the range and what it means; right: where - the county, shaded
+    col = 520
+    rng = f"{usd(x['lo'])} – {usd(x['hi'])}"
+    d.text((72, 296), rng, font=fit(d, rng, SERIF, 80, col), fill=ACCENT)
+    line = (f"a year on the same $200,000 home, after state credits, depending on which of "
+            f"Marathon County's {x['municipalities']} cities, villages and towns it sits in.")
+    y = 398
+    for ln in wrap(d, line, SANS(27), col):
+        d.text((72, y), ln, font=SANS(27), fill=SOFT)
+        y += 36
+    lo, hi = min(bills.values()), max(bills.values())
+    lo_code = next(c for c, b in bills.items() if b == lo)
+    hi_code = next(c for c, b in bills.items() if b == hi)
+    mx, my = 648, 280
+    mw = W - 72 - mx
+    art = county_map(geo, lambda c: ramp_color((bills[c] - lo) / (hi - lo)), mw,
+                     pins=[(lo_code, usd(lo), False), (hi_code, usd(hi), True)])
+    im.paste(art, (mx, my), art)
+    # the legend: the ramp, light (lowest bill) to dark (highest)
+    by = my + art.height + 12
+    for i in range(mw):
+        d.line([(mx + i, by), (mx + i, by + 12)], fill=ramp_color(i / (mw - 1)))
+    d.text((mx, by + 20), "lower bill", font=SANS(19), fill=SOFT)
+    tw = d.textlength("higher bill", font=SANS(19))
+    d.text((W - 72 - tw, by + 20), "higher bill", font=SANS(19), fill=SOFT)
     return im
 
 
@@ -196,9 +301,13 @@ def main():
     taxbill = next(e for e in entities if e["kind"] == "taxbill")
     dor = json.loads((PUBLIC / taxbill["data"]).read_text(encoding="utf-8"))
     x = extremes(dor)
-    figures = {"suite": x, taxbill["id"]: x}
+    geo = json.loads((PUBLIC / taxbill["with"]["map"]).read_text(encoding="utf-8"))
+    bills = map_bills(dor)
+    figures = {"suite": x, taxbill["id"]: x,
+               "map": {"boundaries_as_of": geo["meta"]["boundaries_as_of"],
+                       "bills": {c: js_round(b) for c, b in bills.items()}}}
     suite_card(x).save(PUBLIC / "og-image.png", optimize=True)
-    taxbill_card(x).save(PUBLIC / f"og-{taxbill['id']}.png", optimize=True)
+    taxbill_card(x, geo, bills).save(PUBLIC / f"og-{taxbill['id']}.png", optimize=True)
     for e in entities:
         for ed in e.get("editions", []):
             b = json.loads((PUBLIC / ed["data"]).read_text(encoding="utf-8"))
@@ -207,7 +316,8 @@ def main():
             figures[slug] = f
             edition_card(e["name"], f).save(PUBLIC / f"og-{slug}.png", optimize=True)
     (PUBLIC / "og-cards.json").write_text(json.dumps(figures, indent=2) + "\n", encoding="utf-8")
-    print("wrote", ", ".join(["og-image.png", f"og-{taxbill['id']}.png"] + [f"og-{k}.png" for k in figures if k not in ("suite", taxbill["id"])]))
+    print("wrote", ", ".join(["og-image.png", f"og-{taxbill['id']}.png"]
+                             + [f"og-{k}.png" for k in figures if k not in ("suite", taxbill["id"], "map")]))
 
 
 if __name__ == "__main__":

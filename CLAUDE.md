@@ -170,6 +170,21 @@ grid's once-used edges encloses the county (neighbors share borders exactly).
 A new DOR year that adds/renames a municipality fails check-data until the map
 is re-extracted (use the next GENZ vintage).
 
+The same map appears in two more places, all from ONE set of pieces:
+`muniBills` (src/taxmath.js — each municipality's bill, largest district unless
+it's the reader's own), `rampColor`/`RAMP` + `CountyShapes` (ui.jsx — chart-free,
+eager) and the ramp's stops in `src/map-ramp.json` (read by og_cards.py too).
+(1) The **landing**: the statement box's third row (`LandingMap`) — a $200,000
+primary home, the two ends of the range pinned, the row linking to the Tax Bill
+map; its box holds the map's aspect ratio while data loads (Landing fetches the
+map through the cache with the entity files). (2) The **Tax Bill share card**
+(og-your-tax-bill.png, also every town page): og_cards.py draws the same
+choropleth with Pillow (even-odd masks, 3x supersampled) and records every
+municipality's bill + the boundaries' date in og-cards.json `map`; check-data
+recomputes them with muniBills (stale card = failed deploy) and FAILS if the
+map's extremes stop being the printed range (an extreme in a municipality's
+smaller school district — a display decision to make, not to paper over).
+
 The last entry is NOT a government — it's a cross-entity **overview**: a City of Wausau
 homeowner's complete property-tax bill split across all four taxing jurisdictions
 (city/county/school/technical college), each row clicking through to its entity. It
@@ -486,8 +501,9 @@ for 2025-26) for a per-student denominator.
   a card per entity with its headline figure + the open-data/Meeting-Tracker
   strip). The landing PAINTS AT ONCE (since 2026-10-10): chrome, hero, cards and
   seasons render immediately; only the figures wait for data (`.skel*`
-  placeholders, `aria-busy`; CLS ~0.001). It pulls every entity's data through
-  the shared cache; cards call
+  placeholders, `aria-busy`; CLS ~0.005 on a phone). Its statement box ends with
+  the county map (see "The map"). It pulls every entity's data (and the map's
+  boundaries) through the shared cache; cards call
   `onSelect(id)`; the ChromeBar Home button returns. Direct deep links like
   `#marathon-county` still skip the landing. `ChromeBar` is a **two-tier** bar
   (brand + Share/FY on top, the entity switcher as its own full-width `<nav>`
@@ -583,8 +599,9 @@ npm run build    # vite build + scripts/entity-pages.mjs (per-entity share stubs
   Each uses its own card image when `scripts/og_cards.py` made one.
 - **Share cards with numbers:** `python scripts/og_cards.py` (Pillow; Georgia +
   Arial from the Windows font folder) draws og-image.png (suite: "the same
-  $200,000 home pays $1,693 … $3,372", after credits), og-your-tax-bill.png (also every town
-  page) and og-<entity>-<edition>.png, and writes every figure to
+  $200,000 home pays $1,693 … $3,372", after credits), og-your-tax-bill.png (the
+  range + the county map, shaded like the page; also every town page) and
+  og-<entity>-<edition>.png, and writes every figure to
   public/og-cards.json. check-data recomputes them with src/taxmath.js and
   **fails the deploy when a card is stale** — rerun after data changes.
 - **Analytics (Plausible, off until configured):** `src/analytics.js`, copied

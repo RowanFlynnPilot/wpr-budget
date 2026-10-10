@@ -2,11 +2,12 @@ import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useStrings } from "../i18n";
 import { usd } from "../format";
 import { track } from "../analytics";
-import { billDollars, billParts, muniSlug, netBill, stateCredits } from "../taxmath";
+import { billDollars, billParts, muniBills, muniSlug, netBill, stateCredits } from "../taxmath";
 import { countyShares, cityShares, schoolShares, itemize } from "../receipt";
 import {
   SponsorSlot, SourceLink, SectionHead, HomeValueCalc, TaxSplit, MuniPicker, SchoolPicker, billRates, billExtremes, placeLabel,
   PrimaryHomeToggle, useAnchorOnMount, useHomeValue, useMuniChoice, useSchoolChoice, usePrimaryHome, WAUSAU_CITY_DOR,
+  CountyShapes, RAMP, rampColor,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
 
@@ -103,15 +104,8 @@ function Receipt({ rows, homeValue, credits, where, school, year, budgets }) {
 // towns and the picture would be the classification's, not the data's. Mouse
 // and touch pick a place, like the list below — which is the keyboard and
 // screen-reader equivalent (to them the map is one labeled image).
-// Boundaries: public/marathon-map.json (scripts/extract_map.py, Census).
-const RAMP = ["#f1e9cc", "#c7d8b0", "#8fbb9a", "#4e9483", "#226b5f", "#0c4438"];
-const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
-function rampColor(f) {
-  const x = Math.min(1, Math.max(0, f)) * (RAMP.length - 1);
-  const i = Math.min(RAMP.length - 2, Math.floor(x));
-  const [a, b] = [rgb(RAMP[i]), rgb(RAMP[i + 1])];
-  return `rgb(${a.map((v, k) => Math.round(v + (b[k] - v) * (x - i))).join(",")})`;
-}
+// Boundaries: public/marathon-map.json (scripts/extract_map.py, Census); the
+// shading: rampColor (ui.jsx).
 const median = (xs) => { const s = [...xs].sort((a, c) => a - c); return s[Math.floor(s.length / 2)]; };
 
 function CountyMap({ map, rows, mine, homeValue, onPick }) {
@@ -152,23 +146,18 @@ function CountyMap({ map, rows, mine, homeValue, onPick }) {
   return (
     <figure className="cmap">
       <div className="cmap-wrap" ref={wrap} onMouseLeave={() => setTip(null)}>
-        <svg viewBox={`0 0 ${W} ${H}`} role="img"
-          aria-label={t("tb.map.alt", rows.length, usd(homeValue), dollars(lo), name(loRow.m), dollars(hi), name(hiRow.m))}>
-          {map.shapes.map((s) => {
-            const r = byCode.get(s.code);
-            return (
-              <path key={s.code} className="cmap-shape" d={s.d} fill={shade(r.bill)}
-                onMouseMove={(e) => {
-                  const b = wrap.current.getBoundingClientRect();
-                  setTip({ r, x: e.clientX - b.left, y: e.clientY - b.top, w: b.width });
-                }}
-                onClick={() => { setTip(null); onPick(s.code); }} />
-            );
-          })}
-          <path className="cmap-outline" d={map.outline} />
+        <CountyShapes map={map} fill={(code) => shade(byCode.get(code).bill)}
+          label={t("tb.map.alt", rows.length, usd(homeValue), dollars(lo), name(loRow.m), dollars(hi), name(hiRow.m))}
+          shapeProps={(s) => ({
+            onMouseMove: (e) => {
+              const b = wrap.current.getBoundingClientRect();
+              setTip({ r: byCode.get(s.code), x: e.clientX - b.left, y: e.clientY - b.top, w: b.width });
+            },
+            onClick: () => { setTip(null); onPick(s.code); },
+          })}>
           {hover && hover !== sel && <path className="cmap-hover" d={hover.d} />}
           <path className="cmap-sel" d={sel.d} />
-        </svg>
+        </CountyShapes>
         {!nearAnchor && <span className="cmap-anchor" style={pos(anchor.label)} aria-hidden="true">Wausau</span>}
         <span className="cmap-pin" style={pos(sel.label)} aria-hidden="true" />
         <span ref={label} className={"cmap-label" + (below ? " below" : "")} style={{ top: pos(sel.label).top }} aria-hidden="true">
@@ -214,12 +203,8 @@ function Ranking({ municipalities, muni, school, homeValue, credits, primary, ma
   const [all, setAll] = useState(false);
   // Bills after the state's credits, in dollars, on the reader's own value and
   // primary-home choice (credits are capped, so the order can shift with value).
-  const rows = useMemo(() => municipalities.map((m) => {
-    const bills = m.school_districts.map((sd) => netBill(m, sd, credits, homeValue, primary));
-    const mineSd = m.school_districts.find((sd) => sd.code === school) || m.school_districts[0];
-    const bill = m.code === muni.code ? netBill(m, mineSd, credits, homeValue, primary) : bills[0];
-    return { m, bill, min: Math.min(...bills), max: Math.max(...bills) };
-  }).sort((a, c) => c.bill - a.bill), [municipalities, muni.code, school, credits, homeValue, primary]);
+  const rows = useMemo(() => muniBills(municipalities, credits, homeValue, primary, { code: muni.code, school }),
+    [municipalities, muni.code, school, credits, homeValue, primary]);
   const { lo, hi } = useMemo(() => billExtremes(municipalities, credits, homeValue, primary), [municipalities, credits, homeValue, primary]);
   const top = Math.max(...rows.map((r) => r.max)) || 1;
   const dollars = (n) => usd(Math.round(n));
