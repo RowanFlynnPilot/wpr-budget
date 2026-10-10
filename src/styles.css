@@ -620,7 +620,7 @@ body{margin:0; background:#f5f1e8;}
 .debt-list{display:flex; flex-direction:column; gap:3px; border-top:2px solid var(--ink); padding-top:10px;}
 .debt-row{position:relative; display:flex; justify-content:space-between; align-items:center;
   padding:11px 12px; font-size:14px; overflow:hidden;}
-.db-bar{position:absolute; left:0; top:0; bottom:0; background:var(--paper-2); z-index:0;}
+.db-bar{position:absolute; left:0; top:0; bottom:0; background:rgba(22,88,74,.11); z-index:0;}
 .db-name,.db-val{position:relative; z-index:1;}
 .db-name{font-weight:500;}
 .db-val{font-weight:600; font-variant-numeric:tabular-nums;}

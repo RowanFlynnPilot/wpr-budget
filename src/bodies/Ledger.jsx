@@ -85,6 +85,8 @@ export default function Ledger({ b, extra, chrome }) {
 
   const deptMaxSpend = useMemo(() => Math.max(...b.departments.map(deptSpend)), [b.departments]);
   const debtTotal = useMemo(() => b.debt.reduce((s, d) => s + d.outstanding, 0), [b.debt]);
+  // Bars scale to the largest series, so the comparison uses the full width.
+  const debtMax = useMemo(() => Math.max(...b.debt.map((d) => d.outstanding)), [b.debt]);
 
   // Screen-reader-only sort state for the active column header.
   const sortHint = (k) => (k === sortKey
@@ -524,7 +526,7 @@ export default function Ledger({ b, extra, chrome }) {
         <div className="debt-list">
           {b.debt.map((d) => (
             <div className="debt-row" key={d.series}>
-              <span className="db-bar" style={{ width: `${(d.outstanding / debtTotal) * 100}%` }} />
+              <span className="db-bar" style={{ width: `${(d.outstanding / debtMax) * 100}%` }} />
               <span className="db-name">{d.series}</span>
               <span className="db-val">{usd(d.outstanding)}</span>
             </div>
