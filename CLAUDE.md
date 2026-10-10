@@ -28,6 +28,13 @@ subnav section links, and browser back/forward all funnel through `hashchange`;
 the scroll-spy mirrors the reading position into the hash via `replaceState`,
 so the address bar is always a valid deep link.
 
+**Sources (manifest).** Every entity and edition carries `source: {title, url}` — the
+official document its numbers come from (verified links from each government's own
+budget page; DOR's bulletin page for the tax bill). App passes it as `chrome.source`;
+Methodology's "Source." step and every footer link it via `SourceLink`. Update the
+URL whenever a new book is ingested. Corrections go to `CORRECTIONS_URL` (WPR's contact
+page), linked from Methodology and the Hmong beta banner.
+
 **Editions (budget season).** An entity may list `editions` in the manifest —
 the next year's PROPOSED book, served at `#<entity>~<edition-id>` alongside the
 adopted book (the bare `#<entity>` stays adopted, so embeds/links never change

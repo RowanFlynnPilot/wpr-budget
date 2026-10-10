@@ -5,7 +5,7 @@ import {
 import { useLang, useStrings } from "../i18n";
 import { usd, compact, pct } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, Delta, Highlights, SubNav, SponsorSlot, Methodology,
+  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, SourceLink, Delta, Highlights, SubNav, SponsorSlot, Methodology,
   HomeValueCalc, TaxSplit, ChartNotes, resolveNotes, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import { MoneyFlowSankey, DebtChart } from "../charts";
@@ -395,7 +395,7 @@ export default function SchoolLedger({ b, chrome }) {
       <Methodology b={b} chrome={chrome} />
 
       <footer className="foot">
-        <p><b>{t("foot.sourceLabel")}</b> {t("s.foot.source", b.meta.entity, b.meta.fiscal_label)} {t("foot.amended")}</p>
+        <p><b>{t("foot.sourceLabel")}</b> <SourceLink source={chrome.source}>{t("s.foot.source", b.meta.entity, b.meta.fiscal_label)}</SourceLink> {t("foot.amended")}</p>
         {levyPct === 0 && (
           <p className="muted">{t("s.foot.levyFlat", usd(b.meta.total_levy), priorFy, b.meta.fiscal_label)}</p>
         )}

@@ -25,6 +25,13 @@ export const JURIS_COLORS = ["#16584a", "#7a5f1f", "#a8492f", "#3d5a80"]; // whi
 // Companion civic-transparency tool — the budgets adopted here are debated and
 // voted in the meetings the tracker covers.
 export const MEETING_TRACKER_URL = "https://rowanflynnpilot.github.io/marathon-meetings/";
+// Where readers report an error (WPR's contact page) — the Methodology section and the Hmong beta banner link it.
+export const CORRECTIONS_URL = "https://wausaupilotandreview.com/contact/";
+
+// The view's source document, linked (opens the official PDF / state page).
+export function SourceLink({ source, children }) {
+  return <a className="source-link" href={source.url} target="_blank" rel="noopener noreferrer">{children}</a>;
+}
 
 /* ---------- hooks ---------- */
 
@@ -527,6 +534,8 @@ export function Methodology({ b, chrome }) {
   const ent = chrome.entities.find((e) => e.id === chrome.activeId);
   const jsonUrl = import.meta.env.BASE_URL + chrome.dataFile;
   const kindNoun = t("method.kind." + ent.kind);
+  // A school year reads "2025-26", not the calendar year its budget ends in.
+  const yearLabel = b.meta.fiscal_label || b.meta.budget_year;
   const csvRows = ent.kind === "city"
     ? b.general_fund.expenditures.map((r) => ({ department: r.category, fund: "General Fund", [`budget_${b.meta.budget_year - 1}`]: r.prior, [`budget_${b.meta.budget_year}`]: r.proposed }))
     : ent.kind === "school"
@@ -535,10 +544,11 @@ export function Methodology({ b, chrome }) {
   return (
     <section id="methodology" className="block">
       <SectionHead kicker={t("method.kicker")} title={t("method.title")}>
-        {t("method.intro", b.meta.entity, b.meta.budget_year, kindNoun, b.meta.status)}
+        {t("method.intro", b.meta.entity, yearLabel, kindNoun, b.meta.status)}
       </SectionHead>
       <ol className="method">
-        <li><b>{t("method.step.sourceLabel")}</b> {t("method.step.source", b.meta.budget_year, b.meta.entity, b.meta.status)}</li>
+        <li><b>{t("method.step.sourceLabel")}</b>{" "}
+          <SourceLink source={chrome.source}>{t("method.step.source", yearLabel, b.meta.entity, b.meta.status)}</SourceLink></li>
         <li><b>{t("method.step.extractionLabel")}</b> {t("method.step.extraction")}</li>
         <li><b>{t("method.step.verificationLabel")}</b> {t("method.step.verification")}</li>
         <li><b>{t("method.step.updatesLabel")}</b> {t("method.step.updates")}</li>
@@ -550,6 +560,8 @@ export function Methodology({ b, chrome }) {
         </button>
       </div>
       <p className="note">{t("method.reuse")}</p>
+      <p className="note">{t("method.corrections")}{" "}
+        <a href={CORRECTIONS_URL} target="_blank" rel="noopener noreferrer">{t("method.correctionsLink")}</a></p>
       <a className="suite-link" href={MEETING_TRACKER_URL} target="_blank" rel="noopener noreferrer">
         <span className="suite-link__icon" aria-hidden="true">📋</span>
         <span><b>{t("suite.linkLead")}</b> {t("suite.linkBody", b.meta.status)}</span>

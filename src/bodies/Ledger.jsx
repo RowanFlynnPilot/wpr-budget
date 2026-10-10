@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { useLang, useStrings } from "../i18n";
 import { usd, compact, pct, deptSpend, fmtDate } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, Delta, Balance, Spark, Highlights, SubNav, SponsorSlot, EditionBanner,
+  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, SourceLink, Delta, Balance, Spark, Highlights, SubNav, SponsorSlot, EditionBanner,
   Methodology, HomeValueCalc, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
@@ -454,7 +454,7 @@ export default function Ledger({ b, chrome }) {
       <Methodology b={b} chrome={chrome} />
 
       <footer className="foot">
-        <p><b>{t("foot.sourceLabel")}</b> {t("co.foot.source", b.meta.entity, b.meta.budget_year, b.meta.status)}{" "}
+        <p><b>{t("foot.sourceLabel")}</b> <SourceLink source={chrome.source}>{t("co.foot.source", b.meta.entity, b.meta.budget_year, b.meta.status)}</SourceLink>{" "}
           {proposed ? t("foot.proposedAmend", fmtDate(chrome.edition.vote, lang, false)) : t("foot.amended")}</p>
         <p className="muted">{t("co.foot.builtBy")}</p>
         {/* This footnote documents a discrepancy specific to the FY2026 adopted

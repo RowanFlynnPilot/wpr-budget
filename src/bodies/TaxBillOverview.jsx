@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { useStrings } from "../i18n";
 import { usd } from "../format";
 import {
-  SponsorSlot, HomeValueCalc, TaxSplit, MuniPicker, SchoolPicker, billRates,
+  SponsorSlot, SourceLink, HomeValueCalc, TaxSplit, MuniPicker, SchoolPicker, billRates,
   useAnchorOnMount, useHomeValue, useMuniChoice, useSchoolChoice, WAUSAU_CITY_DOR,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
@@ -65,7 +65,7 @@ export default function TaxBillOverview({ b, chrome }) {
       </section>
 
       <footer className="foot">
-        <p><b>{t("foot.sourceLabel")}</b> {t("tb.foot.source", year)}</p>
+        <p><b>{t("foot.sourceLabel")}</b> <SourceLink source={chrome.source}>{t("tb.foot.source", year)}</SourceLink></p>
         <p className="muted">{t("tb.foot.builtBy")}</p>
       </footer>
     </div>

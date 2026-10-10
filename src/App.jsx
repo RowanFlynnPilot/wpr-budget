@@ -127,7 +127,9 @@ export default function App() {
   if (!data || data.route !== route) return <Frame>Loading the ledger&hellip;</Frame>;
 
   const { ent, edition, dataFile } = resolveRoute(route);
-  const chrome = { entities, activeId: ent.id, routeId: route, edition, dataFile, onSelect, annotations };
+  // `source`: the document this view's numbers come from (the edition's, if any).
+  const source = edition ? edition.source : ent.source;
+  const chrome = { entities, activeId: ent.id, routeId: route, edition, dataFile, source, onSelect, annotations };
   const Body = BODY_BY_KIND[ent.kind] || Ledger;
   return (
     <LangProvider>

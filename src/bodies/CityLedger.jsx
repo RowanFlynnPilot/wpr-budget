@@ -5,7 +5,7 @@ import {
 import { useStrings } from "../i18n";
 import { usd, compact } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, Delta, Highlights, SubNav, SponsorSlot, Methodology,
+  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, SourceLink, Delta, Highlights, SubNav, SponsorSlot, Methodology,
   HomeValueCalc, TaxSplit, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
   SchoolPicker, useSchoolChoice, billRates, WAUSAU_CITY_DOR,
 } from "../ui";
@@ -334,7 +334,7 @@ export default function CityLedger({ b, extra, chrome }) {
       <Methodology b={b} chrome={chrome} />
 
       <footer className="foot">
-        <p><b>{t("foot.sourceLabel")}</b> {t("c.foot.source", b.meta.entity, b.meta.budget_year)} {t("foot.amended")}</p>
+        <p><b>{t("foot.sourceLabel")}</b> <SourceLink source={chrome.source}>{t("c.foot.source", b.meta.entity, b.meta.budget_year)}</SourceLink> {t("foot.amended")}</p>
         <p className="muted">{t("c.foot.builtBy")}</p>
       </footer>
     </div>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Receipt, Share2, Check, Home } from "lucide-react";
 import { LANGS, useLang, useStrings } from "./i18n";
-import { ENTITY_LOGOS } from "./ui";
+import { ENTITY_LOGOS, CORRECTIONS_URL } from "./ui";
 import logoUrl from "./assets/logo-32.png";
 
 // Shared WPR brand chrome bar, with the entity switcher (rendered only when
@@ -76,7 +76,8 @@ export default function ChromeBar({ entities, activeId, routeId, onSelect, year,
       </div>
       {lang === "hmn" && (
         <div className="beta-banner" role="note">
-          <b>{t("beta.title")}</b> <span>{t("beta.body")}</span>
+          <b>{t("beta.title")}</b> <span>{t("beta.body")}</span>{" "}
+          <a href={CORRECTIONS_URL} target="_blank" rel="noopener noreferrer">{t("method.correctionsLink")}</a>
         </div>
       )}
     </>

@@ -26,8 +26,8 @@ const EN = {
   "common.publicLedger": "The Public Ledger",
   "common.yourTaxBill": "Your Tax Bill",
   "sponsor.presentedBy": "Presented by",
-  "beta.title": "Hmong is a community translation, in beta.",
-  "beta.body": "Some wording may be rough — tell Wausau Pilot & Review what to fix.",
+  "beta.title": "The Hmong translation is machine-drafted and in beta, awaiting review by Hmong speakers.",
+  "beta.body": "Some wording may be wrong — tell Wausau Pilot & Review what to fix:",
 
   // nav / section labels (union across bodies)
   "nav.where": "Where It Goes",
@@ -81,6 +81,8 @@ const EN = {
   "method.dlJson": "Download the full data (JSON)",
   "method.dlCsv": "Download spending (CSV)",
   "method.reuse": "This data is free to reuse. Built and maintained by Wausau Pilot & Review as part of its civic transparency work.",
+  "method.corrections": "Spot an error, or have a question about these numbers?",
+  "method.correctionsLink": "Contact Wausau Pilot & Review",
   "suite.linkLead": "See the decisions behind the budget.",
   "suite.linkBody": (status) => (status === "proposed"
     ? "This proposal is being debated now, in public meetings, before the board votes — follow them in WPR's Central Wisconsin Meeting Tracker."
@@ -329,8 +331,8 @@ const ES = {
   "common.publicLedger": "El Libro Público",
   "common.yourTaxBill": "Su factura de impuestos",
   "sponsor.presentedBy": "Presentado por",
-  "beta.title": "El hmong es una traducción comunitaria, en versión beta.",
-  "beta.body": "Algunas frases pueden ser imperfectas — dígale a Wausau Pilot & Review qué corregir.",
+  "beta.title": "La traducción al hmong fue redactada por máquina y está en versión beta, pendiente de revisión por hablantes de hmong.",
+  "beta.body": "Algunas frases pueden estar mal — dígale a Wausau Pilot & Review qué corregir:",
 
   "nav.where": "A dónde va",
   "nav.flow": "Flujo del dinero",
@@ -381,6 +383,8 @@ const ES = {
   "method.dlJson": "Descargar todos los datos (JSON)",
   "method.dlCsv": "Descargar gastos (CSV)",
   "method.reuse": "Estos datos son de libre reutilización. Creado y mantenido por Wausau Pilot & Review como parte de su trabajo de transparencia cívica.",
+  "method.corrections": "¿Encontró un error o tiene una pregunta sobre estas cifras?",
+  "method.correctionsLink": "Contacte a Wausau Pilot & Review",
   "suite.linkLead": "Vea las decisiones detrás del presupuesto.",
   "suite.linkBody": (status) => (status === "proposed"
     ? "Esta propuesta se debate ahora en reuniones públicas, antes de la votación de la junta — sígalas en el Rastreador de Reuniones del Centro de Wisconsin de WPR."
@@ -621,8 +625,8 @@ const HMN = {
   "common.publicLedger": "Phau Ntawv Pej Xeem",
   "common.yourTaxBill": "Koj Daim Nqi Se",
   "sponsor.presentedBy": "Nthuav los ntawm",
-  "beta.title": "Lus Hmoob yog ib qho lus txhais los ntawm zej zog (beta).",
-  "beta.body": "Tej zaum cov lus tseem tsis tau zoo — qhia rau Wausau Pilot & Review paub yam yuav tsum kho.",
+  "beta.title": "Cov lus Hmoob no yog lub tshuab (AI) txhais, tseem yog beta, tos cov neeg hais lus Hmoob kuaj xyuas.",
+  "beta.body": "Tej zaum muaj lus tsis raug — qhia rau Wausau Pilot & Review paub yam yuav tsum kho:",
 
   "nav.where": "Mus Qhov Twg",
   "nav.flow": "Nyiaj Ntws Mus",
@@ -673,6 +677,8 @@ const HMN = {
   "method.dlJson": "Rub tag nrho cov ntaub ntawv (JSON)",
   "method.dlCsv": "Rub cov nuj nqis (CSV)",
   "method.reuse": "Cov ntaub ntawv no pub dawb siv dua. Tsim thiab saib xyuas los ntawm Wausau Pilot & Review ua ib feem ntawm nws txoj haujlwm pej xeem nthuav qhia.",
+  "method.corrections": "Pom ib qho yuam kev, lossis muaj lus nug txog cov lej no?",
+  "method.correctionsLink": "Tiv tauj Wausau Pilot & Review",
   "suite.linkLead": "Saib cov kev txiav txim tom qab daim nyiaj txiag.",
   "suite.linkBody": (status) => (status === "proposed"
     ? "Daim npaj tseg no tab tom raug sib tham hauv cov rooj sib tham pej xeem, ua ntej pawg pov npav — taug qab lawv hauv WPR Central Wisconsin Meeting Tracker."

@@ -53,6 +53,9 @@ body{margin:0; background:#f5f1e8;}
 .beta-banner{margin:0 -24px; padding:9px 24px; background:#c9a94f; color:#1c1a16;
   font-family:var(--sans); font-size:12.5px; line-height:1.45;}
 .beta-banner b{font-weight:700;}
+.beta-banner a{color:#1c1a16; font-weight:700; text-decoration:underline; text-underline-offset:2px;}
+/* Source-document and corrections links in footers/methodology notes. */
+.ftm .source-link, .ftm .note a{color:var(--accent); text-decoration:underline; text-underline-offset:2px;}
 /* the switcher row */
 .chrome-bar__switch{display:flex; flex-wrap:wrap; align-items:center; gap:8px; flex:1 1 100%;
   padding-top:8px; border-top:1px solid rgba(255,255,255,.18);}

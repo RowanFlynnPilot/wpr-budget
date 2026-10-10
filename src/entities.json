@@ -12,9 +12,17 @@
         "data": "marathon-county-2027-proposed.json",
         "hearing": "2026-11-02",
         "vote": "2026-11-10",
-        "calendar_source": "2027 Administrator's Proposed Budget, Appendix K: Budget Process Timeline"
+        "calendar_source": "2027 Administrator's Proposed Budget, Appendix K: Budget Process Timeline",
+        "source": {
+          "title": "Marathon County 2027 Administrator's Proposed Budget (PDF)",
+          "url": "https://www.marathoncounty.gov/home/showpublisheddocument/19303/639262872515170000"
+        }
       }
-    ]
+    ],
+    "source": {
+      "title": "Marathon County 2026 Approved Budget (PDF)",
+      "url": "https://www.marathoncounty.gov/home/showpublisheddocument/18175/639105629169430000"
+    }
   },
   {
     "id": "wausau-city",
@@ -24,6 +32,10 @@
     "data": "wausau-city.json",
     "with": {
       "taxDistricts": "marathon-tax-districts.json"
+    },
+    "source": {
+      "title": "City of Wausau 2026 Adopted Budget (PDF)",
+      "url": "https://www.wausauwi.gov/home/showpublisheddocument/16150/639101243300300000"
     }
   },
   {
@@ -31,13 +43,21 @@
     "name": "Wausau School District",
     "kind": "school",
     "short": "Wausau Schools",
-    "data": "wausau-school.json"
+    "data": "wausau-school.json",
+    "source": {
+      "title": "Wausau School District 2025-26 Annual Budget Book (PDF)",
+      "url": "https://www.wausauschools.org/fs/resource-manager/view/1366c011-b49b-4557-90a9-1f8b4550156d"
+    }
   },
   {
     "id": "your-tax-bill",
     "name": "Your Tax Bill",
     "kind": "taxbill",
     "short": "Your Tax Bill",
-    "data": "marathon-tax-districts.json"
+    "data": "marathon-tax-districts.json",
+    "source": {
+      "title": "Wisconsin Department of Revenue, Town, Village and City Taxes",
+      "url": "https://www.revenue.wi.gov/Pages/Report/tvc-bulletin.aspx"
+    }
   }
 ]
