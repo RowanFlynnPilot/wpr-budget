@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { useLang, useStrings } from "../i18n";
 import { usd, compact, pct, deptSpend, fmtDate } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, SourceLink, Delta, Balance, Spark, Highlights, SubNav, SponsorSlot, EditionBanner,
+  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, SourceLink, ChartFrame, Delta, Balance, Spark, Highlights, SubNav, SponsorSlot, EditionBanner,
   Methodology, HomeValueCalc, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
@@ -160,6 +160,9 @@ export default function Ledger({ b, chrome }) {
         : null),
   ]), [t, b.meta, levyPctChange, ratePctChange, levyMover, budgetPctChange]);
 
+  // Chart summaries: the visible note doubles as each chart's text alternative.
+  const trendsNote = t("co.trends.note", usd(levyFirst.levy), levyFirst.year, usd(levyLast.levy), levyLast.year, (((levyLast.levy / levyFirst.levy) - 1) * 100).toFixed(0), levyFirst.rate.toFixed(2), levyLast.rate.toFixed(2));
+  const billNote = t("co.bill.note", usd(b.homeowner_impact[0].avg_value), b.homeowner_impact[0].year, usd(b.homeowner_impact[b.homeowner_impact.length - 1].avg_value), lastTrend.year, b.homeowner_impact[0].tax_rate.toFixed(2), lastTrend.rate.toFixed(2));
   return (
     <div className="ftm">
       {/* WPR brand chrome bar — shared suite chrome */}
@@ -311,6 +314,7 @@ export default function Ledger({ b, chrome }) {
             {proposed && <span><i className="sw sw-levy sw--proposed" /> {t("co.trends.legendProposed", b.meta.budget_year)}</span>}
             <span><i className="sw sw-rate" /> {t("co.trends.legendRate")}</span>
           </div>
+          <ChartFrame summary={trendsNote} table={{ columns: [{ key: "year", label: t("col.year") }, { key: "levy", label: t("tip.levy"), fmt: usd }, { key: "rate", label: t("tip.millRate"), fmt: (v) => "$" + v.toFixed(2) }], rows: levyTrend }}>
           <ResponsiveContainer width="100%" height={320}>
             <ComposedChart data={levyTrend} margin={{ top: 8, right: 12, bottom: 4, left: 10 }}>
               <CartesianGrid stroke="var(--rule)" vertical={false} />
@@ -327,7 +331,8 @@ export default function Ledger({ b, chrome }) {
               <Line yAxisId="rate" type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
             </ComposedChart>
           </ResponsiveContainer>
-          <p className="note">{t("co.trends.note", usd(levyFirst.levy), levyFirst.year, usd(levyLast.levy), levyLast.year, (((levyLast.levy / levyFirst.levy) - 1) * 100).toFixed(0), levyFirst.rate.toFixed(2), levyLast.rate.toFixed(2))}</p>
+          </ChartFrame>
+          <p className="note">{trendsNote}</p>
         </div>
 
         {deptCompare && (
@@ -403,6 +408,7 @@ export default function Ledger({ b, chrome }) {
             <span><i className="sw sw-rate" /> {t("co.bill.legendRate")}</span>
             <span><i className="sw sw-bill" /> {t("co.bill.legendBill")}</span>
           </div>
+          <ChartFrame summary={billNote} table={{ columns: [{ key: "year", label: t("col.year") }, { key: "rate", label: t("tip.millRate"), fmt: (v) => "$" + v.toFixed(2) }, { key: "bill", label: t("tip.avgBill"), fmt: (v) => usd(Math.round(v)) }], rows: trend }}>
           <ResponsiveContainer width="100%" height={320}>
             <LineChart data={trend} margin={{ top: 8, right: 16, bottom: 4, left: 4 }}>
               <CartesianGrid stroke="var(--rule)" vertical={false} />
@@ -415,7 +421,8 @@ export default function Ledger({ b, chrome }) {
               <ReferenceDot yAxisId="bill" x={lastTrend.year} y={lastTrend.bill} r={4} fill="var(--gold)" stroke="none" />
             </LineChart>
           </ResponsiveContainer>
-          <p className="note">{t("co.bill.note", usd(b.homeowner_impact[0].avg_value), b.homeowner_impact[0].year, usd(b.homeowner_impact[b.homeowner_impact.length - 1].avg_value), lastTrend.year, b.homeowner_impact[0].tax_rate.toFixed(2), lastTrend.rate.toFixed(2))}</p>
+          </ChartFrame>
+          <p className="note">{billNote}</p>
         </div>
       </section>
 

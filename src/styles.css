@@ -145,6 +145,16 @@ body{margin:0; background:#f5f1e8;}
 .chart-note-src{color:var(--accent); text-decoration:none; font-weight:700;}
 .muted{color:var(--ink-soft);}
 .load{padding:90px 0; font-size:16px; color:var(--ink-soft);}
+/* ChartFrame: "Show as table" toggle + the chart's numbers as a table */
+.table-toggle{margin-top:10px; background:none; border:1px solid var(--rule); color:var(--accent);
+  font-family:var(--sans); font-size:12.5px; font-weight:700; letter-spacing:.03em; padding:6px 12px; cursor:pointer;}
+.table-toggle:hover{border-color:var(--ink-soft);}
+.chart-table-wrap{max-height:360px; overflow:auto; margin-top:10px; border:1px solid var(--rule);}
+.chart-table{width:100%; border-collapse:collapse; font-size:13.5px; font-variant-numeric:tabular-nums;}
+.chart-table th, .chart-table td{padding:6px 10px; text-align:right; border-bottom:1px solid var(--rule);}
+.chart-table th:first-child{text-align:left;}
+.chart-table thead th{position:sticky; top:0; background:var(--paper-2); font-size:11px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--ink-soft);}
 .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
   clip:rect(0,0,0,0); white-space:nowrap; border:0;}
 /* headings focused programmatically on a view switch (useAnchorOnMount) */

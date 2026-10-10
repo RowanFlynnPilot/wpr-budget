@@ -5,7 +5,7 @@ import {
 import { useStrings } from "../i18n";
 import { usd, compact } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, SourceLink, Delta, Highlights, SubNav, SponsorSlot, Methodology,
+  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, SourceLink, ChartFrame, Delta, Highlights, SubNav, SponsorSlot, Methodology,
   HomeValueCalc, TaxSplit, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
   SchoolPicker, useSchoolChoice, billRates, WAUSAU_CITY_DOR,
 } from "../ui";
@@ -137,6 +137,10 @@ export default function CityLedger({ b, extra, chrome }) {
     ];
   }, [t, b.expenditure_categories, b.meta, levyPct]);
 
+  // Chart summaries: the visible note doubles as each chart's text alternative.
+  const levyNote = t("c.overtime.note", levyFirst.year, levyLast.year);
+  const wfNote = t("c.workforce.note", wfDept, wfNow, b.meta.budget_year, wfChange, wf.years[wf.years.length - 1]);
+  const debtNote = t("c.debt.note", debt.retirement[0].year, compact(debt.retirement[0].total), debt.retirement[debt.retirement.length - 1].year);
   return (
     <div className="ftm">
       <ChromeBar {...chrome} year={b.meta.budget_year} />
@@ -229,16 +233,18 @@ export default function CityLedger({ b, extra, chrome }) {
           {t("c.overtime.dek", usd(levyFirst.levy), levyFirst.year, usd(levyLast.levy), levyLast.year, (((levyLast.levy / levyFirst.levy) - 1) * 100).toFixed(0))}
         </SectionHead>
         <div className="chart-wrap">
+          <ChartFrame summary={levyNote} table={{ columns: [{ key: "year", label: t("col.year") }, { key: "levy", label: t("tip.levy"), fmt: usd }], rows: levy }}>
           <ResponsiveContainer width="100%" height={300}>
             <ComposedChart data={levy} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
               <CartesianGrid stroke="var(--rule)" vertical={false} />
               <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
               <YAxis tick={{ fill: "var(--gold-ink)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
-              <Tooltip content={<BarTip seriesName="Tax levy" />} cursor={{ fill: "var(--paper-2)" }} />
+              <Tooltip content={<BarTip seriesName={t("tip.levy")} />} cursor={{ fill: "var(--paper-2)" }} />
               <Bar dataKey="levy" fill="var(--gold)" fillOpacity={0.82} radius={[2, 2, 0, 0]} maxBarSize={38} />
             </ComposedChart>
           </ResponsiveContainer>
-          <p className="note">{t("c.overtime.note", levyFirst.year, levyLast.year)}</p>
+          </ChartFrame>
+          <p className="note">{levyNote}</p>
         </div>
 
         <div className="callout">
@@ -260,6 +266,7 @@ export default function CityLedger({ b, extra, chrome }) {
           ))}
         </div>
         <div className="chart-wrap">
+          <ChartFrame summary={wfNote} table={{ columns: [{ key: "year", label: t("col.year") }, { key: "fte", label: t("col.fte", wfDept) }], rows: wfSeries }}>
           <ResponsiveContainer width="100%" height={320}>
             <ComposedChart data={wfSeries} margin={{ top: 8, right: 12, bottom: 4, left: 6 }}>
               <CartesianGrid stroke="var(--rule)" vertical={false} />
@@ -270,7 +277,8 @@ export default function CityLedger({ b, extra, chrome }) {
                 fill="var(--accent)" fillOpacity={0.12} dot={{ r: 2.5, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
             </ComposedChart>
           </ResponsiveContainer>
-          <p className="note">{t("c.workforce.note", wfDept, wfNow, b.meta.budget_year, wfChange, wf.years[wf.years.length - 1])}</p>
+          </ChartFrame>
+          <p className="note">{wfNote}</p>
         </div>
       </section>
 
@@ -326,8 +334,8 @@ export default function CityLedger({ b, extra, chrome }) {
           {t("c.debt.dek", compact(debt.outstanding), debt.pct_of_limit)}
         </SectionHead>
         <div className="chart-wrap">
-          <DebtChart retirement={debt.retirement} />
-          <p className="note">{t("c.debt.note", debt.retirement[0].year, compact(debt.retirement[0].total), debt.retirement[debt.retirement.length - 1].year)}</p>
+          <DebtChart retirement={debt.retirement} summary={debtNote} />
+          <p className="note">{debtNote}</p>
         </div>
       </section>
 

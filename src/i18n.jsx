@@ -16,6 +16,12 @@ const STORAGE_KEY = "wpr-budget-lang";
 // ---- string tables -------------------------------------------------------
 // Keys are grouped by area. Values are strings, or functions for interpolation.
 const EN = {
+  "chart.showTable": "Show as table",
+  "chart.hideTable": "Hide table",
+  "col.year": "Year",
+  "col.schoolYear": "School year",
+  "col.total": "Total",
+  "col.fte": (dept) => `${dept} (FTE)`,
   "app.loading": "Loading the ledger…",
   "app.error": "Could not load the budget data",
   "aria.gfView": "General fund view",
@@ -336,6 +342,12 @@ const EN = {
 };
 
 const ES = {
+  "chart.showTable": "Ver como tabla",
+  "chart.hideTable": "Ocultar tabla",
+  "col.year": "Año",
+  "col.schoolYear": "Año escolar",
+  "col.total": "Total",
+  "col.fte": (dept) => `${dept} (puestos ETC)`,
   "app.loading": "Cargando el registro…",
   "app.error": "No se pudieron cargar los datos del presupuesto",
   "aria.gfView": "Vista del fondo general",
@@ -645,6 +657,12 @@ const ES = {
 
 // Hmong (Hmoob Dawb / RPA). BETA — AI-drafted, pending community review.
 const HMN = {
+  "chart.showTable": "Saib ua lub rooj",
+  "chart.hideTable": "Zais lub rooj",
+  "col.year": "Xyoo",
+  "col.schoolYear": "Xyoo kawm ntawv",
+  "col.total": "Tag nrho",
+  "col.fte": (dept) => `${dept} (FTE)`,
   "app.loading": "Tab tom thauj cov ntaub ntawv…",
   "app.error": "Thauj tsis tau cov ntaub ntawv nyiaj txiag",
   "aria.gfView": "Saib general fund",

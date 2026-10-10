@@ -5,7 +5,7 @@ import {
 import { useLang, useStrings } from "../i18n";
 import { usd, compact, pct } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, SourceLink, Delta, Highlights, SubNav, SponsorSlot, Methodology,
+  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, SourceLink, ChartFrame, Delta, Highlights, SubNav, SponsorSlot, Methodology,
   HomeValueCalc, TaxSplit, ChartNotes, resolveNotes, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import { MoneyFlowSankey, DebtChart } from "../charts";
@@ -158,6 +158,11 @@ export default function SchoolLedger({ b, chrome }) {
     },
   ]), [t, b.meta, levyPct, millPct, bridge, priorFy, enr, enrNow, enrChange]);
 
+  // Chart summaries: the visible note doubles as each chart's text alternative.
+  // The Students section (and so its note) renders only when enrollment data exists.
+  const enrNote = enr && t("s.students.note", enr.labels[0], enr.labels[enr.labels.length - 1], usd(perStudentGF), usd(perStudentAll));
+  const overNote = t("s.overtime.note", rate[0].label, rate[rate.length - 1].label, valFirst.year, valLast.year);
+  const debtNote = t("s.debt.note", debt.retirement[0].year, compact(debt.retirement[0].total), debt.retirement[debt.retirement.length - 1].year);
   return (
     <div className="ftm">
       <ChromeBar {...chrome} year={b.meta.budget_year} />
@@ -275,6 +280,7 @@ export default function SchoolLedger({ b, chrome }) {
             <span><i className="sw" style={{ background: "var(--accent)" }} /> {t("s.students.legendEnroll")}</span>
             <span><i className="sw" style={{ background: "var(--gold)" }} /> {t("s.students.legendPerStudent")}</span>
           </div>
+          <ChartFrame summary={enrNote} table={{ columns: [{ key: "label", label: t("col.schoolYear") }, { key: "count", label: t("s.students.legendEnroll"), fmt: (v) => v.toLocaleString("en-US") }, { key: "perStudent", label: t("s.students.legendPerStudent"), fmt: usd }], rows: enrSeries }}>
           <ResponsiveContainer width="100%" height={280}>
             <ComposedChart data={enrSeries} margin={{ top: 8, right: 12, bottom: 4, left: 6 }}>
               <CartesianGrid stroke="var(--rule)" vertical={false} />
@@ -303,7 +309,8 @@ export default function SchoolLedger({ b, chrome }) {
               ))}
             </ComposedChart>
           </ResponsiveContainer>
-          <p className="note">{t("s.students.note", enr.labels[0], enr.labels[enr.labels.length - 1], usd(perStudentGF), usd(perStudentAll))}</p>
+          </ChartFrame>
+          <p className="note">{enrNote}</p>
           <ChartNotes notes={enrNotes} />
         </div>
       </section>
@@ -319,6 +326,7 @@ export default function SchoolLedger({ b, chrome }) {
             <span><i className="sw" style={{ background: "var(--accent)" }} /> {t("s.overtime.legendRate")}</span>
             <span><i className="sw" style={{ background: "var(--gold)" }} /> {t("s.overtime.legendVal")}</span>
           </div>
+          <ChartFrame summary={overNote} table={{ columns: [{ key: "year", label: t("col.year") }, { key: "rate", label: t("tip.millRate"), fmt: (v) => "$" + v.toFixed(2) }, { key: "valuation", label: t("s.overtime.tipVal"), fmt: compact }], rows: overTime }}>
           <ResponsiveContainer width="100%" height={320}>
             <ComposedChart data={overTime} margin={{ top: 8, right: 14, bottom: 4, left: 6 }}>
               <CartesianGrid stroke="var(--rule)" vertical={false} />
@@ -347,7 +355,8 @@ export default function SchoolLedger({ b, chrome }) {
               ))}
             </ComposedChart>
           </ResponsiveContainer>
-          <p className="note">{t("s.overtime.note", rate[0].label, rate[rate.length - 1].label, valFirst.year, valLast.year)}</p>
+          </ChartFrame>
+          <p className="note">{overNote}</p>
           <ChartNotes notes={overNotes} />
         </div>
 
@@ -387,8 +396,8 @@ export default function SchoolLedger({ b, chrome }) {
           {t("s.debt.dek", compact(debt.outstanding_principal), compact(debt.total_interest_remaining))}
         </SectionHead>
         <div className="chart-wrap">
-          <DebtChart retirement={debt.retirement} />
-          <p className="note">{t("s.debt.note", debt.retirement[0].year, compact(debt.retirement[0].total), debt.retirement[debt.retirement.length - 1].year)}</p>
+          <DebtChart retirement={debt.retirement} summary={debtNote} />
+          <p className="note">{debtNote}</p>
         </div>
       </section>
 

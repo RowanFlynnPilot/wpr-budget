@@ -237,6 +237,41 @@ export function EditionBanner({ chrome, adoptedYear }) {
   );
 }
 
+// Every chart's accessible twin: the chart itself is one image to assistive
+// tech, described by `summary` (the chart's own visible note), and a "Show as
+// table" toggle opens the same numbers as a real table — for screen readers,
+// keyboard users, and anyone who'd rather read than squint at axes.
+// table: { columns: [{ key, label, fmt? }], rows }.
+export function ChartFrame({ summary, table, children }) {
+  const t = useStrings();
+  const [open, setOpen] = useState(false);
+  const cell = (c, r) => (r[c.key] == null ? "—" : c.fmt ? c.fmt(r[c.key]) : r[c.key]);
+  return (
+    <div className="chart-frame">
+      <div role="img" aria-label={summary}>{children}</div>
+      <button type="button" className="table-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
+        {t(open ? "chart.hideTable" : "chart.showTable")}
+      </button>
+      {open && (
+        <div className="chart-table-wrap">
+          <table className="chart-table">
+            <thead><tr>{table.columns.map((c) => <th key={c.key} scope="col">{c.label}</th>)}</tr></thead>
+            <tbody>
+              {table.rows.map((r, i) => (
+                <tr key={i}>
+                  {table.columns.map((c, j) => (j === 0
+                    ? <th key={c.key} scope="row">{cell(c, r)}</th>
+                    : <td key={c.key}>{cell(c, r)}</td>))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ---------- annotations ---------- */
 
 // Resolve editorial chart annotations for one entity+chart into the active

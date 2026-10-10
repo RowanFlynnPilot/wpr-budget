@@ -3,6 +3,7 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Sankey, Layer, Line, Area,
 } from "recharts";
 import { useStrings } from "./i18n";
+import { ChartFrame } from "./ui";
 import { usd, compact } from "./format";
 
 // recharts-dependent shared pieces, kept OUT of ui.jsx on purpose: ui.jsx is in
@@ -104,7 +105,7 @@ export function MoneyFlowSankey({ data, height, margin, ariaLabel, note }) {
 /* ---------- debt retirement chart ---------- */
 
 // Stacked principal/interest retirement schedule (City + School debt sections).
-export function DebtChart({ retirement }) {
+export function DebtChart({ retirement, summary }) {
   const t = useStrings();
   return (
     <>
@@ -112,6 +113,10 @@ export function DebtChart({ retirement }) {
         <span><i className="sw sw-new" /> {t("lbl.principal")}</span>
         <span><i className="sw sw-old" /> {t("lbl.interest")}</span>
       </div>
+      <ChartFrame summary={summary} table={{ columns: [
+        { key: "year", label: t("col.year") }, { key: "principal", label: t("lbl.principal"), fmt: usd },
+        { key: "interest", label: t("lbl.interest"), fmt: usd }, { key: "total", label: t("col.total"), fmt: usd },
+      ], rows: retirement }}>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={retirement} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
           <CartesianGrid stroke="var(--rule)" vertical={false} />
@@ -122,6 +127,7 @@ export function DebtChart({ retirement }) {
           <Bar dataKey="interest" stackId="d" fill="var(--gold)" fillOpacity={0.82} name={t("lbl.interest")} maxBarSize={26} />
         </BarChart>
       </ResponsiveContainer>
+      </ChartFrame>
     </>
   );
 }
