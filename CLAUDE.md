@@ -131,6 +131,45 @@ the dearest place for that home is the City of Wausau and the cheapest the Town
 of Ringle ($1,693). Still not subtracted (and said so): special-district taxes
 (sanitary/lake districts).
 
+**Whole dollars that add up (`billDollars` in src/taxmath.js).** Every bill shown
+in dollars — the split, the receipt, the #card — goes through it: lines take
+largest-remainder rounding to the rounded levy, credits round so levied −
+credits = the rounded net (the headline), and the first-dollar credit doesn't
+move with the primary-home box (the lottery credit takes the odd dollar).
+Rounding each line alone had left 34 of 100 municipality/district bills $1 off
+themselves. check-data proves it for every pair at three values, both states.
+
+**"Your tax receipt" (`#your-tax-bill/receipt`, `src/receipt.js`).** The bill
+itemized down to what each government's share pays for, split the way its own
+budget spends its property tax: County by fund and, within the General Fund, by
+positive department levy; City by GF department (`General Property Taxes` share)
+with the rest of the levy as "debt and other funds"; School by levy fund and,
+within the GF, by object. Only the suite's three governments are itemized (any
+other municipality/district = one line + "isn't in this tool yet"). The Tax Bill
+view loads the three budgets via its manifest `with` (county/city/school).
+check-data proves each split sums to 1.
+
+**The map (`#your-tax-bill/compare`, above the ranking).** `CountyMap` shades all
+61 municipalities by the Ranking's own figures (the reader's value, primary-home
+choice and, for their own municipality, school district; others by their largest
+district, the range in the tooltip). ONE continuous ramp, min → max — deliberately
+unclassed: 40 of 61 bills sit within ~$500, so any break would split near-
+identical towns (quantile breaks made $1,918 vs $2,057 look like different worlds).
+Mouse/touch pick a place (no scroll); the ranked list is the keyboard/screen-
+reader equivalent (the SVG is one labeled image). The caption's "why" (the
+municipality's own levy: median $264 town / $749 village / $1,283 city on a
+$200,000 home; county share identical, school similar) is computed live.
+Geometry: `public/marathon-map.json` from `scripts/extract_map.py` — the Census
+cartographic boundary file of WI county subdivisions (= cities/villages/towns),
+`sources/census-cousub-2025/cb_2025_55_cousub_500k.zip`, boundaries as of Jan 1
+2025 (same date as DOR's assessments). Matched to DOR by type + name one to one;
+equirectangular at the county's central latitude; integer grid 2000 wide, no
+simplification (2,700 vertices total), spikes from rounding removed. The
+extractor proves no overlaps, no gaps, and that the outline built from the
+grid's once-used edges encloses the county (neighbors share borders exactly).
+A new DOR year that adds/renames a municipality fails check-data until the map
+is re-extracted (use the next GENZ vintage).
+
 The last entry is NOT a government — it's a cross-entity **overview**: a City of Wausau
 homeowner's complete property-tax bill split across all four taxing jurisdictions
 (city/county/school/technical college), each row clicking through to its entity. It
@@ -211,6 +250,8 @@ python scripts/extract_dor.py sources/dor-tvc25.xlsx sources/dor-2025lotcr.pdf \
        sources/dor-2025fdcred.pdf public/marathon-tax-districts.json --cache
 # then redraw the share cards (CI fails while their figures are stale):
 python scripts/og_cards.py
+# and the map's boundaries (Census cartographic boundary file, same Jan 1 as DOR):
+python scripts/extract_map.py sources/census-cousub-2025/cb_2025_55_cousub_500k.zip        public/marathon-tax-districts.json public/marathon-map.json
 
 # Wausau School District (separate extractor, separate schema — see extract_school.py).
 # Source = the district's "Annual Budget Book" PDF, linked from
@@ -443,7 +484,10 @@ for 2025-26) for a per-student denominator.
 - **When no entity hash is set (bare URL / `#home` / unknown), App renders
   `Landing`** — the suite front door (hero + a "your whole tax bill ≈ $X" hook +
   a card per entity with its headline figure + the open-data/Meeting-Tracker
-  strip). Landing pulls every entity's data through the shared cache; cards call
+  strip). The landing PAINTS AT ONCE (since 2026-10-10): chrome, hero, cards and
+  seasons render immediately; only the figures wait for data (`.skel*`
+  placeholders, `aria-busy`; CLS ~0.001). It pulls every entity's data through
+  the shared cache; cards call
   `onSelect(id)`; the ChromeBar Home button returns. Direct deep links like
   `#marathon-county` still skip the landing. `ChromeBar` is a **two-tier** bar
   (brand + Share/FY on top, the entity switcher as its own full-width `<nav>`
@@ -803,10 +847,12 @@ Done and shipped:
   URLs inside. Update at the next decennial; don't silently swap in rolling
   estimates (the on-page note names the basis).
 - **Tax-bill math lives in `src/taxmath.js`** (plain JS): `billParts`/`billTotal`,
-  `MUNI_KEY`, `muniSlug`. ui.jsx's `billRates`, the CI check, the share pages and
+  `stateCredits`/`netBill`, `billDollars` (display dollars), `MUNI_KEY`, `muniSlug`. ui.jsx's `billRates`, the CI check, the share pages and
   og_cards.py's figures (re-checked by CI) all use that one formula — change it
   there only. `TaxBillOverview` covers all 61 municipalities (DOR data); its
-  `#compare` section ranks them ("Same home, different bill").
+  `#compare` section maps and ranks them ("Same home, different bill"). Never
+  `Math.round` a bill line on its own — use `billDollars`, or the lines stop
+  adding up.
 - **i18n files:** English in `src/i18n.jsx` (`const EN`); Spanish and Hmong in
   `src/strings/es.js` / `hmn.js` (`export default {`), dynamic-imported on first
   use so the landing/embeds ship English only (index ~36 kB gzip). A new key goes

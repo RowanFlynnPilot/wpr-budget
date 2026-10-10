@@ -122,13 +122,16 @@ python scripts/extract_budget.py 2026-Annual-Budget.pdf public/marathon-county.j
 python scripts/extract_wausau.py 2026-Wausau-Budget.pdf public/wausau-city.json --cache
 python scripts/extract_school.py sources/2026-Wausau-School-Budget.pdf public/wausau-school.json sources/enrollment_certified_*.zip --cache
 python scripts/extract_dor.py sources/dor-tvc25.xlsx sources/dor-2025lotcr.pdf sources/dor-2025fdcred.pdf public/marathon-tax-districts.json --cache
+python scripts/extract_map.py sources/census-cousub-2025/cb_2025_55_cousub_500k.zip public/marathon-tax-districts.json public/marathon-map.json
 python scripts/og_cards.py # the share cards carry figures; CI fails while they're stale
 
-python scripts/verify.py   # proves all three reproduce the committed JSON byte-for-byte
+python scripts/verify.py   # proves every data file reproduces the committed JSON byte-for-byte
 ```
 
 Every extractor reconciles every table against the budget's own printed totals
-and fails loudly on any mismatch. `--cache` stores page texts under `sources/`
+and fails loudly on any mismatch. The map's boundaries are the Census Bureau's
+cartographic boundary file of Wisconsin county subdivisions (the cities, villages
+and towns), as of the same January 1 as DOR's assessments: <https://www2.census.gov/geo/tiger/GENZ2025/shp/cb_2025_55_cousub_500k.zip>. `--cache` stores page texts under `sources/`
 so re-runs take seconds instead of minutes.
 
 ## Layout

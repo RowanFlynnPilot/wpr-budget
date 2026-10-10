@@ -149,6 +149,25 @@ for (const file of [countyEnt.data, ...(countyEnt.editions || []).map((ed) => ed
   if (new Set(slugs).size !== slugs.length) fail("marathon-tax-districts.json", "two municipalities share a page slug");
 }
 
+// ---- the map: one shape per municipality, each inside the map (scripts/extract_map.py) ----
+{
+  const d = read("public/marathon-tax-districts.json");
+  const map = read("public/marathon-map.json");
+  const where = "marathon-map.json";
+  const codes = map.shapes.map((s) => s.code);
+  const want = d.municipalities.map((m) => m.code);
+  if (new Set(codes).size !== codes.length) fail(where, "a municipality has two shapes");
+  const missing = want.filter((c) => !codes.includes(c));
+  const extra = codes.filter((c) => !want.includes(c));
+  if (missing.length || extra.length) fail(where, `shapes out of step with the DOR file: missing ${missing.join(", ") || "none"}, extra ${extra.join(", ") || "none"} — rerun python scripts/extract_map.py`);
+  const { width: W, height: H } = map.meta;
+  for (const s of map.shapes) {
+    const [x, y] = s.label;
+    if (!(x >= 0 && x <= W && y >= 0 && y <= H) || !/^M\d/.test(s.d)) fail(where, `${s.name}: bad path or label point`);
+  }
+  if (!(map.meta.units_per_mile > 0) || !/^https:\/\//.test(map.meta.source_url)) fail(where, "meta needs units_per_mile and an https source_url");
+}
+
 // ---- share cards: the figures drawn on public/og-*.png (scripts/og_cards.py) still match the data ----
 {
   const cards = read("public/og-cards.json");

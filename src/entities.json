@@ -100,7 +100,8 @@
     "with": {
       "county": "marathon-county.json",
       "city": "wausau-city.json",
-      "school": "wausau-school.json"
+      "school": "wausau-school.json",
+      "map": "marathon-map.json"
     }
   }
 ]

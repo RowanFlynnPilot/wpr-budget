@@ -14,6 +14,7 @@ import sys
 
 import extract_budget
 import extract_dor
+import extract_map
 import extract_wausau
 import extract_school
 
@@ -35,6 +36,10 @@ BUILDS = [
     ("public/marathon-tax-districts.json",
      lambda: extract_dor.extract("sources/dor-tvc25.xlsx", "sources/dor-2025lotcr.pdf",
                                  "sources/dor-2025fdcred.pdf", cache=True)),
+    # The municipalities' boundaries (Census), matched one to one to the DOR file.
+    ("public/marathon-map.json",
+     lambda: extract_map.extract("sources/census-cousub-2025/cb_2025_55_cousub_500k.zip",
+                                 "public/marathon-tax-districts.json")),
     ("public/wausau-school.json",
      lambda: extract_school.extract("sources/2026-Wausau-School-Budget.pdf", ENROLLMENT_ZIPS,
                                     SCHOOL_PRIOR_BOOKS, cache=True)),

@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useStrings } from "../i18n";
 import { usd } from "../format";
 import { track } from "../analytics";
-import { billDollars, muniSlug, netBill, stateCredits } from "../taxmath";
+import { billDollars, billParts, muniSlug, netBill, stateCredits } from "../taxmath";
 import { countyShares, cityShares, schoolShares, itemize } from "../receipt";
 import {
   SponsorSlot, SourceLink, SectionHead, HomeValueCalc, TaxSplit, MuniPicker, SchoolPicker, billRates, billExtremes, placeLabel,
@@ -96,6 +96,112 @@ function Receipt({ rows, homeValue, credits, where, school, year, budgets }) {
   );
 }
 
+// "Same home, different bill", mapped: every municipality shaded by its bill
+// on the reader's home (the Ranking's own figures), on ONE continuous ramp from
+// the lowest bill to the highest. Not grouped into bands: two-thirds of the
+// bills sit within ~$500 of each other, so any break would split near-identical
+// towns and the picture would be the classification's, not the data's. Mouse
+// and touch pick a place, like the list below — which is the keyboard and
+// screen-reader equivalent (to them the map is one labeled image).
+// Boundaries: public/marathon-map.json (scripts/extract_map.py, Census).
+const RAMP = ["#f1e9cc", "#c7d8b0", "#8fbb9a", "#4e9483", "#226b5f", "#0c4438"];
+const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+function rampColor(f) {
+  const x = Math.min(1, Math.max(0, f)) * (RAMP.length - 1);
+  const i = Math.min(RAMP.length - 2, Math.floor(x));
+  const [a, b] = [rgb(RAMP[i]), rgb(RAMP[i + 1])];
+  return `rgb(${a.map((v, k) => Math.round(v + (b[k] - v) * (x - i))).join(",")})`;
+}
+const median = (xs) => { const s = [...xs].sort((a, c) => a - c); return s[Math.floor(s.length / 2)]; };
+
+function CountyMap({ map, rows, mine, homeValue, onPick }) {
+  const t = useStrings();
+  const [tip, setTip] = useState(null); // { r, x, y, w } — px within the map
+  const wrap = useRef(null);
+  const byCode = useMemo(() => new Map(rows.map((r) => [r.m.code, r])), [rows]);
+  const bills = rows.map((r) => r.bill);
+  const [lo, hi] = [Math.min(...bills), Math.max(...bills)];
+  const shade = (bill) => rampColor((bill - lo) / (hi - lo || 1));
+  const dollars = (n) => usd(Math.round(n));
+  const { width: W, height: H } = map.meta;
+  const pos = ([x, y]) => ({ left: (x / W) * 100 + "%", top: (y / H) * 100 + "%" });
+  const name = (m) => `${m.type} of ${m.name}`;
+  const sel = map.shapes.find((s) => s.code === mine.m.code);
+  // "Wausau", for bearings — unless the pick is Wausau or its label would cover it
+  const anchor = map.shapes.find((s) => s.code === WAUSAU_CITY_DOR);
+  const nearAnchor = Math.abs(sel.label[0] - anchor.label[0]) < W * 0.15 && Math.abs(sel.label[1] - anchor.label[1]) < H * 0.2;
+  const hover = tip && map.shapes.find((s) => s.code === tip.r.m.code);
+  const loRow = rows.find((r) => r.bill === lo), hiRow = rows.find((r) => r.bill === hi);
+  // what differs: the municipality's own levy (the county's share is the same
+  // everywhere, the school share similar) — medians by type, on this home
+  const local = (type) => dollars(median(rows.filter((r) => r.m.type === type)
+    .map((r) => (homeValue / 1000) * billParts(r.m, r.m.school_districts[0]).municipality)));
+  const [sx, sy] = sel.label;
+  const below = sy < H * 0.28;
+  // the pick's label: centered over its pin, but kept inside the map
+  const label = useRef(null);
+  useLayoutEffect(() => {
+    const place = () => {
+      const w = wrap.current.clientWidth, lw = label.current.offsetWidth;
+      label.current.style.left = Math.max(0, Math.min(w - lw, (sx / W) * w - lw / 2)) + "px";
+    };
+    place();
+    window.addEventListener("resize", place);
+    return () => window.removeEventListener("resize", place);
+  });
+  return (
+    <figure className="cmap">
+      <div className="cmap-wrap" ref={wrap} onMouseLeave={() => setTip(null)}>
+        <svg viewBox={`0 0 ${W} ${H}`} role="img"
+          aria-label={t("tb.map.alt", rows.length, usd(homeValue), dollars(lo), name(loRow.m), dollars(hi), name(hiRow.m))}>
+          {map.shapes.map((s) => {
+            const r = byCode.get(s.code);
+            return (
+              <path key={s.code} className="cmap-shape" d={s.d} fill={shade(r.bill)}
+                onMouseMove={(e) => {
+                  const b = wrap.current.getBoundingClientRect();
+                  setTip({ r, x: e.clientX - b.left, y: e.clientY - b.top, w: b.width });
+                }}
+                onClick={() => { setTip(null); onPick(s.code); }} />
+            );
+          })}
+          <path className="cmap-outline" d={map.outline} />
+          {hover && hover !== sel && <path className="cmap-hover" d={hover.d} />}
+          <path className="cmap-sel" d={sel.d} />
+        </svg>
+        {!nearAnchor && <span className="cmap-anchor" style={pos(anchor.label)} aria-hidden="true">Wausau</span>}
+        <span className="cmap-pin" style={pos(sel.label)} aria-hidden="true" />
+        <span ref={label} className={"cmap-label" + (below ? " below" : "")} style={{ top: pos(sel.label).top }} aria-hidden="true">
+          <em>{t("tb.cmp.yours")}</em>{name(mine.m)} <b>{dollars(mine.bill)}</b>
+        </span>
+        <div className="cmap-scale" style={{ width: `${((10 * map.meta.units_per_mile) / W) * 100}%` }} aria-hidden="true">
+          <i />{t("tb.map.miles", 10)}
+        </div>
+        {tip && (
+          <div className="cmap-tip" style={{ left: Math.max(100, Math.min(tip.x, tip.w - 100)), top: tip.y }}>
+            <div className="tip-year">{name(tip.r.m)}{tip.r.m.split_county ? " " + t("tb.splitPart") : ""}</div>
+            <div>{t("tb.map.perYear", dollars(tip.r.bill))}</div>
+            {tip.r.max > tip.r.min && <div className="cmap-tip-range">{t("tb.map.range", dollars(tip.r.min), dollars(tip.r.max))}</div>}
+          </div>
+        )}
+      </div>
+      <div className="cmap-legend" aria-hidden="true">
+        <div className="cmap-ramp">
+          <div className="cmap-ramp-label">{t("tb.map.legend", usd(homeValue))}</div>
+          <div className="cmap-ramp-bar" style={{ background: `linear-gradient(90deg, ${RAMP.join(", ")})` }}>
+            <i style={{ left: ((mine.bill - lo) / (hi - lo || 1)) * 100 + "%" }} />
+          </div>
+          <div className="cmap-ramp-ends"><span>{dollars(lo)}</span><span>{dollars(hi)}</span></div>
+        </div>
+      </div>
+      <figcaption className="note">
+        {t("tb.map.why", local("Town"), local("Village"), local("City"))} {t("tb.map.how")}{" "}
+        <a href={map.meta.source_url} rel="noopener">{t("tb.map.source")}</a>
+      </figcaption>
+    </figure>
+  );
+}
+
 // "Same home, different bill": every municipality's bill on the reader's own
 // home value, ranked dearest first. A municipality spanning several school
 // districts is ranked by its largest district (the thin line under its bar is
@@ -103,7 +209,7 @@ function Receipt({ rows, homeValue, credits, where, school, year, budgets }) {
 // they chose. Collapsed: the five dearest, the five cheapest, and the reader's.
 // A row is a button: it opens that municipality's bill above.
 const RANK_EDGE = 5;
-function Ranking({ municipalities, muni, school, homeValue, credits, primary, onPick }) {
+function Ranking({ municipalities, muni, school, homeValue, credits, primary, map, onPick, onChoose }) {
   const t = useStrings();
   const [all, setAll] = useState(false);
   // Bills after the state's credits, in dollars, on the reader's own value and
@@ -126,6 +232,11 @@ function Ranking({ municipalities, muni, school, homeValue, credits, primary, on
         {t("tb.cmp.dek", usd(homeValue), rows.length)}
       </SectionHead>
       <p className="rank-lede">{t("tb.cmp.range", dollars(lo.bill), placeLabel(t, lo), dollars(hi.bill), placeLabel(t, hi), dollars(hi.bill - lo.bill))}</p>
+      <CountyMap map={map} rows={rows} mine={rows[mine]} homeValue={homeValue} onPick={(code) => {
+        const { m } = rows.find((r) => r.m.code === code);
+        track("Municipality", { name: `${m.type} of ${m.name}`, via: "map" });
+        onChoose(code);
+      }} />
       <ol className="rank-list">
         {shown.map((i, k) => {
           const r = rows[i];
@@ -226,7 +337,7 @@ export default function TaxBillOverview({ b, extra, chrome }) {
         where={bill.where} school={bill.school} year={year} budgets={extra} />
 
       <Ranking municipalities={b.municipalities} muni={muni} school={bill.school.code} homeValue={homeValue}
-        credits={cr} primary={primary}
+        credits={cr} primary={primary} map={extra.map} onChoose={setMuniCode}
         onPick={(code) => {
           setMuniCode(code);
           document.getElementById("bill").scrollIntoView({ behavior: "instant", block: "start" });
