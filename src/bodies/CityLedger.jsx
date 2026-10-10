@@ -37,7 +37,7 @@ export default function CityLedger({ b, chrome }) {
   const [homeValue, setHomeValue] = useHomeValue();
   const [divisor, setDivisor] = useState("total");
   useAnchorOnMount();
-  const active = useScrollSpy(SECTIONS, chrome.activeId);
+  const active = useScrollSpy(SECTIONS, chrome.routeId);
 
   // Per-resident / per-household view of the GF bars (curated 2020 Census
   // denominators in src/demographics.json).
@@ -152,7 +152,7 @@ export default function CityLedger({ b, chrome }) {
 
       <Highlights items={changed} />
 
-      <SubNav sections={SECTIONS} active={active} entityId={chrome.activeId} />
+      <SubNav sections={SECTIONS} active={active} routeId={chrome.routeId} />
 
       {/* WHERE IT GOES — General Fund */}
       <section id="where" className="block">

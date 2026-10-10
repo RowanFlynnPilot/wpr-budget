@@ -11,6 +11,13 @@ export const compact = (n) => {
 
 export const pct = (n) => (n > 0 ? "+" : "") + n.toFixed(1) + "%";
 
+// An ISO date ("2026-11-02") as a long-form local date in the reader's language
+// ("November 2, 2026" / "2 de noviembre de 2026"). Intl has no Hmong locale, so
+// Hmong uses the English month names, as elsewhere in the suite.
+export const fmtDate = (iso, lang, withYear = true) =>
+  new Date(iso + "T00:00").toLocaleDateString(lang === "es" ? "es" : "en-US",
+    withYear ? { month: "long", day: "numeric", year: "numeric" } : { month: "long", day: "numeric" });
+
 // Per-department total spending (County schema identity:
 // operating + personnel == tax_levy + operating_revenues).
 export const deptSpend = (d) => d.operating_expenditures + d.personnel_expenditures;

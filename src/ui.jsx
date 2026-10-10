@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
-import { useStrings } from "./i18n";
+import { useLang, useStrings } from "./i18n";
 import sponsors from "./sponsors.json";
-import { usd, compact, pct, downloadCSV } from "./format";
+import { usd, compact, pct, downloadCSV, fmtDate } from "./format";
 import { consumePendingSection } from "./nav";
 import marathonLogo from "./assets/marathon-county.jpg";
 import wausauLogo from "./assets/wausau-city.jpg";
@@ -46,8 +46,9 @@ export function useAnchorOnMount() {
 
 // Scroll-spy: returns the id of the section near mid-viewport, and mirrors it
 // into the URL via replaceState (no history entry, no hashchange) so the
-// address bar always holds a valid "#<entity>/<section>" deep link.
-export function useScrollSpy(sectionIds, entityId) {
+// address bar always holds a valid "#<route>/<section>" deep link (the route
+// id carries the edition, e.g. "marathon-county~2027-proposed").
+export function useScrollSpy(sectionIds, routeId) {
   const [active, setActive] = useState(sectionIds[0]);
   useEffect(() => {
     const els = sectionIds.map((id) => document.getElementById(id)).filter(Boolean);
@@ -55,7 +56,7 @@ export function useScrollSpy(sectionIds, entityId) {
       (entries) => entries.forEach((e) => {
         if (e.isIntersecting) {
           setActive(e.target.id);
-          history.replaceState(null, "", "#" + entityId + "/" + e.target.id);
+          history.replaceState(null, "", "#" + routeId + "/" + e.target.id);
         }
       }),
       { rootMargin: "-45% 0px -50% 0px" }
@@ -141,13 +142,13 @@ export function Spark({ values, tone, className = "" }) {
 // "What changed this year" lead band — a few auto-computed highlights rendered
 // between the masthead and the section nav. Each body passes its own
 // data-appropriate items: { label, value, delta?, invert?, money?, exact?, note? }.
-export function Highlights({ items }) {
+export function Highlights({ items, head }) {
   const t = useStrings();
   const shown = (items || []).filter(Boolean);
   if (!shown.length) return null;
   return (
     <div className="whatchanged">
-      <div className="wc-head">{t("wc.head")}</div>
+      <div className="wc-head">{head || t("wc.head")}</div>
       <div className="wc-grid">
         {shown.map((it, i) => (
           <div className="wc-item" key={i}>
@@ -164,16 +165,46 @@ export function Highlights({ items }) {
   );
 }
 
-// Section nav with scroll-spy highlight; links carry "#<entity>/<section>" so
-// they never destroy the entity deep-link.
-export function SubNav({ sections, active, entityId }) {
+// Section nav with scroll-spy highlight; links carry "#<route>/<section>" so
+// they never destroy the entity (or edition) deep-link.
+export function SubNav({ sections, active, routeId }) {
   const t = useStrings();
   return (
     <nav className="subnav">
       {sections.map((id) => (
-        <a key={id} href={"#" + entityId + "/" + id} className={active === id ? "active" : ""}>{t("nav." + id)}</a>
+        <a key={id} href={"#" + routeId + "/" + id} className={active === id ? "active" : ""}>{t("nav." + id)}</a>
       ))}
     </nav>
+  );
+}
+
+// Budget-season edition notice. On a PROPOSED edition: a prominent "not yet
+// adopted" band with the hearing/vote dates and a way back to the adopted book.
+// On the adopted book of an entity that has a proposed edition out: a slim
+// pointer to it. Renders nothing otherwise. Dates are curated in the manifest
+// (src/entities.json) from the book's own budget-process timeline.
+export function EditionBanner({ chrome, adoptedYear }) {
+  const t = useStrings();
+  const { lang } = useLang();
+  const ent = chrome.entities.find((e) => e.id === chrome.activeId);
+  const day = (iso) => fmtDate(iso, lang, false);
+  if (chrome.edition) {
+    const ed = chrome.edition;
+    return (
+      <div className="edition edition--proposed" role="note">
+        <div className="edition__tag">{t("ed.proposedTag")}</div>
+        <p className="edition__body">{t("ed.proposedBody", ed.year, day(ed.hearing), day(ed.vote))}</p>
+        <a className="edition__link" href={"#" + ent.id}>{t("ed.backToAdopted", adoptedYear)}</a>
+      </div>
+    );
+  }
+  const ed = (ent.editions || [])[0];
+  if (!ed) return null;
+  return (
+    <a className="edition edition--pointer" href={"#" + ent.id + "~" + ed.id}>
+      <span>{t("ed.pointer", ed.year, day(ed.hearing))}</span>
+      <ArrowUpRight size={15} strokeWidth={2.5} aria-hidden="true" />
+    </a>
   );
 }
 
@@ -355,7 +386,7 @@ export function TaxSplit({ rows, total, homeValue, totalLabel, exploreLabel, onD
 export function Methodology({ b, chrome }) {
   const t = useStrings();
   const ent = chrome.entities.find((e) => e.id === chrome.activeId);
-  const jsonUrl = import.meta.env.BASE_URL + ent.data;
+  const jsonUrl = import.meta.env.BASE_URL + chrome.dataFile;
   const kindNoun = t("method.kind." + ent.kind);
   const csvRows = ent.kind === "city"
     ? b.general_fund.expenditures.map((r) => ({ department: r.category, fund: "General Fund", budget_2025: r.prior, budget_2026: r.proposed }))
@@ -368,7 +399,7 @@ export function Methodology({ b, chrome }) {
         {t("method.intro", b.meta.entity, b.meta.budget_year, kindNoun)}
       </SectionHead>
       <ol className="method">
-        <li><b>{t("method.step.sourceLabel")}</b> {t("method.step.source", b.meta.budget_year, b.meta.entity)}</li>
+        <li><b>{t("method.step.sourceLabel")}</b> {t("method.step.source", b.meta.budget_year, b.meta.entity, b.meta.status)}</li>
         <li><b>{t("method.step.extractionLabel")}</b> {t("method.step.extraction")}</li>
         <li><b>{t("method.step.verificationLabel")}</b> {t("method.step.verification")}</li>
         <li><b>{t("method.step.updatesLabel")}</b> {t("method.step.updates")}</li>

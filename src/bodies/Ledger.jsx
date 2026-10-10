@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from "react";
 import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceDot, ComposedChart, Bar,
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceDot, ComposedChart, Bar, Cell,
 } from "recharts";
 import { ChevronDown } from "lucide-react";
 import { useLang, useStrings } from "../i18n";
-import { usd, compact, pct, deptSpend } from "../format";
+import { usd, compact, pct, deptSpend, fmtDate } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, Delta, Balance, Spark, Highlights, SubNav, SponsorSlot,
+  ENTITY_LOGOS, SectionHead, Stat, Delta, Balance, Spark, Highlights, SubNav, SponsorSlot, EditionBanner,
   Methodology, HomeValueCalc, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
@@ -17,9 +17,16 @@ const SECTIONS = ["where", "departments", "trends", "bill", "funds", "debt", "me
 // Marathon County body — the original "Follow the Money" ledger: General Fund
 // spending/revenue, the per-department levy ledger, the levy/mill-rate history,
 // the homeowner tax-bill calculator, other funds, and outstanding debt.
+//
+// Serves both editions of the book (meta.status): the board-adopted budget and,
+// during budget season, the Administrator's PROPOSED one — which is labeled as
+// such everywhere and carries no General Fund summary (general_fund: null; it
+// is printed in the public-hearing notice the proposed book predates).
 export default function Ledger({ b, chrome }) {
   const t = useStrings();
   const { lang } = useLang();
+  const proposed = b.meta.status === "proposed";
+  const prevYear = b.meta.budget_year - 1;
   const [flow, setFlow] = useState("expenditures");
   const [sortKey, setSortKey] = useState("spend");
   const [sortDir, setSortDir] = useState("desc");
@@ -28,7 +35,7 @@ export default function Ledger({ b, chrome }) {
   const [homeValue, setHomeValue] = useHomeValue();
   const [divisor, setDivisor] = useState("total");
   useAnchorOnMount();
-  const active = useScrollSpy(SECTIONS, chrome.activeId);
+  const active = useScrollSpy(SECTIONS, chrome.routeId);
 
   // Per-resident / per-household view of the GF bars (curated 2020 Census
   // denominators in src/demographics.json).
@@ -36,8 +43,9 @@ export default function Ledger({ b, chrome }) {
   const perDiv = divisor === "resident" ? demo.population : divisor === "household" ? demo.households : 1;
   const showVal = (n) => (divisor === "total" ? compact(n) : usd(Math.round(n / perDiv)));
 
-  // Both tabs sorted by amount, largest first.
-  const gfRows = useMemo(() => [...b.general_fund[flow]].sort((a, c) => c.proposed_next - a.proposed_next), [flow, b.general_fund]);
+  // Both tabs sorted by amount, largest first. (Empty for a proposed edition.)
+  const gfRows = useMemo(() => (b.general_fund ? [...b.general_fund[flow]] : [])
+    .sort((a, c) => c.proposed_next - a.proposed_next), [flow, b.general_fund]);
   const gfTotal = useMemo(() => gfRows.reduce((s, r) => s + r.proposed_next, 0), [gfRows]);
   const gfMax = useMemo(() => Math.max(...gfRows.map((r) => r.proposed_next)), [gfRows]);
 
@@ -83,6 +91,7 @@ export default function Ledger({ b, chrome }) {
   // higher figure.
   const levyPctChange = (levyLast.levy / levyPrev.levy - 1) * 100;
   const ratePctChange = (levyLast.rate / levyPrev.rate - 1) * 100;
+  const levyRisePct = (((levyLast.levy / levyFirst.levy) - 1) * 100).toFixed(0);
 
   // Total-budget YoY change — dormant until a prior year's totals land in
   // history (i.e. once prior-year PDFs are ingested), mirroring the levy delta.
@@ -132,7 +141,9 @@ export default function Ledger({ b, chrome }) {
   return (
     <div className="ftm">
       {/* WPR brand chrome bar — shared suite chrome */}
-      <ChromeBar {...chrome} year={b.meta.budget_year} />
+      <ChromeBar {...chrome} year={b.meta.budget_year} status={b.meta.status} />
+
+      <EditionBanner chrome={chrome} adoptedYear={prevYear} />
 
       {/* masthead */}
       <header className="masthead">
@@ -148,7 +159,9 @@ export default function Ledger({ b, chrome }) {
           )}
         </div>
         <h1>Follow the Money</h1>
-        <p className="dek">{t("co.dek", b.meta.entity, new Date(b.meta.adopted + "T00:00").toLocaleDateString(lang === "es" ? "es" : "en-US", { month: "long", day: "numeric", year: "numeric" }))}</p>
+        <p className="dek">{proposed
+          ? t("co.dekProposed", b.meta.entity, fmtDate(b.meta.presented, lang))
+          : t("co.dek", b.meta.entity, fmtDate(b.meta.adopted, lang))}</p>
 
         <div className="stat-strip">
           <Stat icon="💰" label={t("stat.totalBudget")} value={compact(b.meta.total_expenditures)} sub={budgetPctChange != null ? <Delta value={budgetPctChange} /> : null} />
@@ -157,9 +170,9 @@ export default function Ledger({ b, chrome }) {
         </div>
       </header>
 
-      <Highlights items={changed} />
+      <Highlights items={changed} head={proposed ? t("wc.headProposed", b.meta.budget_year) : undefined} />
 
-      <SubNav sections={SECTIONS} active={active} entityId={chrome.activeId} />
+      <SubNav sections={SECTIONS} active={active} routeId={chrome.routeId} />
 
       {/* WHERE IT GOES */}
       <section id="where" className="block">
@@ -167,6 +180,9 @@ export default function Ledger({ b, chrome }) {
           {t("co.where.dek")}
         </SectionHead>
 
+        {!b.general_fund ? (
+          <p className="callout-plain">{t("co.where.pending", chrome.edition && fmtDate(chrome.edition.hearing, lang, false))}</p>
+        ) : (<>
         <div className="toggle" role="group" aria-label="General fund view">
           <button aria-pressed={flow === "expenditures"} className={flow === "expenditures" ? "on" : ""} onClick={() => setFlow("expenditures")}>{t("btn.spending")}</button>
           <button aria-pressed={flow === "revenues"} className={flow === "revenues" ? "on" : ""} onClick={() => setFlow("revenues")}>{t("btn.revenue")}</button>
@@ -193,12 +209,13 @@ export default function Ledger({ b, chrome }) {
         {divisor !== "total" && (
           <p className="note">{t("pc.note", demo.population.toLocaleString("en-US"), demo.households.toLocaleString("en-US"), demo.basis)}</p>
         )}
+        </>)}
       </section>
 
       {/* DEPARTMENTS */}
       <section id="departments" className="block">
         <SectionHead kicker={t("co.dept.kick")} title={t("co.dept.title")}>
-          {t("co.dept.dek")}
+          {t("co.dept.dek", b.departments.length)}
         </SectionHead>
 
         <div className="ledger">
@@ -207,7 +224,7 @@ export default function Ledger({ b, chrome }) {
             <button aria-pressed={sortKey === "spend"} className={sortKey === "spend" ? "sorted" : ""} onClick={() => setSort("spend")}>{t("co.dept.colSpend")}</button>
             <button aria-pressed={sortKey === "personnel"} className={"hide-sm " + (sortKey === "personnel" ? "sorted" : "")} onClick={() => setSort("personnel")}>{t("co.dept.colPersonnel")}</button>
             <button aria-pressed={sortKey === "levy"} className={sortKey === "levy" ? "sorted" : ""} onClick={() => setSort("levy")}>{t("co.dept.colLevy")}</button>
-            <button aria-pressed={sortKey === "change"} className={"hide-sm " + (sortKey === "change" ? "sorted" : "")} onClick={() => setSort("change")}>{t("co.dept.colVs")}</button>
+            <button aria-pressed={sortKey === "change"} className={"hide-sm " + (sortKey === "change" ? "sorted" : "")} onClick={() => setSort("change")}>{t("co.dept.colVs", prevYear)}</button>
             <span className="chev-col" />
           </div>
 
@@ -241,10 +258,10 @@ export default function Ledger({ b, chrome }) {
                     </div>
                     <p className="detail-note">
                       {t("co.dept.detailLevy", d.department.replace(/&rsquo;/g, "'"))}{" "}
-                      {d.levy_difference === null ? t("co.dept.unchanged") :
-                        d.levy_difference >= 0
-                          ? t("co.dept.rose", usd(d.levy_difference))
-                          : t("co.dept.fell", usd(Math.abs(d.levy_difference)))}
+                      {d.levy_difference === 0 ? t("co.dept.unchanged", prevYear) :
+                        d.levy_difference > 0
+                          ? t("co.dept.rose", usd(d.levy_difference), prevYear)
+                          : t("co.dept.fell", usd(Math.abs(d.levy_difference)), prevYear)}
                       {d.tax_levy < 0 && " " + t("co.dept.returns")}
                     </p>
                   </div>
@@ -258,12 +275,13 @@ export default function Ledger({ b, chrome }) {
       {/* OVER TIME */}
       <section id="trends" className="block">
         <SectionHead kicker={t("kick.shiftingPriorities")} title={t("co.trends.title")}>
-          {t("co.trends.dek")}
+          {t("co.trends.dek", levyRisePct, levyFirst.year, levyLast.rate < levyFirst.rate)}
         </SectionHead>
 
         <div className="chart-wrap">
           <div className="chart-legend">
             <span><i className="sw sw-levy" /> {t("co.trends.legendLevy")}</span>
+            {proposed && <span><i className="sw sw-levy sw--proposed" /> {t("co.trends.legendProposed", b.meta.budget_year)}</span>}
             <span><i className="sw sw-rate" /> {t("co.trends.legendRate")}</span>
           </div>
           <ResponsiveContainer width="100%" height={320}>
@@ -273,7 +291,12 @@ export default function Ledger({ b, chrome }) {
               <YAxis yAxisId="levy" tick={{ fill: "var(--gold)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
               <YAxis yAxisId="rate" orientation="right" domain={["dataMin - 0.25", "dataMax + 0.25"]} tick={{ fill: "var(--accent)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(1)} width={42} />
               <Tooltip content={<LevyTip />} cursor={{ fill: "var(--paper-2)" }} />
-              <Bar yAxisId="levy" dataKey="levy" fill="var(--gold)" fillOpacity={0.82} radius={[2, 2, 0, 0]} maxBarSize={34} />
+              <Bar yAxisId="levy" dataKey="levy" fill="var(--gold)" fillOpacity={0.82} radius={[2, 2, 0, 0]} maxBarSize={34}>
+                {/* A proposed year's bar is drawn faint: not yet a levy anyone owes. */}
+                {levyTrend.map((l) => (
+                  <Cell key={l.year} fillOpacity={proposed && l.year === b.meta.budget_year ? 0.32 : 0.82} />
+                ))}
+              </Bar>
               <Line yAxisId="rate" type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
             </ComposedChart>
           </ResponsiveContainer>
@@ -333,7 +356,7 @@ export default function Ledger({ b, chrome }) {
               </div>
             )}
 
-            <p className="note">{t("co.trends.cmpNote", deptCompare.first, deptCompare.last)}</p>
+            <p className="note">{t("co.trends.cmpNote", deptCompare.first, deptCompare.last, proposed)}</p>
           </div>
         )}
       </section>
@@ -341,10 +364,10 @@ export default function Ledger({ b, chrome }) {
       {/* TAX BILL */}
       <section id="bill" className="block">
         <SectionHead kicker={t("kick.bottomLine")} title={t("title.taxbillMeaning")}>
-          {t("co.bill.dek")}
+          {t("co.bill.dek", trend[0].year)}
         </SectionHead>
 
-        <HomeValueCalc id="homeval-c" label={t("co.bill.homeLabel")} outLabel={t("co.bill.estOut", b.meta.budget_year)}
+        <HomeValueCalc id="homeval-c" label={t("co.bill.homeLabel")} outLabel={t("co.bill.estOut", b.meta.budget_year, proposed)}
           outValue={usd(Math.round((homeValue / 1000) * b.meta.tax_rate))} value={homeValue} onChange={setHomeValue} />
 
         <div className="chart-wrap">
@@ -378,8 +401,9 @@ export default function Ledger({ b, chrome }) {
             <span>{t("co.funds.colFund")}</span><span>{t("co.funds.colLevy")}</span><span className="hide-sm">{t("co.funds.colRevenue")}</span><span>{t("co.funds.colSpending")}</span>
           </div>
           {b.funds.map((f) => (
-            <div className="fund-row" key={f.fund_no}>
-              <span className="f-name"><b>{f.name}</b><em>#{f.fund_no}</em></span>
+            <div className="fund-row" key={f.fund_no || f.name}>
+              {/* fund_no is null for the book's unnumbered levy lines (State Special Charges) */}
+              <span className="f-name"><b>{f.name}</b>{f.fund_no && <em>#{f.fund_no}</em>}</span>
               <span>{f.tax_levy ? usd(f.tax_levy) : <span className="muted">{t("co.funds.none")}</span>}</span>
               <span className="hide-sm">{usd(f.operating_revenues)}</span>
               <span>{usd(f.operating_expenditures + f.personnel_expenditures)}</span>
@@ -391,7 +415,7 @@ export default function Ledger({ b, chrome }) {
       {/* DEBT */}
       <section id="debt" className="block">
         <SectionHead kicker={t("co.debt.kick")} title={t("title.outstandingDebt")}>
-          {t("co.debt.dek", b.debt.length, usd(debtTotal))}
+          {t("co.debt.dek", b.debt.length, usd(debtTotal), prevYear)}
         </SectionHead>
         <div className="debt-list">
           {b.debt.map((d) => (
@@ -407,9 +431,14 @@ export default function Ledger({ b, chrome }) {
       <Methodology b={b} chrome={chrome} />
 
       <footer className="foot">
-        <p><b>{t("foot.sourceLabel")}</b> {t("co.foot.source", b.meta.entity, b.meta.budget_year)} {t("foot.amended")}</p>
+        <p><b>{t("foot.sourceLabel")}</b> {t("co.foot.source", b.meta.entity, b.meta.budget_year, b.meta.status)}{" "}
+          {proposed ? t("foot.proposedAmend", fmtDate(chrome.edition.vote, lang, false)) : t("foot.amended")}</p>
         <p className="muted">{t("co.foot.builtBy")}</p>
-        <p className="muted"><b>{t("co.foot.levyLabel")}</b> {t("co.foot.levyBody")}</p>
+        {/* This footnote documents a discrepancy specific to the FY2026 adopted
+            book's summary page; it does not carry over to other editions. */}
+        {b.meta.budget_year === 2026 && (
+          <p className="muted"><b>{t("co.foot.levyLabel")}</b> {t("co.foot.levyBody")}</p>
+        )}
       </footer>
     </div>
   );

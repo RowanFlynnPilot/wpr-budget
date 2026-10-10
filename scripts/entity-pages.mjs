@@ -17,11 +17,29 @@ const DESC = {
   taxbill: () => "Your complete Wausau property-tax bill, split across the city, county, school district and technical college — one calculator, every jurisdiction.",
 };
 
-for (const e of entities) {
-  const title = `${e.kind === "taxbill" ? "Your Tax Bill" : e.name} — Follow the Money · Wausau Pilot & Review`;
-  const desc = DESC[e.kind](e);
-  const target = BASE + "#" + e.id;
-  const pageUrl = BASE + e.id + "/";
+// A budget-season PROPOSED edition gets its own stub too (/<entity-id>-<edition-id>/),
+// so a story about the proposal can share a card that says "proposed".
+const day = (iso) => new Date(iso + "T00:00").toLocaleDateString("en-US", { month: "long", day: "numeric" });
+const EDITION_DESC = (e, ed) => `${e.name}'s proposed ${ed.year} budget, as presented by the County Administrator — every department, the proposed tax levy and mill rate, and outstanding debt. Public hearing ${day(ed.hearing)}; board vote ${day(ed.vote)}.`;
+
+const pages = entities.flatMap((e) => [
+  {
+    slug: e.id,
+    title: `${e.kind === "taxbill" ? "Your Tax Bill" : e.name} — Follow the Money · Wausau Pilot & Review`,
+    desc: DESC[e.kind](e),
+    route: e.id,
+  },
+  ...(e.editions || []).map((ed) => ({
+    slug: `${e.id}-${ed.id}`,
+    title: `${e.name} Proposed ${ed.year} Budget — Follow the Money · Wausau Pilot & Review`,
+    desc: EDITION_DESC(e, ed),
+    route: `${e.id}~${ed.id}`,
+  })),
+]);
+
+for (const { slug, title, desc, route } of pages) {
+  const target = BASE + "#" + route;
+  const pageUrl = BASE + slug + "/";
   const html = `<!doctype html>
 <html lang="en">
   <head>
@@ -50,7 +68,7 @@ for (const e of entities) {
   </body>
 </html>
 `;
-  mkdirSync(`dist/${e.id}`, { recursive: true });
-  writeFileSync(`dist/${e.id}/index.html`, html);
-  console.log(`wrote dist/${e.id}/index.html`);
+  mkdirSync(`dist/${slug}`, { recursive: true });
+  writeFileSync(`dist/${slug}/index.html`, html);
+  console.log(`wrote dist/${slug}/index.html`);
 }

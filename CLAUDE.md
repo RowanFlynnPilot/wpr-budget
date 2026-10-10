@@ -22,10 +22,29 @@ manifest is bundled (`src/entities.json`, imported statically — no runtime
 fetch); `App` fetches the active entity's data file (through a session-level
 promise cache in `src/data.js`) and routes to that entity's lazy-loaded body.
 **The URL hash is the single source of truth for navigation**:
-`#<entity-id>[/<section>]` (e.g. `#wausau-city/debt`). The chrome-bar switcher,
+`#<entity-id>[~<edition>][/<section>]` (e.g. `#wausau-city/debt`,
+`#marathon-county~2027-proposed/departments`). The chrome-bar switcher,
 subnav section links, and browser back/forward all funnel through `hashchange`;
 the scroll-spy mirrors the reading position into the hash via `replaceState`,
-so the address bar is always a valid deep link. Each entity has its own
+so the address bar is always a valid deep link.
+
+**Editions (budget season).** An entity may list `editions` in the manifest —
+the next year's PROPOSED book, served at `#<entity>~<edition-id>` alongside the
+adopted book (the bare `#<entity>` stays adopted, so embeds/links never change
+underneath anyone). Each edition: `{id, year, data, hearing, vote,
+calendar_source}` — the dates are curated from the book's budget-process
+timeline. `chrome` carries `activeId` (entity), `routeId` (entity+edition, for
+deep links/subnav/Share), `edition` (or null) and `dataFile`; App gates on the
+ROUTE so an edition switch never shows the other edition's numbers.
+`EditionBanner` (ui.jsx) renders the "Proposed — not yet adopted" band on the
+edition and a slim pointer to it on the adopted book; Landing shows the same
+pointer; `entity-pages.mjs` writes a share stub `/<entity>-<edition>/`. The
+edition strings (`ed.*`, `co.dekProposed`, `foot.proposedAmend`) name the
+County Administrator/County Board — a City edition needs its own wording
+(Mayor/Common Council). **Retiring an edition after adoption:** re-run the
+extractor on the APPROVED book into `public/marathon-county.json` (with the
+prior adopted books as history), delete the `editions` entry, the proposed
+JSON, and its `scripts/verify.py` BUILDS line. Each entity has its own
 extractor, data file, schema, and body — they deliberately do NOT share a
 schema, because a county (per-department tax levy) and a city (fund-based, no
 per-department levy) are structurally different governments.
@@ -428,13 +447,17 @@ prior books `sources/2025-…` and `sources/2024-Wausau-School-Budget.pdf` +
 `sources/enrollment_certified_<yr>.zip` ×5 (School); page-text caches live
 beside them as `sources/_pages_*.json`.
 
-> **FY2027 budget season (2026-10-09).** The County extractor now reads the 2027
-> PROPOSED book (`sources/2027-Annual-Budget-Proposed.pdf`, county doc 19303) —
-> reconciled, `meta.status: "proposed"`, but NOT committed to `public/`: the UI
-> hardcodes "Adopted" (masthead/i18n/entity-pages/index.html), renders
-> `meta.adopted` as a date (null → "Invalid Date"), needs `general_fund: null`
-> and `fund_no: null` handling, and the Landing FY label reads the County's year
-> for the whole suite. County calendar: board Q&A Oct 15 & 20, **public hearing
+> **FY2027 budget season (2026-10-09).** The County's 2027 PROPOSED book
+> (`sources/2027-Annual-Budget-Proposed.pdf`, county doc 19303) is served as an
+> edition: `public/marathon-county-2027-proposed.json` at
+> `#marathon-county~2027-proposed` (share stub `/marathon-county-2027-proposed/`),
+> labeled "Proposed — not yet adopted" throughout, in all three languages (the
+> new Hmong strings are AI-drafted like the rest — include them in the review).
+> Its Where-It-Goes section shows a pending note: the GF-by-function summary
+> arrives with the public-hearing notice (~Oct 18) — when it's published, it can
+> be parsed with the existing `parse_gf_summary` (same notice format as pp. 7–9
+> of the 2026 book) once the extractor accepts the notice as an extra input.
+> County calendar: board Q&A Oct 15 & 20, **public hearing
 > Nov 2**, amendments due Nov 6, **adoption Nov 10**. The City's 2027 proposed
 > book (`sources/2027-Wausau-Budget-Proposed.pdf`) still fails: no
 > jurisdiction-split page in the proposed edition, personnel short a new "City
@@ -604,8 +627,9 @@ Done and shipped:
   against the levy page's "New Valuation". `find_page` needles for the rate-history
   and valuation pages need a second term (e.g. "(DECREASE)") to beat the table-of-
   contents line. The summary `print` avoids non-cp1252 chars (Windows console).
-- **Switching entities** must gate on `data.id === activeId` (App) or a body
-  briefly gets the other entity's schema and crashes — already handled, keep it.
+- **Switching entities/editions** must gate on `data.route === route` (App) or a
+  body briefly gets the other entity's schema (crash) or the other edition's
+  numbers (silently wrong) — already handled, keep it.
 - **recharts Sankey** link tooltip data is nested at `payload[0].payload.payload`
   (source/target are resolved node objects there).
 - Styles live in `src/styles.css` (a real stylesheet since the refactor — no

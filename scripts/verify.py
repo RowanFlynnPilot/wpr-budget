@@ -23,6 +23,11 @@ SCHOOL_PRIOR_BOOKS = ["sources/2025-Wausau-School-Budget.pdf", "sources/2024-Wau
 BUILDS = [
     ("public/marathon-county.json",
      lambda: extract_budget.extract("2026-Annual-Budget.pdf", ["2025-Annual-Budget.pdf"], cache=True)),
+    # The Administrator's proposed edition, served alongside the adopted book
+    # during budget season (an `editions` entry in src/entities.json).
+    ("public/marathon-county-2027-proposed.json",
+     lambda: extract_budget.extract("sources/2027-Annual-Budget-Proposed.pdf",
+                                    ["2026-Annual-Budget.pdf", "2025-Annual-Budget.pdf"], cache=True)),
     ("public/wausau-city.json",
      lambda: extract_wausau.extract("2026-Wausau-Budget.pdf", cache=True)),
     ("public/wausau-school.json",

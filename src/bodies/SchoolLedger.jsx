@@ -42,7 +42,7 @@ export default function SchoolLedger({ b, chrome }) {
     ...(enr ? ["students"] : []),
     "overtime", "taxbill", "debt", "methodology",
   ], [enr]);
-  const active = useScrollSpy(sections, chrome.activeId);
+  const active = useScrollSpy(sections, chrome.routeId);
 
   const gfo = b.gf_expenditures;
   // Where it goes: General Fund by object (spending) or by source (revenue).
@@ -187,7 +187,7 @@ export default function SchoolLedger({ b, chrome }) {
 
       <Highlights items={changed} />
 
-      <SubNav sections={sections} active={active} entityId={chrome.activeId} />
+      <SubNav sections={sections} active={active} routeId={chrome.routeId} />
 
       {/* WHERE IT GOES — General Fund by object / by source */}
       <section id="where" className="block">

@@ -4,7 +4,17 @@
     "name": "Marathon County",
     "kind": "county",
     "short": "Marathon County",
-    "data": "marathon-county.json"
+    "data": "marathon-county.json",
+    "editions": [
+      {
+        "id": "2027-proposed",
+        "year": 2027,
+        "data": "marathon-county-2027-proposed.json",
+        "hearing": "2026-11-02",
+        "vote": "2026-11-10",
+        "calendar_source": "2027 Administrator's Proposed Budget, Appendix K: Budget Process Timeline"
+      }
+    ]
   },
   {
     "id": "wausau-city",

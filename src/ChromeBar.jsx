@@ -7,17 +7,18 @@ import logoUrl from "./assets/logo-32.png";
 // Shared WPR brand chrome bar, with the entity switcher (rendered only when
 // the suite has more than one entity) and a share control. Two-tier: brand +
 // share/FY on top, the switcher as its own full-width row beneath.
-export default function ChromeBar({ entities, activeId, onSelect, year }) {
+export default function ChromeBar({ entities, activeId, routeId, onSelect, year, status = "adopted" }) {
   const active = entities.find((e) => e.id === activeId);
   const [shared, setShared] = useState(false);
   const t = useStrings();
   const { lang, setLang } = useLang();
 
-  // Share a canonical deep-link to the ACTIVE entity, built from activeId rather
-  // than location.href so it stays valid no matter what the in-page scroll has
-  // done to the hash. No personal data (e.g. the tax-bill home value) is included.
+  // Share a canonical deep-link to the ACTIVE view (entity + edition), built from
+  // routeId rather than location.href so it stays valid no matter what the
+  // in-page scroll has done to the hash. No personal data (e.g. the tax-bill home
+  // value) is included.
   const onShare = async () => {
-    const url = `${window.location.origin}${window.location.pathname}#${activeId || "home"}`;
+    const url = `${window.location.origin}${window.location.pathname}#${routeId || "home"}`;
     const title = `Follow the Money${active ? " — " + active.name : ""}`;
     try {
       if (navigator.share) {
@@ -56,7 +57,7 @@ export default function ChromeBar({ entities, activeId, onSelect, year }) {
             {shared ? <Check size={14} strokeWidth={2.5} /> : <Share2 size={14} strokeWidth={2.5} />}
             <span>{shared ? t("chrome.copied") : t("chrome.share")}</span>
           </button>
-          {year && <span className="chrome-bar__meta">{t("chrome.fyMeta", year)}</span>}
+          {year && <span className="chrome-bar__meta">{t("chrome.fyMeta", year, status)}</span>}
         </div>
         {entities.length > 1 && (
           <nav className="chrome-bar__switch" aria-label={t("chrome.chooseBudget")}>

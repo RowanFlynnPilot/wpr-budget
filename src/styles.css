@@ -242,6 +242,25 @@ html{scroll-behavior:smooth;}
   text-decoration:none; cursor:pointer; transition:background .15s ease, color .15s ease;}
 .dl-btn:hover{background:transparent; color:var(--ink);}
 
+/* Budget-season editions (EditionBanner). A PROPOSED edition carries a prominent
+   "not yet adopted" band; the adopted book points to the proposal with a slim
+   link row (also used on the landing page). */
+.edition--proposed{margin:20px 0 0; padding:16px 20px; background:var(--paper-2);
+  border:1px solid var(--rule); border-left:4px solid var(--gold);}
+.edition__tag{font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--ink);}
+.edition__body{margin:6px 0 8px; font-size:15px; line-height:1.55; color:#3a362d; max-width:70ch;}
+.edition__link{font-size:14px; font-weight:600; color:var(--accent);}
+.edition--pointer{display:flex; align-items:center; justify-content:space-between; gap:14px;
+  margin:18px 0 0; padding:11px 16px; background:var(--paper-2); border:1px solid var(--rule);
+  border-left:4px solid var(--gold); color:var(--ink); text-decoration:none; font-size:14px; font-weight:600;}
+.edition--pointer:hover{border-color:var(--ink-soft); border-left-color:var(--gold);}
+.edition--pointer svg{flex-shrink:0;}
+/* A section the current edition can't fill yet (e.g. the GF summary in a proposed book). */
+.callout-plain{margin:18px 0 0; padding:16px 20px; background:var(--paper-2); border-left:3px solid var(--rule);
+  font-size:15px; line-height:1.55; color:#3a362d; max-width:70ch;}
+/* Legend swatch for a proposed year's (faint) levy bar. */
+.sw.sw--proposed{opacity:.35;}
+
 /* "What changed this year" lead band (between masthead and section nav) */
 .whatchanged{margin:22px 0 2px; padding:18px 22px; background:var(--paper-2); border:1px solid var(--rule);}
 .wc-head{font-family:var(--sans); font-size:12px; font-weight:700; letter-spacing:.14em;
@@ -414,7 +433,7 @@ html{scroll-behavior:smooth;}
    people print these pages. */
 @media print {
   .chrome-bar, .beta-banner, .subnav, .downloads, .suite-link, .lp-hook,
-  .lp-card-cta, .wf-pick { display: none !important; }
+  .lp-card-cta, .wf-pick, .edition--pointer, .edition__link { display: none !important; }
   .ftm { max-width: none; padding: 0 0 20px; }
   .masthead { padding-top: 12px; }
   .bar-row, .jrow, .ledger-item, .fund-row, .debt-row, .cmp-row, .chg-row,

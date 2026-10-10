@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Receipt, ArrowUpRight } from "lucide-react";
-import { useStrings } from "./i18n";
+import { useLang, useStrings } from "./i18n";
 import { fetchData } from "./data";
-import { usd, compact } from "./format";
+import { usd, compact, fmtDate } from "./format";
 import { ENTITY_LOGOS, MEETING_TRACKER_URL, SponsorSlot, useAnchorOnMount } from "./ui";
 import ChromeBar from "./ChromeBar";
 
@@ -14,6 +14,7 @@ import ChromeBar from "./ChromeBar";
 // links like #marathon-county still skip it.
 export default function Landing({ entities, chrome }) {
   const t = useStrings();
+  const { lang } = useLang();
   const [byFile, setByFile] = useState(null);
   const [err, setErr] = useState(null);
   useAnchorOnMount();
@@ -60,6 +61,18 @@ export default function Landing({ entities, chrome }) {
         </button>
       )}
 
+      {/* Budget season: any entity whose next-year PROPOSED book is out. The cards
+          and headline figures above stay on the adopted budgets. */}
+      {entities.filter((e) => e.editions && e.editions.length).map((e) => {
+        const ed = e.editions[0];
+        return (
+          <a key={e.id} className="edition edition--pointer" href={"#" + e.id + "~" + ed.id}>
+            <span>{t("lp.season", e.name, ed.year, fmtDate(ed.hearing, lang, false))}</span>
+            <span className="lp-hook-cta">{t("lp.seasonCta")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
+          </a>
+        );
+      })}
+
       <div className="lp-cards">
         {entities.map((e) => {
           const h = headline(e);
@@ -72,7 +85,9 @@ export default function Landing({ entities, chrome }) {
               </div>
               <div className="lp-card-name">{e.kind === "taxbill" ? t("common.yourTaxBill") : e.name}</div>
               <div className="lp-card-stat"><b>{h.value}</b> <span>{h.label}</span></div>
-              <p className="lp-card-desc">{t("lp.desc." + e.kind)}</p>
+              <p className="lp-card-desc">{e.kind === "county"
+                ? t("lp.desc.county", byFile[e.data].departments.length)
+                : t("lp.desc." + e.kind)}</p>
               <span className="lp-card-cta">{t("lp.explore")} <ArrowUpRight size={14} strokeWidth={2.5} /></span>
             </button>
           );
