@@ -514,6 +514,14 @@ body{margin:0; background:#f5f1e8;}
   .lp-card-stat span{display:block; font-size:10px;}
   .lp-card-desc, .lp-card-cta{display:none;}
 }
+/* Placeholders for the landing's figures while the data files load: same size
+   as what replaces them, so nothing moves; a still tint, no shimmer. */
+.skel{display:inline-block; vertical-align:middle; background:rgba(28,26,22,.08); border-radius:3px;}
+.skel-hook{width:3.6em; height:.82em;}
+.skel-hook.skel-wide{width:6.4em;}
+.skel-num{width:3.2em; height:.9em;}
+.skel-line{display:block; width:100%; height:.85em; margin:.32em 0;}
+.skel-line.skel-short{width:62%;}
 .lp-credibility{margin-top:40px; padding-top:6px; border-top:2px solid var(--ink);}
 .lp-credibility .note{margin-top:16px; font-style:normal; font-size:14px; color:#3a362d; max-width:72ch;}
 

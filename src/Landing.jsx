@@ -8,16 +8,19 @@ import ChromeBar from "./ChromeBar";
 import { netBill } from "./taxmath";
 import { prefetchProps } from "./views";
 
-// Suite landing page — the front door. Fetches every entity's data once (via
-// the shared cache), shows a hero, the combined "your whole tax bill" hook, a
-// card per entity (logo, headline figure, blurb), and the open-data/credibility
-// strip. Picking a card drills into that body; the chrome's Home button returns
-// here. Rendered when no entity hash is set (bare URL / "#home"), so direct
-// links like #marathon-county still skip it.
+// Suite landing page — the front door. It paints at once: the hero, the
+// budget-season box and the cards come from the bundled manifest and strings;
+// only the figures (the statement block, each card's headline number) wait for
+// the data files (via the shared cache), drawn meanwhile as same-size
+// placeholders so nothing moves when they land. Picking a card drills into that
+// body; the chrome's Home button returns here. Rendered when no entity hash is
+// set (bare URL / "#home"), so direct links like #marathon-county skip it.
 export default function Landing({ entities, chrome }) {
   const t = useStrings();
+  const { lang } = useLang();
   const [byFile, setByFile] = useState(null);
   const [err, setErr] = useState(null);
+  useAnchorOnMount();
 
   useEffect(() => {
     const files = [...new Set(entities.map((e) => e.data))];
@@ -26,30 +29,27 @@ export default function Landing({ entities, chrome }) {
       .catch((e) => setErr(String(e.message || e)));
   }, [entities]);
 
-  if (err) return (<div className="ftm load"><p>{t("app.error")} — {err}</p></div>);
-  if (!byFile) return (<div className="ftm load"><p>{t("app.loading")}</p></div>);
-  return <LandingBody byFile={byFile} entities={entities} chrome={chrome} />;
-}
-
-// Mounts once the data is in, so the focus-on-view-change finds the h1.
-function LandingBody({ byFile, entities, chrome }) {
-  const t = useStrings();
-  const { lang } = useLang();
-  useAnchorOnMount();
-
   // The combined-bill hook and the Tax Bill card: a $200,000 (fair market value)
-  // City of Wausau home in the Wausau School District, from the same DOR data
-  // and computation as the Your Tax Bill view itself.
+  // City of Wausau home in the Wausau School District, after the state's credits
+  // for a primary home — the same DOR data and computation as Your Tax Bill.
   const taxbillEnt = entities.find((e) => e.kind === "taxbill");
-  const wausau = byFile[taxbillEnt.data].municipalities.find((m) => m.code === WAUSAU_CITY_DOR);
-  const dor = byFile[taxbillEnt.data];
-  // Its largest school district (Wausau); a primary home, so both state credits.
-  const combinedBill = usd(Math.round(netBill(wausau, wausau.school_districts[0], dor.meta.credits, 200000)));
+  const dor = byFile && byFile[taxbillEnt.data];
+  const figures = dor && (() => {
+    const wausau = dor.municipalities.find((m) => m.code === WAUSAU_CITY_DOR);
+    const { lo, hi } = billExtremes(dor.municipalities, dor.meta.credits, 200000);
+    return {
+      combined: usd(Math.round(netBill(wausau, wausau.school_districts[0], dor.meta.credits, 200000))),
+      lo, hi, n: dor.municipalities.length,
+    };
+  })();
+  const place = ({ m }) => `${m.type} of ${m.name}`;
+  const skel = (cls) => <span className={"skel " + cls} aria-hidden="true" />;
   // Headline figure per card, straight from each entity's reconciled data.
   const headline = (e) => {
+    if (!byFile) return { value: skel("skel-num"), label: t(e.kind === "taxbill" ? "lp.card.typicalBill" : "lp.card.budget") };
     const p = byFile[e.data];
     if (e.kind === "school") return { value: compact(p.meta.net_expenditures), label: t("lp.card.budget") };
-    if (e.kind === "taxbill") return { value: combinedBill, label: t("lp.card.typicalBill") };
+    if (e.kind === "taxbill") return { value: figures.combined, label: t("lp.card.typicalBill") };
     return { value: compact(p.meta.total_expenditures), label: t("lp.card.budget") };
   };
 
@@ -63,26 +63,21 @@ function LandingBody({ byFile, entities, chrome }) {
         <p className="dek">{t("lp.heroDek")}</p>
       </header>
 
+      {err && <p className="callout-plain" role="alert">{t("app.error")} — {err}</p>}
+
       {/* The statement: what one home pays, and how far that swings across the county. */}
-      {(() => {
-        const { lo, hi } = billExtremes(dor.municipalities, dor.meta.credits, 200000);
-        const n = byFile[taxbillEnt.data].municipalities.length;
-        const place = ({ m }) => `${m.type} of ${m.name}`;
-        return (
-          <div className="lp-statement">
-            <button type="button" className="lp-fig" onClick={() => { rememberMuni(WAUSAU_CITY_DOR); chrome.onSelect(taxbillEnt.id); }} {...prefetchProps(taxbillEnt)}>
-              <b className="lp-hook-num">{combinedBill}</b>
-              <span>{t("lp.combinedCaption")}</span>
-              <span className="lp-hook-cta">{t("lp.seeBreakdown")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
-            </button>
-            <a className="lp-fig" href={"#" + taxbillEnt.id + "/compare"} {...prefetchProps(taxbillEnt)}>
-              <b className="lp-hook-num">{usd(Math.round(lo.bill))}–{usd(Math.round(hi.bill))}</b>
-              <span>{t("lp.rangeCaption", place(lo), place(hi), n)}</span>
-              <span className="lp-hook-cta">{t("lp.compareCta", n)} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
-            </a>
-          </div>
-        );
-      })()}
+      <div className="lp-statement" aria-busy={!figures}>
+        <button type="button" className="lp-fig" onClick={() => { rememberMuni(WAUSAU_CITY_DOR); chrome.onSelect(taxbillEnt.id); }} {...prefetchProps(taxbillEnt)}>
+          <b className="lp-hook-num">{figures ? figures.combined : skel("skel-hook")}</b>
+          <span>{t("lp.combinedCaption")}</span>
+          <span className="lp-hook-cta">{t("lp.seeBreakdown")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
+        </button>
+        <a className="lp-fig" href={"#" + taxbillEnt.id + "/compare"} {...prefetchProps(taxbillEnt)}>
+          <b className="lp-hook-num">{figures ? <>{usd(Math.round(figures.lo.bill))}–{usd(Math.round(figures.hi.bill))}</> : skel("skel-hook skel-wide")}</b>
+          <span>{figures ? t("lp.rangeCaption", place(figures.lo), place(figures.hi), figures.n) : <>{skel("skel-line")}{skel("skel-line skel-short")}</>}</span>
+          <span className="lp-hook-cta">{figures ? t("lp.compareCta", figures.n) : skel("skel-num")} <ArrowUpRight size={15} strokeWidth={2.5} /></span>
+        </a>
+      </div>
 
       {/* Budget season: next year's proposals — an edition served here, or a
           sibling WPR tool (companion). The cards below stay on adopted budgets. */}
@@ -122,7 +117,7 @@ function LandingBody({ byFile, entities, chrome }) {
               <div className="lp-card-name">{e.kind === "taxbill" ? t("common.yourTaxBill") : e.name}</div>
               <div className="lp-card-stat"><b>{h.value}</b> <span>{h.label}</span></div>
               <p className="lp-card-desc">{e.kind === "county"
-                ? t("lp.desc.county", byFile[e.data].departments.length)
+                ? (byFile ? t("lp.desc.county", byFile[e.data].departments.length) : <>{skel("skel-line")}{skel("skel-line skel-short")}</>)
                 : t("lp.desc." + e.kind)}</p>
               <span className="lp-card-cta">{t("lp.explore")} <ArrowUpRight size={14} strokeWidth={2.5} /></span>
             </button>
