@@ -3,6 +3,7 @@
 // so the landing page and embeds ship English alone. Same keys as EN —
 // scripts/check-data.mjs fails the deploy on any missing or extra key.
 export default {
+  "chart.swipe": "Deslice hacia el lado para ver todo el diagrama →",
   "co.where.fundsKick": "Todo el presupuesto",
   "co.where.fundsDek": (hearing, prev) => `El desglose del fondo general por función llega con el aviso de audiencia pública del condado, antes de la audiencia del ${hearing}, y aparecerá aquí entonces. Mientras tanto, este es todo el presupuesto propuesto, fondo por fondo, frente a ${prev}.`,
   "co.where.fundsNote": (prev, driver, change) => `Gasto por fondo (operativo más personal), comparado con el presupuesto adoptado de ${prev}.` + (driver ? ` El mayor cambio individual es el ${driver} (${change}).` : ""),
@@ -257,7 +258,7 @@ export default {
   "s.where.showPeople": (showing) => `${showing ? "Ocultar" : "Ver"} qué pagan los salarios y beneficios`,
   "s.where.noteSpend": (share) => `Cambio mostrado respecto al presupuesto del año anterior. El personal — salarios y beneficios — es el ${share}% del fondo general; los salarios docentes por sí solos son su mayor costo.`,
   "s.where.noteRev": "Cambio frente al presupuesto del año anterior. La ayuda estatal, no el impuesto local, es la mayor fuente de ingresos del distrito.",
-  "s.flow.dek": "Cada dólar del fondo general, rastreado desde su origen, a través del fondo, hasta lo que paga. Pase el cursor por cualquier cinta para seguir el dinero.",
+  "s.flow.dek": "Cada dólar del fondo general, rastreado desde su origen, a través del fondo, hasta lo que paga. Pase el cursor o toque cualquier cinta para seguir el dinero.",
   "s.flow.note": "Fuentes de ingreso del fondo general (izquierda) hacia el fondo (centro) y hacia el gasto por objeto (derecha). Pase el cursor por un flujo para ver su monto.",
   "s.allfunds.title": "Todos los fondos, por propósito",
   "s.allfunds.dek": (gross) => `Más allá del fondo general, el presupuesto de todos los fondos de ${gross} del distrito cubre educación especial, servicio de deuda, alimentación, proyectos de capital y programas comunitarios — cada uno un fondo legal aparte.`,
@@ -298,7 +299,7 @@ export default {
   "c.where.dek": (gf) => `El fondo general — ${gf} — paga los servicios diarios de la ciudad. Alterne para ver lo que gasta por departamento y de dónde viene ese dinero.`,
   "c.where.noteDept": (prior) => `Cambio mostrado respecto al presupuesto adoptado de ${prior}. La policía y los bomberos juntos son la mayor parte del gasto municipal.`,
   "c.where.noteRev": (prior) => `Cambio mostrado respecto al presupuesto adoptado de ${prior}. El impuesto a la propiedad es la mayor fuente de ingresos de la ciudad.`,
-  "c.flow.dek": "Cada dólar del fondo general, rastreado desde su origen, a través del fondo, hasta lo que paga. Pase el cursor por cualquier cinta para seguir el dinero.",
+  "c.flow.dek": "Cada dólar del fondo general, rastreado desde su origen, a través del fondo, hasta lo que paga. Pase el cursor o toque cualquier cinta para seguir el dinero.",
   "c.flow.note": "Fuentes de ingreso del fondo general (izquierda) hacia el fondo (centro) y hacia los departamentos (derecha). Se nombran los cinco mayores de cada lado; el resto se agrupa. Pase el cursor por un flujo para ver su monto.",
   "c.allfunds.title": "Todos los fondos, por categoría",
   "c.allfunds.dek": (total) => `Más allá del fondo general, el presupuesto de todos los fondos de ${total} de la ciudad cubre proyectos de capital, servicio de deuda, fondos empresariales y de ingresos especiales. Aquí está por tipo de gasto.`,

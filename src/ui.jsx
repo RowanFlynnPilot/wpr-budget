@@ -274,25 +274,33 @@ export function Highlights({ items, head }) {
 
 // Section nav with scroll-spy highlight; links carry "#<route>/<section>" so
 // they never destroy the entity (or edition) deep-link.
-export function SubNav({ sections, active, routeId }) {
-  const t = useStrings();
-  // Keep the active tab in view when the row scrolls sideways (phones, the
-  // nine-tab City bar). Horizontal only: never moves the page.
+// For a sideways-scrolling strip (the tab row, the money-flow diagram): which
+// edges have more beyond them, as " more-left"/" more-right" classes that the
+// .fade-x styles draw as a fade — so a clipped edge reads as "scroll for more",
+// not as a mistake. Returns [ref, classes].
+export function useEdgeFade() {
   const ref = useRef(null);
-  // Which edges have more tabs beyond them — drawn as a fade, so a clipped
-  // last tab reads as "scroll for more", not as a mistake.
-  const [more, setMore] = useState("");
+  const [cls, setCls] = useState("");
   useEffect(() => {
-    const nav = ref.current;
+    const el = ref.current;
     const update = () => {
-      const left = nav.scrollLeft > 2, right = nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 2;
-      setMore((left ? " more-left" : "") + (right ? " more-right" : ""));
+      const left = el.scrollLeft > 2, right = el.scrollLeft + el.clientWidth < el.scrollWidth - 2;
+      setCls((left ? " more-left" : "") + (right ? " more-right" : ""));
     };
     update();
-    nav.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    return () => { nav.removeEventListener("scroll", update); window.removeEventListener("resize", update); };
+    el.addEventListener("scroll", update, { passive: true });
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => { el.removeEventListener("scroll", update); ro.disconnect(); };
   }, []);
+  return [ref, cls];
+}
+
+export function SubNav({ sections, active, routeId }) {
+  const t = useStrings();
+  const [ref, more] = useEdgeFade();
+  // Keep the active tab in view when the row scrolls sideways (phones, the
+  // nine-tab City bar). Horizontal only: never moves the page.
   useEffect(() => {
     const nav = ref.current;
     const a = nav && nav.querySelector("a.active");
@@ -302,7 +310,7 @@ export function SubNav({ sections, active, routeId }) {
     }
   }, [active]);
   return (
-    <nav className={"subnav" + more} ref={ref}>
+    <nav className={"subnav fade-x" + more} ref={ref}>
       {sections.map((id) => (
         <a key={id} href={"#" + routeId + "/" + id} className={active === id ? "active" : ""}>{t("nav." + id)}</a>
       ))}

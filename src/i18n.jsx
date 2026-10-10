@@ -16,6 +16,7 @@ const STORAGE_KEY = "wpr-budget-lang";
 // ---- string tables -------------------------------------------------------
 // Keys are grouped by area. Values are strings, or functions for interpolation.
 const EN = {
+  "chart.swipe": "Swipe sideways to see the whole diagram →",
   "co.where.fundsKick": "The whole budget",
   "co.where.fundsDek": (hearing, prev) => `The general fund's breakdown by function comes with the county's public-hearing notice, ahead of the ${hearing} hearing, and will appear here then. Meanwhile, here is the whole proposed budget, fund by fund, against ${prev}.`,
   "co.where.fundsNote": (prev, driver, change) => `Spending by fund (operating plus personnel), compared with the ${prev} adopted budget.` + (driver ? ` The biggest single change is the ${driver} (${change}).` : ""),
@@ -277,7 +278,7 @@ const EN = {
   "s.where.showPeople": (showing) => `${showing ? "Hide" : "Show"} what salaries & benefits buy`,
   "s.where.noteSpend": (share) => `Change shown vs. the prior-year budget. People — salaries and benefits — are ${share}% of the general fund; teacher salaries alone are its single largest cost.`,
   "s.where.noteRev": "Change shown vs. the prior-year budget. State aid, not the local levy, is the district's largest revenue source.",
-  "s.flow.dek": "Every general-fund dollar, traced from where it comes from, through the fund, to what it pays for. Hover any ribbon to follow the money.",
+  "s.flow.dek": "Every general-fund dollar, traced from where it comes from, through the fund, to what it pays for. Hover over or tap any ribbon to follow the money.",
   "s.flow.note": "General Fund revenue sources (left) into the fund (center) and out to spending by object (right). Hover a flow for its amount.",
   "s.allfunds.title": "All funds, by purpose",
   "s.allfunds.dek": (gross) => `Beyond the general fund, the district's ${gross} all-funds budget covers special education, debt service, food service, capital projects and community programs — each a separate legal fund.`,
@@ -319,7 +320,7 @@ const EN = {
   "c.where.dek": (gf) => `The general fund — ${gf} — pays for day-to-day city services. Toggle to see what it spends by department, and where that money comes from.`,
   "c.where.noteDept": (prior) => `Change shown vs. the ${prior} adopted budget. Police and Fire together are the largest share of city spending.`,
   "c.where.noteRev": (prior) => `Change shown vs. the ${prior} adopted budget. Property taxes are the city's single largest revenue source.`,
-  "c.flow.dek": "Every general-fund dollar, traced from where it comes from, through the fund, to what it pays for. Hover any ribbon to follow the money.",
+  "c.flow.dek": "Every general-fund dollar, traced from where it comes from, through the fund, to what it pays for. Hover over or tap any ribbon to follow the money.",
   "c.flow.note": "General Fund revenue sources (left) into the fund (center) and out to departments (right). The largest five of each are named; the rest are grouped. Hover a flow for its amount.",
   "c.allfunds.title": "All funds, by category",
   "c.allfunds.dek": (total) => `Beyond the general fund, the city's ${total} all-funds budget covers capital projects, debt service, enterprise and special-revenue funds. Here it is by type of spending.`,

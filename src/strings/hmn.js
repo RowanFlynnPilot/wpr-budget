@@ -3,6 +3,7 @@
 // so the landing page and embeds ship English alone. Same keys as EN —
 // scripts/check-data.mjs fails the deploy on any missing or extra key.
 export default {
+  "chart.swipe": "Los sab ntug kom pom tag nrho daim duab →",
   "co.where.fundsKick": "Tag nrho daim nyiaj txiag",
   "co.where.fundsDek": (hearing, prev) => `General fund daim ntawv faib raws hauj lwm yuav tuaj nrog lub county daim ntawv ceeb toom kev sib hais pej xeem, ua ntej lub rooj sib hais ${hearing}, thiab yuav tshwm ntawm no thaum ntawd. Lub sij hawm no, nov yog tag nrho daim nyiaj txiag npaj tseg, ib fund zuj zus, piv rau ${prev}.`,
   "co.where.fundsNote": (prev, driver, change) => `Kev siv nyiaj raws fund (kev ua haujlwm ntxiv cov neeg ua haujlwm), piv rau daim nyiaj txiag xyoo ${prev} uas tau pom zoo.` + (driver ? ` Qhov hloov loj tshaj yog ${driver} (${change}).` : ""),
@@ -257,7 +258,7 @@ export default {
   "s.where.showPeople": (showing) => `${showing ? "Zais" : "Saib"} cov nyiaj hli & txiaj ntsig yuav dab tsi`,
   "s.where.noteSpend": (share) => `Qhov hloov piv rau xyoo dhau los. Cov neeg — nyiaj hli thiab txiaj ntsig — yog ${share}% ntawm lub general fund; nyiaj hli xib fwb nkaus xwb yog tus nqi loj tshaj.`,
   "s.where.noteRev": "Qhov hloov piv rau xyoo dhau los daim nyiaj txiag. Lub xeev cov nyiaj pab, tsis yog tus se hauv zos, yog lub tsev kawm qhov nyiaj tau los loj tshaj.",
-  "s.flow.dek": "Txhua nyuas nyiaj general fund, taug qab los qhov twg los, hla lub nyiaj, mus rau qhov nws them. Coj nas saib ib txoj kab los taug qab cov nyiaj.",
+  "s.flow.dek": "Txhua nyuas nyiaj general fund, taug qab los qhov twg los, hla lub nyiaj, mus rau qhov nws them. Coj nas los yog kov ib txoj kab los taug qab cov nyiaj.",
   "s.flow.note": "Cov nyiaj tau los rau general fund (sab laug) mus rau lub nyiaj (nruab nrab) thiab tawm mus rau kev siv raws hom (sab xis). Coj nas saib ib qho ntws kom pom nws tus nqi.",
   "s.allfunds.title": "Txhua lub nyiaj, raws lub hom phiaj",
   "s.allfunds.dek": (gross) => `Dhau lub general fund, lub koog tsev kawm daim nyiaj txiag txhua nyiaj ${gross} them rau kev kawm tshwj xeeb, them nuj nqis, zaub mov, project loj, thiab cov haujlwm zej zog — txhua qhov yog ib lub nyiaj raws txoj cai.`,
@@ -298,7 +299,7 @@ export default {
   "c.where.dek": (gf) => `Lub general fund — ${gf} — them rau cov kev pab cuam niaj hnub hauv lub zos. Hloov los saib nws siv li cas raws chaw haujlwm, thiab cov nyiaj ntawd los qhov twg los.`,
   "c.where.noteDept": (prior) => `Qhov hloov piv rau xyoo ${prior} daim nyiaj txiag pom zoo. Tub ceev xwm thiab tub tua hluav taws ua ke yog feem loj tshaj ntawm kev siv nyiaj hauv lub zos.`,
   "c.where.noteRev": (prior) => `Qhov hloov piv rau xyoo ${prior} daim nyiaj txiag pom zoo. Se vaj tse yog qhov nyiaj tau los loj tshaj ntawm lub zos.`,
-  "c.flow.dek": "Txhua nyuas nyiaj general fund, taug qab los qhov twg los, hla lub nyiaj, mus rau qhov nws them. Coj nas saib ib txoj kab los taug qab cov nyiaj.",
+  "c.flow.dek": "Txhua nyuas nyiaj general fund, taug qab los qhov twg los, hla lub nyiaj, mus rau qhov nws them. Coj nas los yog kov ib txoj kab los taug qab cov nyiaj.",
   "c.flow.note": "Cov nyiaj tau los rau general fund (sab laug) mus rau lub nyiaj (nruab nrab) thiab tawm mus rau cov chaw haujlwm (sab xis). Tsib qhov loj tshaj ntawm ob sab raug muab npe; lwm cov raug muab sib sau. Coj nas saib ib qho ntws kom pom nws tus nqi.",
   "c.allfunds.title": "Txhua lub nyiaj, raws pawg",
   "c.allfunds.dek": (total) => `Dhau lub general fund, lub zos daim nyiaj txiag txhua nyiaj ${total} them rau cov project loj, them nuj nqis, enterprise thiab special-revenue funds. Ntawm no yog raws hom kev siv.`,

@@ -131,9 +131,10 @@ body{margin:0; background:#f5f1e8;}
   background:var(--paper); border-bottom:2px solid var(--ink); padding:0; margin-bottom:8px;
   box-shadow:0 7px 14px -12px rgba(28,26,22,.4);}
 .subnav::-webkit-scrollbar{display:none;}
-.subnav.more-right{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 48px),transparent); mask-image:linear-gradient(to right,#000 calc(100% - 48px),transparent);}
-.subnav.more-left{-webkit-mask-image:linear-gradient(to right,transparent,#000 48px); mask-image:linear-gradient(to right,transparent,#000 48px);}
-.subnav.more-left.more-right{-webkit-mask-image:linear-gradient(to right,transparent,#000 48px,#000 calc(100% - 48px),transparent); mask-image:linear-gradient(to right,transparent,#000 48px,#000 calc(100% - 48px),transparent);}
+.fade-x.more-right{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 48px),transparent); mask-image:linear-gradient(to right,#000 calc(100% - 48px),transparent);}
+.fade-x.more-left{-webkit-mask-image:linear-gradient(to right,transparent,#000 48px); mask-image:linear-gradient(to right,transparent,#000 48px);}
+.fade-x.more-left.more-right{-webkit-mask-image:linear-gradient(to right,transparent,#000 48px,#000 calc(100% - 48px),transparent); mask-image:linear-gradient(to right,transparent,#000 48px,#000 calc(100% - 48px),transparent);}
+.swipe-hint{margin:0 0 6px; font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);}
 .subnav a{position:relative; flex:1 0 auto; white-space:nowrap; text-align:center; font-size:14px; font-weight:600; letter-spacing:.02em;
   color:var(--ink-soft); text-decoration:none; padding:16px 10px 14px;
   transition:color .15s ease, background .15s ease, box-shadow .15s ease;}

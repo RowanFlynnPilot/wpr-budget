@@ -3,7 +3,7 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Sankey, Layer, Line, Area,
 } from "recharts";
 import { useStrings } from "./i18n";
-import { ChartFrame } from "./ui";
+import { ChartFrame, useEdgeFade } from "./ui";
 import { usd, compact } from "./format";
 
 // recharts-dependent shared pieces, kept OUT of ui.jsx on purpose: ui.jsx is in
@@ -85,9 +85,13 @@ function SankeyTip({ active, payload }) {
 
 // The shared revenue -> General Fund -> spending diagram (City + School).
 export function MoneyFlowSankey({ data, height, margin, ariaLabel, note }) {
+  const t = useStrings();
+  // Narrow screens scroll the diagram sideways: fade the edge with more, and say so.
+  const [ref, more] = useEdgeFade();
   return (
     <div className="chart-wrap">
-      <div className="sankey-scroll">
+      {more && <p className="swipe-hint" aria-hidden="true">{t("chart.swipe")}</p>}
+      <div className={"sankey-scroll fade-x" + more} ref={ref}>
         <div className="sankey-inner" role="img" aria-label={ariaLabel}>
           <ResponsiveContainer width="100%" height={height}>
             <Sankey data={data} nodePadding={28} nodeWidth={12} iterations={64}
