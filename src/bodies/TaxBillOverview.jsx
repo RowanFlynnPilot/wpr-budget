@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { useStrings } from "../i18n";
 import { usd } from "../format";
 import {
-  SectionHead, Stat, SponsorSlot, HomeValueCalc, TaxSplit, MuniPicker, SchoolPicker, billRates,
+  SponsorSlot, HomeValueCalc, TaxSplit, MuniPicker, SchoolPicker, billRates,
   useAnchorOnMount, useHomeValue, useMuniChoice, useSchoolChoice, WAUSAU_CITY_DOR,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
@@ -31,7 +31,6 @@ export default function TaxBillOverview({ b, chrome }) {
     .map((r) => ({ ...r, drillId: inSuite(r.drillId) ? r.drillId : null }))
     .sort((a, c) => c.rate - a.rate), [bill.rows]);
   const total = bill.total;
-  const top = splitRows[0];
 
   return (
     <div className="ftm">
@@ -48,22 +47,14 @@ export default function TaxBillOverview({ b, chrome }) {
         </div>
         <h1>{t("tb.h1")}</h1>
         <p className="dek">{t("tb.dek")}</p>
-        <div className="stat-strip">
-          <Stat icon="🧾" label={t("tb.stat.combinedRate")} value={"$" + total.toFixed(2)} sub={t("tb.stat.combinedRateSub", year)} />
-          <Stat icon="🏛️" label={t("tb.stat.govts")} value={String(splitRows.length)} sub={t("tb.stat.govtsSub")} />
-          <Stat icon="🏠" label={t("tb.stat.largest")} value={Math.round((top.rate / total) * 100) + "%"} sub={top.label.replace(/\s*\(net\)/i, "")} />
-        </div>
       </header>
 
-      <section id="bill" className="block">
-        <SectionHead kicker={t("kick.bottomLine")} title={t("tb.sec.title")}>
-          {t("tb.sec.dek")}
-        </SectionHead>
+      {/* The tool first: where -> (school) -> value -> the bill, split. */}
+      <section id="bill" className="block tb-steps">
+        <MuniPicker municipalities={b.municipalities} value={muni.code} onChange={setMuniCode} step={1} />
+        <SchoolPicker options={bill.schoolOptions} value={bill.school.code} onChange={setSchool} where={bill.where} step={2} />
 
-        <MuniPicker municipalities={b.municipalities} value={muni.code} onChange={setMuniCode} />
-        <SchoolPicker options={bill.schoolOptions} value={bill.school.code} onChange={setSchool} where={bill.where} />
-
-        <HomeValueCalc id="homeval-all" label={t("tb.homeLabel")} outLabel={t("tb.estOut")}
+        <HomeValueCalc id="homeval-all" label={t("tb.homeLabel")} outLabel={t("tb.estOut")} step={bill.schoolOptions ? 3 : 2}
           outValue={usd(Math.round((homeValue / 1000) * total))} value={homeValue} onChange={setHomeValue} />
 
         <TaxSplit rows={splitRows} total={total} homeValue={homeValue}

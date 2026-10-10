@@ -386,11 +386,14 @@ export function billRates(muni, code) {
 }
 
 // "Where is your home?" — every Marathon County municipality, grouped.
-export function MuniPicker({ municipalities, value, onChange }) {
+// A numbered step marker for the tax-bill flow (1 where, 2 school, 3 value).
+const StepNum = ({ n }) => (n ? <span className="step-num" aria-hidden="true">{n}</span> : null);
+
+export function MuniPicker({ municipalities, value, onChange, step }) {
   const t = useStrings();
   return (
     <div className="school-pick">
-      <label className="school-pick__q" htmlFor="muni-pick">{t("tb.muniQ")}</label>
+      <label className="school-pick__q" htmlFor="muni-pick"><StepNum n={step} />{t("tb.muniQ")}</label>
       <select id="muni-pick" className="muni-select" value={value} onChange={(e) => onChange(e.target.value)}>
         {["City", "Village", "Town"].map((type) => (
           <optgroup key={type} label={t("tb.group." + type)}>
@@ -408,12 +411,12 @@ export function MuniPicker({ municipalities, value, onChange }) {
 
 // "Which school district is your home in?" — only where the municipality spans
 // more than one (28 of Marathon County's 61 do).
-export function SchoolPicker({ options, value, onChange, where }) {
+export function SchoolPicker({ options, value, onChange, where, step }) {
   const t = useStrings();
   if (!options) return null;
   return (
     <div className="school-pick">
-      <div className="school-pick__q">{t("tb.schoolQ")}</div>
+      <div className="school-pick__q"><StepNum n={step} />{t("tb.schoolQ")}</div>
       <div className="toggle" role="group" aria-label={t("tb.schoolQ")}>
         {options.map((s) => (
           <button key={s.code} type="button" aria-pressed={value === s.code} className={value === s.code ? "on" : ""}
@@ -430,12 +433,12 @@ export function SchoolPicker({ options, value, onChange, where }) {
 // Every calculator asks for the same number — the home's estimated FAIR MARKET
 // value — because every rate in the suite is per $1,000 of it (see billRates);
 // the hint names where it's printed on a Wisconsin tax bill.
-export function HomeValueCalc({ id, label, outLabel, outValue, value, onChange }) {
+export function HomeValueCalc({ id, label, outLabel, outValue, value, onChange, step }) {
   const t = useStrings();
   return (
     <div className="calc">
       <div className="calc-input">
-        <label htmlFor={id}>{label}</label>
+        <label htmlFor={id}><StepNum n={step} />{label}</label>
         <div className="calc-field">
           <span>$</span>
           <input id={id} type="text" inputMode="numeric" value={value.toLocaleString("en-US")} aria-describedby={id + "-hint"}
@@ -443,7 +446,7 @@ export function HomeValueCalc({ id, label, outLabel, outValue, value, onChange }
         </div>
         <div className="calc-hint" id={id + "-hint"}>{t("calc.fmvHint")}</div>
       </div>
-      <div className="calc-out">
+      <div className="calc-out" aria-live="polite" aria-atomic="true">
         <span className="calc-out-label">{outLabel}</span>
         <span className="calc-out-val">{outValue}</span>
       </div>

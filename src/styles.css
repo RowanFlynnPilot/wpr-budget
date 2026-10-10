@@ -268,6 +268,11 @@ body{margin:0; background:#f5f1e8;}
   border-left:4px solid var(--gold); color:var(--ink); text-decoration:none; font-size:14px; font-weight:600;}
 .edition--pointer:hover{border-color:var(--ink-soft); border-left-color:var(--gold);}
 .edition--pointer svg{flex-shrink:0;}
+/* Tax-bill flow: numbered steps, right under the masthead. */
+.tb-steps{padding-top:28px;}
+.step-num{display:inline-grid; place-items:center; width:20px; height:20px; margin-right:8px;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:11px; font-weight:700;
+  letter-spacing:0; vertical-align:1px;}
 /* "Which school district is your home in?" — the tax-bill views' school choice. */
 .school-pick{margin:0 0 22px;}
 .school-pick__q{display:block; font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px;}
