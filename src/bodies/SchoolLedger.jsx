@@ -224,11 +224,10 @@ export default function SchoolLedger({ b, chrome }) {
         </div>
         {gfFlow === "expenditures" && (
           <>
-            <div className="toggle" role="group" aria-label={t("aria.salaryDetail")} style={{ marginTop: 14 }}>
-              <button aria-pressed={showPeople} className={showPeople ? "on" : ""} onClick={() => setShowPeople((v) => !v)}>
-                {t("s.where.showPeople", showPeople)}
-              </button>
-            </div>
+            {/* A show/hide disclosure, styled like every other one ("Show as table"), not as a selected toggle. */}
+            <button type="button" className="table-toggle" aria-expanded={showPeople} onClick={() => setShowPeople((v) => !v)} style={{ marginTop: 14 }}>
+              {t("s.where.showPeople", showPeople)}
+            </button>
             {showPeople && (
               <div className="bars">
                 {peopleRows.map((r, i) => (

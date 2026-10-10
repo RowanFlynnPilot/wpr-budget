@@ -148,7 +148,6 @@ const EN = {
   "aria.gfView": "General fund view",
   "aria.deptCompareView": "Department comparison view",
   "aria.chooseDept": "Choose a department",
-  "aria.salaryDetail": "Salary and benefit detail",
   "aria.amountBasis": "Show amounts as",
   "aria.sortedAsc": "sorted ascending",
   "aria.sortedDesc": "sorted descending",

@@ -135,7 +135,6 @@ export default {
   "aria.gfView": "Saib general fund",
   "aria.deptCompareView": "Saib piv chaw haujlwm",
   "aria.chooseDept": "Xaiv ib lub chaw haujlwm",
-  "aria.salaryDetail": "Ntsiab lus nyiaj hli thiab txiaj ntsim",
   "aria.amountBasis": "Qhia cov nyiaj li",
   "aria.sortedAsc": "teev ntawm me mus loj",
   "aria.sortedDesc": "teev ntawm loj mus me",

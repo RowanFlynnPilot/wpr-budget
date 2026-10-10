@@ -135,7 +135,6 @@ export default {
   "aria.gfView": "Vista del fondo general",
   "aria.deptCompareView": "Vista de comparación por departamento",
   "aria.chooseDept": "Elija un departamento",
-  "aria.salaryDetail": "Detalle de salarios y beneficios",
   "aria.amountBasis": "Mostrar cantidades como",
   "aria.sortedAsc": "orden ascendente",
   "aria.sortedDesc": "orden descendente",

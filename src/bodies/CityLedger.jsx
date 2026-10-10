@@ -118,6 +118,9 @@ export default function CityLedger({ b, extra, chrome }) {
     const idx = wf.years.length - 1 - i; // ascending position -> newest-first index
     return { year: wf.years[idx], fte: wfSel.fte[idx] ?? null };
   }), [wfSel, wf.years]);
+  // FTE totals in prose to one decimal, so "354.2 … up from 325.3" reads as a pair
+  // (the book prints them to varying precision; the chart and table keep it).
+  const fte1 = (n) => n.toLocaleString("en-US", { maximumFractionDigits: 1 });
   const wfNow = wfSel.fte[0];
   const wfThen = wfSel.fte[wfSel.fte.length - 1];
   const wfChange = wfNow - wfThen;
@@ -263,7 +266,7 @@ export default function CityLedger({ b, extra, chrome }) {
       {/* WORKFORCE — FTE over time, one department at a time */}
       <section id="workforce" className="block">
         <SectionHead kicker={t("c.workforce.kick")} title={t("c.workforce.title")}>
-          {t("c.workforce.dek", wf.total[0], wf.total[wf.total.length - 1], b.meta.budget_year)}
+          {t("c.workforce.dek", fte1(wf.total[0]), fte1(wf.total[wf.total.length - 1]), b.meta.budget_year)}
         </SectionHead>
         <div className="wf-pick" role="group" aria-label={t("aria.chooseDept")}>
           {wfDepts.map((d) => (
