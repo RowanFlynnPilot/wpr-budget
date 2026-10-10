@@ -16,6 +16,15 @@ const STORAGE_KEY = "wpr-budget-lang";
 // ---- string tables -------------------------------------------------------
 // Keys are grouped by area. Values are strings, or functions for interpolation.
 const EN = {
+  "wc.levyChange": "Change in the tax levy",
+  "wc.riseRecord": (from) => `the largest rise in records back to ${from}`,
+  "wc.riseSince": (year) => `the largest rise since ${year}`,
+  "wc.lowRecord": (from) => `the lowest in records back to ${from}`,
+  "wc.lowSince": (year) => `the lowest since ${year}`,
+  "wc.typicalBill": "County tax on a typical home",
+  "wc.typicalOn": (v) => `on a ${v} home`,
+  "wc.biggestGfIncrease": "Biggest general-fund increase",
+  "wc.perStudent": "General fund per student",
   "about.kicker": "About this project",
   "about.dek": "A free public ledger of the money behind local government in Marathon County. Wausau Pilot & Review built it so anyone can see where their property taxes go \u2014 and see it before the votes that decide them.",
   "about.stat.tax": (year) => `in property taxes on Marathon County's ${year} tax bills`,
@@ -119,14 +128,11 @@ const EN = {
   // what-changed band
   "wc.head": "What changed this year",
   "wc.headProposed": (year) => `What's proposed for ${year}`,
-  "wc.countyLevy": "County tax levy",
-  "wc.cityLevy": "City tax levy",
   "wc.schoolLevy": "School tax levy",
   "wc.millRate": "Mill rate",
   "wc.totalBudget": "Total budget",
   "wc.totalBudgetAllFunds": "Total budget · all funds",
   "wc.biggestLevyIncrease": "Biggest levy increase",
-  "wc.fastestGrowing": "Fastest-growing category",
   "wc.enrollment": "Enrollment",
   "wc.enrollNote": (chg, since) =>
     (chg < 0 ? "down " : chg > 0 ? "up " : "flat, ") +
@@ -392,6 +398,15 @@ const EN = {
 };
 
 const ES = {
+  "wc.levyChange": "Cambio en el impuesto",
+  "wc.riseRecord": (from) => `el mayor aumento en los registros desde ${from}`,
+  "wc.riseSince": (year) => `el mayor aumento desde ${year}`,
+  "wc.lowRecord": (from) => `la más baja en los registros desde ${from}`,
+  "wc.lowSince": (year) => `la más baja desde ${year}`,
+  "wc.typicalBill": "Impuesto del condado en una casa típica",
+  "wc.typicalOn": (v) => `en una casa de ${v}`,
+  "wc.biggestGfIncrease": "Mayor aumento del fondo general",
+  "wc.perStudent": "Fondo general por estudiante",
   "about.kicker": "Sobre este proyecto",
   "about.dek": "Un registro público y gratuito del dinero detrás del gobierno local en el condado de Marathon. Wausau Pilot & Review lo creó para que cualquiera pueda ver a dónde van sus impuestos a la propiedad, y verlo antes de las votaciones que lo deciden.",
   "about.stat.tax": (year) => `en impuestos a la propiedad en las facturas de ${year} del condado de Marathon`,
@@ -493,14 +508,11 @@ const ES = {
 
   "wc.head": "Qué cambió este año",
   "wc.headProposed": (year) => `Lo que se propone para ${year}`,
-  "wc.countyLevy": "Impuesto del condado",
-  "wc.cityLevy": "Impuesto de la ciudad",
   "wc.schoolLevy": "Impuesto escolar",
   "wc.millRate": "Tasa por milaje",
   "wc.totalBudget": "Presupuesto total",
   "wc.totalBudgetAllFunds": "Presupuesto total · todos los fondos",
   "wc.biggestLevyIncrease": "Mayor aumento de impuesto",
-  "wc.fastestGrowing": "Categoría de mayor crecimiento",
   "wc.enrollment": "Matrícula",
   "wc.enrollNote": (chg, since) =>
     (chg < 0 ? "baja de " : chg > 0 ? "sube de " : "estable, ") +
@@ -757,6 +769,15 @@ const ES = {
 
 // Hmong (Hmoob Dawb / RPA). BETA — AI-drafted, pending community review.
 const HMN = {
+  "wc.levyChange": "Qhov se hloov",
+  "wc.riseRecord": (from) => `qhov nce siab tshaj plaws hauv cov ntaub ntawv txij li ${from}`,
+  "wc.riseSince": (year) => `qhov nce siab tshaj plaws txij li ${year}`,
+  "wc.lowRecord": (from) => `qis tshaj plaws hauv cov ntaub ntawv txij li ${from}`,
+  "wc.lowSince": (year) => `qis tshaj plaws txij li ${year}`,
+  "wc.typicalBill": "Se county rau ib lub tsev nruab nrab",
+  "wc.typicalOn": (v) => `rau ib lub tsev ${v}`,
+  "wc.biggestGfIncrease": "Qhov general fund nce ntau tshaj",
+  "wc.perStudent": "General fund rau ib tus menyuam kawm ntawv",
   "about.kicker": "Txog qhov haujlwm no",
   "about.dek": "Ib phau ntawv qhib pub dawb txog cov nyiaj tom qab tsoom fwv hauv zos hauv Marathon County. Wausau Pilot & Review tsim nws kom txhua tus pom tau tias lawv cov se vaj tse mus qhov twg \u2014 thiab pom ua ntej cov kev pov npav uas txiav txim siab.",
   "about.stat.tax": (year) => `se vaj tse ntawm Marathon County cov nqi se xyoo ${year}`,
@@ -858,14 +879,11 @@ const HMN = {
 
   "wc.head": "Xyoo No Hloov Dab Tsi",
   "wc.headProposed": (year) => `Dab tsi npaj tseg rau xyoo ${year}`,
-  "wc.countyLevy": "Se hauv lub nroog (county)",
-  "wc.cityLevy": "Se hauv lub zos (city)",
   "wc.schoolLevy": "Se tsev kawm ntawv",
   "wc.millRate": "Tus nqi se (mill rate)",
   "wc.totalBudget": "Tag nrho daim nyiaj txiag",
   "wc.totalBudgetAllFunds": "Tag nrho · txhua lub nyiaj",
   "wc.biggestLevyIncrease": "Se nce ntau tshaj plaws",
-  "wc.fastestGrowing": "Pawg loj hlob ceev tshaj",
   "wc.enrollment": "Cov tub ntxhais kawm",
   "wc.enrollNote": (chg, since) =>
     (chg < 0 ? "poob " : chg > 0 ? "nce " : "tsis hloov, ") +

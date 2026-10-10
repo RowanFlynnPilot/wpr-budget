@@ -5,7 +5,7 @@ import {
 import { useLang, useStrings } from "../i18n";
 import { usd, compact, pct } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, MillRate, SourceLink, ChartFrame, Delta, Highlights, SubNav, SponsorSlot, Methodology,
+  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, MillRate, SourceLink, ChartFrame, Delta, Highlights, rankLast, rankNote, risesOf, signedCompact, SubNav, SponsorSlot, Methodology,
   HomeValueCalc, TaxSplit, ChartNotes, resolveNotes, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import { MoneyFlowSankey, DebtChart } from "../charts";
@@ -146,17 +146,25 @@ export default function SchoolLedger({ b, chrome }) {
   // change as $0 / 0.00%), and a directional arrow on that — or a red arrow
   // on a falling mill rate — manufactures alarm. Data-driven: a future year
   // with a real levy change reverts to the normal delta.
+  // "What changed" carries what the tiles above don't: where this year's mill
+  // rate sits in the district's half-century of rates, general-fund spending
+  // per student, and enrollment. (Without enrollment data, the levy instead.)
+  const enrPrior = enr && enr.counts.length >= 2 ? enr.counts[enr.counts.length - 2] : null;
+  const gfPrior = enrPrior && b.gf_history[enr.labels[enr.labels.length - 2]];
   const changed = useMemo(() => ([
-    levyPct === 0
+    !enr && (levyPct === 0
       ? { label: t("wc.schoolLevy"), value: usd(b.meta.total_levy), note: t("wc.levyFlatNote", priorFy) }
-      : { label: t("wc.schoolLevy"), value: usd(b.meta.total_levy), delta: levyPct },
+      : { label: t("wc.schoolLevy"), value: usd(b.meta.total_levy), delta: levyPct }),
     { label: t("wc.millRate"), value: "$" + b.meta.mill_rate.toFixed(2),
-      note: t("wc.rateVsNote", pct(millPct), bridge.base_rate.toFixed(2), priorFy) },
+      note: rankNote(t, rankLast(b.rate_history.map((r) => ({ label: r.label, v: r.rate })), (a, c) => a < c), b.rate_history[0].label, "low")
+        || t("wc.rateVsNote", pct(millPct), bridge.base_rate.toFixed(2), priorFy) },
+    enr && { label: t("wc.perStudent"), value: usd(perStudentGF),
+      delta: gfPrior ? (perStudentGF / (gfPrior / enrPrior) - 1) * 100 : undefined, neutral: true },
     enr && {
       label: t("wc.enrollment"), value: enrNow.toLocaleString(),
       note: t("wc.enrollNote", enrChange, enr.labels[0]),
     },
-  ]), [t, b.meta, levyPct, millPct, bridge, priorFy, enr, enrNow, enrChange]);
+  ]), [t, b.meta, b.rate_history, levyPct, millPct, bridge, priorFy, enr, enrNow, enrChange, perStudentGF, gfPrior, enrPrior]);
 
   // Chart summaries: the visible note doubles as each chart's text alternative.
   // The Students section (and so its note) renders only when enrollment data exists.

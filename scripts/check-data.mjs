@@ -55,6 +55,10 @@ for (const file of [countyEnt.data, ...(countyEnt.editions || []).map((ed) => ed
     fail(where, "the latest year's basis disagrees with meta.status");
   }
   if (!Array.isArray(h.funds) || !h.funds.length) fail(where, "history.funds missing");
+  // "What changed" and the bill chart read the LAST levy/homeowner row as this budget's year
+  for (const k of ["levy_history", "homeowner_impact"]) {
+    if (b[k].at(-1).year !== m.budget_year) fail(where, `${k} must end at budget_year ${m.budget_year}`);
+  }
   if (!(b.debt.length && b.debt.every((d) => d.outstanding > 0))) fail(where, "debt series must be positive");
 }
 

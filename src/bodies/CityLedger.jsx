@@ -5,7 +5,7 @@ import {
 import { useStrings } from "../i18n";
 import { usd, compact } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, SourceLink, ChartFrame, Delta, Highlights, SubNav, SponsorSlot, Methodology,
+  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, SourceLink, ChartFrame, Delta, Highlights, rankLast, rankNote, risesOf, signedCompact, SubNav, SponsorSlot, Methodology,
   HomeValueCalc, TaxSplit, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
   SchoolPicker, useSchoolChoice, billRates, WAUSAU_CITY_DOR,
 } from "../ui";
@@ -126,16 +126,21 @@ export default function CityLedger({ b, extra, chrome }) {
   const tifGrowth = useMemo(() => [...tif.valuation_growth].sort((a, c) => c.growth - a.growth), [tif.valuation_growth]);
   const tifMaxGrowth = Math.max(...tifGrowth.map((g) => g.growth));
 
+  // "What changed" carries what the tiles above don't: the levy change in
+  // dollars and where it ranks in the city's own levy records, the all-funds
+  // change, and the general-fund department that grew most.
   const changed = useMemo(() => {
     const cur = b.expenditure_categories.reduce((s, c) => s + c.current, 0);
     const prior = b.expenditure_categories.reduce((s, c) => s + c.prior, 0);
-    const mover = [...b.expenditure_categories].sort((a, c) => (c.current - c.prior) - (a.current - a.prior))[0];
+    const levyPrev = levy[levy.length - 2];
+    const gfMover = [...b.general_fund.expenditures].sort((a, c) => (c.proposed - c.prior) - (a.proposed - a.prior))[0];
     return [
-      { label: t("wc.cityLevy"), value: usd(b.meta.tax_levy), delta: levyPct },
+      { label: t("wc.levyChange"), value: signedCompact(levyLast.levy - levyPrev.levy),
+        note: levyLast.levy > levyPrev.levy ? rankNote(t, rankLast(risesOf(levy, "levy"), (a, c) => a > c), levyFirst.year, "rise") : undefined },
       { label: t("wc.totalBudgetAllFunds"), value: compact(b.meta.total_expenditures), delta: (cur / prior - 1) * 100, neutral: true },
-      { label: t("wc.fastestGrowing"), value: mover.category, note: "+" + compact(mover.current - mover.prior) },
+      { label: t("wc.biggestGfIncrease"), value: gfMover.category, note: "+" + usd(gfMover.proposed - gfMover.prior) },
     ];
-  }, [t, b.expenditure_categories, b.meta, levyPct]);
+  }, [t, b.expenditure_categories, b.general_fund, b.meta, levy, levyFirst, levyLast]);
 
   // Chart summaries: the visible note doubles as each chart's text alternative.
   const levyNote = t("c.overtime.note", levyFirst.year, levyLast.year);

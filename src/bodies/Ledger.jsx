@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { useLang, useStrings } from "../i18n";
 import { usd, compact, pct, deptSpend, fmtDate } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, MillRate, SourceLink, ChartFrame, Delta, Balance, Spark, Highlights, SubNav, SponsorSlot, EditionBanner,
+  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, MillRate, SourceLink, ChartFrame, Delta, Balance, Spark, Highlights, rankLast, rankNote, risesOf, signedCompact, SubNav, SponsorSlot, EditionBanner,
   Methodology, HomeValueCalc, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
@@ -81,14 +81,18 @@ export default function Ledger({ b, chrome }) {
     else { setSortKey(k); setSortDir(k === "department" ? "asc" : "desc"); }
   };
 
+  // Mill rate vs the county tax on a typical home: the book's homeowner table,
+  // all of it (15 years, longer than the levy history).
   const trend = useMemo(
-    () => b.levy_history.map((l) => {
-      const h = b.homeowner_impact.find((x) => x.year === l.year);
-      return { year: l.year, rate: l.rate, bill: h ? h.tax_amount : null };
-    }),
-    [b.levy_history, b.homeowner_impact]
+    () => b.homeowner_impact.map((h) => ({ year: h.year, rate: h.tax_rate, bill: h.tax_amount })),
+    [b.homeowner_impact]
   );
   const lastTrend = trend[trend.length - 1];
+  // The rate's last peak: "fallen nearly every year since <it>".
+  const ratePeakYear = useMemo(() => {
+    const top = Math.max(...trend.map((p) => p.rate));
+    return trend.filter((p) => p.rate === top).at(-1).year;
+  }, [trend]);
 
   // Total county levy vs. mill rate, straight from the (already multi-year)
   // levy_history. A different lens than the per-home bill chart below: total
@@ -150,15 +154,23 @@ export default function Ledger({ b, chrome }) {
     return ds.sort((a, c) => c.levy_difference - a.levy_difference)[0];
   }, [b.departments]);
 
+  // "What changed" carries what the tiles above don't: the levy change in
+  // dollars and where it ranks in the county's own records, what it means for
+  // a typical home's county tax, and the department whose levy rose most.
   const changed = useMemo(() => ([
-    { label: t("wc.countyLevy"), value: usd(b.meta.tax_levy), delta: levyPctChange },
-    { label: t("wc.millRate"), value: "$" + b.meta.tax_rate.toFixed(2), delta: ratePctChange },
+    { label: t("wc.levyChange"), value: signedCompact(levyLast.levy - levyPrev.levy),
+      note: levyLast.levy > levyPrev.levy ? rankNote(t, rankLast(risesOf(levyTrend, "levy"), (a, c) => a > c), levyFirst.year, "rise") : undefined },
+    { label: t("wc.typicalBill"), value: usd(Math.round(lastTrend.bill)), delta: b.homeowner_impact.at(-1).pct_change_bill,
+      note: [t("wc.typicalOn", usd(b.homeowner_impact.at(-1).avg_value)),
+        b.homeowner_impact.at(-1).pct_change_bill > 0
+          ? rankNote(t, rankLast(b.homeowner_impact.map((h) => ({ label: h.year, v: h.pct_change_bill })), (a, c) => a > c), b.homeowner_impact[0].year, "rise")
+          : undefined].filter(Boolean).join(" \u00b7 ") },
     levyMover && levyMover.levy_difference > 0
       ? { label: t("wc.biggestLevyIncrease"), value: levyMover.department, note: "+" + usd(levyMover.levy_difference) }
       : (budgetPctChange != null
         ? { label: t("wc.totalBudget"), value: compact(b.meta.total_expenditures), delta: budgetPctChange, neutral: true }
         : null),
-  ]), [t, b.meta, levyPctChange, ratePctChange, levyMover, budgetPctChange]);
+  ]), [t, b.meta, b.homeowner_impact, levyTrend, levyFirst, levyLast, levyPrev, lastTrend, levyMover, budgetPctChange]);
 
   // Chart summaries: the visible note doubles as each chart's text alternative.
   const trendsNote = t("co.trends.note", usd(levyFirst.levy), levyFirst.year, usd(levyLast.levy), levyLast.year, (((levyLast.levy / levyFirst.levy) - 1) * 100).toFixed(0), levyFirst.rate.toFixed(2), levyLast.rate.toFixed(2));
@@ -397,7 +409,7 @@ export default function Ledger({ b, chrome }) {
       {/* TAX BILL */}
       <section id="bill" className="block">
         <SectionHead kicker={t("kick.bottomLine")} title={t("title.taxbillMeaning")}>
-          {t("co.bill.dek", trend[0].year)}
+          {t("co.bill.dek", ratePeakYear)}
         </SectionHead>
 
         <HomeValueCalc id="homeval-c" label={t("co.bill.homeLabel")} outLabel={t("co.bill.estOut", b.meta.budget_year, proposed)}

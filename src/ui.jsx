@@ -224,6 +224,30 @@ export function Spark({ values, tone, className = "" }) {
 // between the masthead and the section nav. Each body passes its own
 // data-appropriate items: { label, value, delta?, neutral?, money?, exact?, note? }
 // (neutral: a spending/revenue figure — see Delta).
+// How a series' latest point ranks against the earlier ones, for "What
+// changed": { record: true } when it beats every earlier point, { since: label }
+// naming the most recent point that matched or beat it, or null when that was
+// the point just before (nothing worth saying). points: [{ label, v }], oldest first.
+export function rankLast(points, beats) {
+  const last = points[points.length - 1];
+  const prior = points.slice(0, -1);
+  const i = prior.map((p) => !beats(last.v, p.v)).lastIndexOf(true);
+  if (i === -1) return { record: true };
+  return i === prior.length - 1 ? null : { since: prior[i].label };
+}
+
+// rankLast as words: "the largest rise in records back to 2017" / "the lowest since 1999".
+export function rankNote(t, rank, from, kind) {
+  if (!rank) return undefined;
+  return rank.record ? t(`wc.${kind}Record`, from) : t(`wc.${kind}Since`, rank.since);
+}
+
+// Year-over-year rises of a [{ year, <key> }] series, for rankLast.
+export const risesOf = (series, key) => series.slice(1).map((p, i) => ({ label: p.year, v: p[key] / series[i][key] }));
+
+// A signed compact dollar change: "+$5.0M", "−$120K".
+export const signedCompact = (n) => (n >= 0 ? "+" : "\u2212") + compact(Math.abs(n));
+
 export function Highlights({ items, head }) {
   const t = useStrings();
   const shown = (items || []).filter(Boolean);
