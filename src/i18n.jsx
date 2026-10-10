@@ -16,6 +16,7 @@ const STORAGE_KEY = "wpr-budget-lang";
 // ---- string tables -------------------------------------------------------
 // Keys are grouped by area. Values are strings, or functions for interpolation.
 const EN = {
+  "app.renderError": "Something went wrong showing this page. Try another view, or reload.",
   "gloss.title": "What these words mean",
   "gloss.levy": "Tax levy",
   "gloss.levy.def": "The total amount a government raises from property taxes in a year. It is split among property owners in proportion to their property's value.",
@@ -357,6 +358,7 @@ const EN = {
 };
 
 const ES = {
+  "app.renderError": "Algo salió mal al mostrar esta página. Pruebe otra vista o recargue.",
   "gloss.title": "Qué significan estas palabras",
   "gloss.levy": "Impuesto (levy)",
   "gloss.levy.def": "La cantidad total que un gobierno recauda de los impuestos a la propiedad en un año. Se reparte entre los propietarios en proporción al valor de su propiedad.",
@@ -687,6 +689,7 @@ const ES = {
 
 // Hmong (Hmoob Dawb / RPA). BETA — AI-drafted, pending community review.
 const HMN = {
+  "app.renderError": "Muaj teeb meem qhia nplooj no. Sim lwm qhov, lossis rov thauj dua.",
   "gloss.title": "Cov lus no txhais li cas",
   "gloss.levy": "Se (levy)",
   "gloss.levy.def": "Tag nrho cov nyiaj ib lub koom haum sau los ntawm se vaj tse hauv ib xyoos. Nws raug faib rau cov tswv tsev raws li lawv cov vaj tse tus nqi.",

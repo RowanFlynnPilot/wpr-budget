@@ -152,6 +152,13 @@ python scripts/extract_budget.py 2026-Annual-Budget.pdf public/marathon-county.j
 # byte-compares against the committed JSON (non-zero exit on drift):
 python scripts/verify.py
 
+# CI gate (runs before every deploy; no PDFs needed): data contracts on the COMMITTED
+# JSON + EN/ES/HMN key parity — County row identities, edition/basis labels, City
+# personnel shape, School enrollment-year = budget-year, every municipality x school
+# district bill finite, manifest files/sources. Proven to catch the June Capital
+# Projects column shift. Add a check here whenever the UI starts assuming something.
+npm run check
+
 # Multi-year: pass prior-year "Adopted Budget" PDFs as trailing args. The FIRST
 # PDF drives every detailed section; each prior PDF contributes only the slice
 # `history` needs (its by-fund + by-department appendix tables) via

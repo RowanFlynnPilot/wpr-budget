@@ -69,6 +69,25 @@ function Frame({ chrome, msg, detail }) {
 
 const SITE = "Follow the Money · Wausau Pilot & Review";
 
+// A render error in one view must not blank the whole page (or the WordPress
+// embed): show the chrome and a translated message instead, logged for
+// debugging. Keyed by route in App, so switching views clears it.
+class ViewBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { failed: false };
+  }
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch(error, info) {
+    console.error("view failed to render", error, info.componentStack);
+  }
+  render() {
+    return this.state.failed ? <Frame chrome={this.props.chrome} msg="app.renderError" /> : this.props.children;
+  }
+}
+
 export default function App() {
   const [route, setRoute] = useState(() => {
     const r = parseHash();
@@ -154,9 +173,11 @@ export default function App() {
   const Body = BODY_BY_KIND[ent.kind] || Ledger;
   return (
     <LangProvider>
-      <Suspense fallback={<Frame chrome={chrome} msg="app.loading" />}>
-        <Body key={route} b={data.payload} extra={data.extra} chrome={chrome} />
-      </Suspense>
+      <ViewBoundary key={route} chrome={chrome}>
+        <Suspense fallback={<Frame chrome={chrome} msg="app.loading" />}>
+          <Body key={route} b={data.payload} extra={data.extra} chrome={chrome} />
+        </Suspense>
+      </ViewBoundary>
     </LangProvider>
   );
 }
