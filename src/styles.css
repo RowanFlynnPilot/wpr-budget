@@ -155,6 +155,13 @@ body{margin:0; background:#f5f1e8;}
 .chart-table th:first-child{text-align:left;}
 .chart-table thead th{position:sticky; top:0; background:var(--paper-2); font-size:11px; letter-spacing:.06em;
   text-transform:uppercase; color:var(--ink-soft);}
+.stat-unit{font-family:var(--sans); font-size:.32em; font-weight:600; color:var(--ink-soft); letter-spacing:0;}
+/* Glossary (Methodology): plain-language definitions, collapsed by default. */
+.glossary{margin:22px 0 0; border-top:1px solid var(--rule); padding-top:14px;}
+.glossary summary{cursor:pointer; font-weight:700; font-size:14px; color:var(--accent);}
+.glossary dl{margin:12px 0 0; display:grid; gap:12px;}
+.glossary dt{font-weight:700; font-size:14.5px;}
+.glossary dd{margin:2px 0 0; font-size:14.5px; line-height:1.5; color:#3a362d; max-width:70ch;}
 .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
   clip:rect(0,0,0,0); white-space:nowrap; border:0;}
 /* headings focused programmatically on a view switch (useAnchorOnMount) */

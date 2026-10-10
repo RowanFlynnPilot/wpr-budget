@@ -5,7 +5,7 @@ import {
 import { useLang, useStrings } from "../i18n";
 import { usd, compact, pct } from "../format";
 import {
-  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, SourceLink, ChartFrame, Delta, Highlights, SubNav, SponsorSlot, Methodology,
+  ENTITY_LOGOS, SectionHead, Stat, FullOrCompact, MillRate, SourceLink, ChartFrame, Delta, Highlights, SubNav, SponsorSlot, Methodology,
   HomeValueCalc, TaxSplit, ChartNotes, resolveNotes, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import { MoneyFlowSankey, DebtChart } from "../charts";
@@ -185,7 +185,7 @@ export default function SchoolLedger({ b, chrome }) {
           <Stat icon="💰" label={t("stat.totalBudget")} value={compact(b.meta.net_expenditures)} sub={t("s.stat.allFundsNet")} />
           <Stat icon="🏛️" label={t("s.stat.schoolLevy")} value={<FullOrCompact n={b.meta.total_levy} />}
             sub={levyPct === 0 ? t("s.stat.levyFlat", priorFy) : <Delta value={levyPct} />} />
-          <Stat icon="🏠" label={t("stat.millRate")} value={b.meta.mill_rate.toFixed(2)}
+          <Stat icon="🏠" label={t("stat.millRate")} value={<MillRate rate={b.meta.mill_rate} />}
             sub={t("s.stat.vsPrior", pct(millPct), priorFy)} />
         </div>
       </header>

@@ -136,6 +136,29 @@ export function FullOrCompact({ n }) {
   return <><span className="lg-only">{usd(n)}</span><span className="sm-only">{compact(n)}</span></>;
 }
 
+// A mill rate with its unit — "$3.49 / $1,000" — so the number means something
+// to a reader who doesn't already know what a mill rate is.
+export function MillRate({ rate }) {
+  return <>{"$" + rate.toFixed(2)}<span className="stat-unit"> / $1,000</span></>;
+}
+
+// The handful of budget words the suite leans on, defined once, in plain
+// language, in every Methodology section.
+const GLOSSARY = ["levy", "millRate", "fmv", "generalFund", "levyLimit", "tif", "credit"];
+export function Glossary() {
+  const t = useStrings();
+  return (
+    <details className="glossary">
+      <summary>{t("gloss.title")}</summary>
+      <dl>
+        {GLOSSARY.map((k) => (
+          <div key={k}><dt>{t("gloss." + k)}</dt><dd>{t("gloss." + k + ".def")}</dd></div>
+        ))}
+      </dl>
+    </details>
+  );
+}
+
 export function Balance({ title, rows, total }) {
   return (
     <div className="balance">
@@ -609,6 +632,7 @@ export function Methodology({ b, chrome }) {
       <p className="note">{t("method.reuse")}</p>
       <p className="note">{t("method.corrections")}{" "}
         <a href={CORRECTIONS_URL} target="_blank" rel="noopener noreferrer">{t("method.correctionsLink")}</a></p>
+      <Glossary />
       <a className="suite-link" href={MEETING_TRACKER_URL} target="_blank" rel="noopener noreferrer">
         <span className="suite-link__icon" aria-hidden="true">📋</span>
         <span><b>{t("suite.linkLead")}</b> {t("suite.linkBody", b.meta.status)}</span>
