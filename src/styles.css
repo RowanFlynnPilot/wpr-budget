@@ -125,15 +125,20 @@ body{margin:0; background:#f5f1e8;}
 .stat-sub{font-size:15px; color:var(--ink-soft);}
 
 /* subnav — pronounced tab bar with an active scroll-spy underline */
-.subnav{position:sticky; top:0; z-index:5; display:flex; justify-content:space-evenly; gap:4px; flex-wrap:wrap;
+/* One row at every width: the tabs share the width when they fit and scroll
+   sideways when they don't (a nine-tab City bar used to wrap one orphan tab). */
+.subnav{position:sticky; top:0; z-index:5; display:flex; gap:4px; flex-wrap:nowrap; overflow-x:auto;
+  scrollbar-width:none; -webkit-overflow-scrolling:touch;
   background:var(--paper); border-bottom:2px solid var(--ink); padding:0; margin-bottom:8px;
   box-shadow:0 7px 14px -12px rgba(28,26,22,.4);}
-.subnav a{position:relative; flex:1 1 auto; text-align:center; font-size:14px; font-weight:600; letter-spacing:.02em;
-  color:var(--ink-soft); text-decoration:none; padding:16px 14px 14px;
-  border-bottom:2px solid transparent; margin-bottom:-2px;
-  transition:color .15s ease, background .15s ease, border-color .15s ease;}
+.subnav::-webkit-scrollbar{display:none;}
+.subnav a{position:relative; flex:1 0 auto; white-space:nowrap; text-align:center; font-size:14px; font-weight:600; letter-spacing:.02em;
+  color:var(--ink-soft); text-decoration:none; padding:16px 10px 14px;
+  transition:color .15s ease, background .15s ease, box-shadow .15s ease;}
 .subnav a:hover{color:var(--ink); background:var(--paper-2);}
-.subnav a.active{color:var(--accent); border-bottom-color:var(--accent);}
+/* the active underline is drawn inside the tab: the row scrolls, so anything
+   hanging below it would be clipped */
+.subnav a.active{color:var(--accent); box-shadow:inset 0 -3px 0 var(--accent);}
 
 /* sections */
 .block{padding:46px 0; border-bottom:1px solid var(--rule); scroll-margin-top:54px;}
@@ -653,11 +658,6 @@ body{margin:0; background:#f5f1e8;}
   .stat-label{font-size:10px; letter-spacing:.06em; line-height:1.3; min-height:2.6em;}
   .stat-value{font-size:23px; margin:6px 0 4px;}
   .stat-sub{font-size:12px; line-height:1.3;}
-  /* tabs: a clean swipeable single row instead of a ragged wrap */
-  .subnav{flex-wrap:nowrap; justify-content:flex-start; overflow-x:auto;
-    scrollbar-width:none; -webkit-overflow-scrolling:touch;}
-  .subnav::-webkit-scrollbar{display:none;}
-  .subnav a{flex:0 0 auto; white-space:nowrap;}
   .bar-row, .bar-row.no-spark{grid-template-columns:1.4fr 2fr auto 56px; }
   .bar-share{display:none;}
   .ledger-head,.ledger-row{grid-template-columns:2fr 1fr 1fr 22px;}

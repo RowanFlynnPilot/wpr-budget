@@ -276,8 +276,19 @@ export function Highlights({ items, head }) {
 // they never destroy the entity (or edition) deep-link.
 export function SubNav({ sections, active, routeId }) {
   const t = useStrings();
+  // Keep the active tab in view when the row scrolls sideways (phones, the
+  // nine-tab City bar). Horizontal only: never moves the page.
+  const ref = useRef(null);
+  useEffect(() => {
+    const nav = ref.current;
+    const a = nav && nav.querySelector("a.active");
+    if (!a || nav.scrollWidth <= nav.clientWidth) return;
+    if (a.offsetLeft < nav.scrollLeft || a.offsetLeft + a.offsetWidth > nav.scrollLeft + nav.clientWidth) {
+      nav.scrollTo({ left: a.offsetLeft - 16, behavior: "instant" });
+    }
+  }, [active]);
   return (
-    <nav className="subnav">
+    <nav className="subnav" ref={ref}>
       {sections.map((id) => (
         <a key={id} href={"#" + routeId + "/" + id} className={active === id ? "active" : ""}>{t("nav." + id)}</a>
       ))}
