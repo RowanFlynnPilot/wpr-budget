@@ -38,9 +38,20 @@ page), linked from Methodology and the Hmong beta banner.
 **Editions (budget season).** An entity may list `editions` in the manifest —
 the next year's PROPOSED book, served at `#<entity>~<edition-id>` alongside the
 adopted book (the bare `#<entity>` stays adopted, so embeds/links never change
-underneath anyone). Each edition: `{id, year, data, hearing, vote,
-calendar_source}` — the dates are curated from the book's budget-process
-timeline. `chrome` carries `activeId` (entity), `routeId` (entity+edition, for
+underneath anyone). Each edition: `{id, year, data, updates, hearing, vote,
+milestones, calendar_source, source}` — the dates and `milestones` (`[{date,
+what}]`, what ∈ education/qa/hearing/amendments/committee/vote) are curated from
+the book's budget-process timeline (Appendix K in 2027) and drive the edition's
+**"Have your say"** section (`#<route>/say`: the calendar to the vote + speak at
+the hearing / tell your supervisor / get the result, from the entity's
+`participate` links: county agendas, MyVote's "My Elected Officials" — the
+county's own "Who is my supervisor?" link — and the members page). `updates` is a
+hand-edited change log, `public/<entity>-<year>-updates.json` =
+`[{date, body, summary, url|null}]` (the sibling City tool's format): editors add
+an entry when a committee or the board amends the proposal and push; the
+"Changes since the proposal" box renders under the Proposed banner once it has
+one. App fetches it with the edition (`extra.updates`). check-data validates the
+calendar, the links and every log entry. `chrome` carries `activeId` (entity), `routeId` (entity+edition, for
 deep links/subnav/Share), `edition` (or null) and `dataFile`; App gates on the
 ROUTE so an edition switch never shows the other edition's numbers.
 `EditionBanner` (ui.jsx) renders the "Proposed — not yet adopted" band on the
@@ -51,7 +62,12 @@ County Administrator/County Board — a City edition needs its own wording
 (Mayor/Common Council). **Retiring an edition after adoption:** re-run the
 extractor on the APPROVED book into `public/marathon-county.json` (with the
 prior adopted books as history), delete the `editions` entry, the proposed
-JSON, and its `scripts/verify.py` BUILDS line. Each entity has its own
+JSON, its updates file, its `scripts/verify.py` BUILDS line and its share card
+(`public/og-<entity>-<edition>.png`; rerun `python scripts/og_cards.py` so
+og-cards.json drops it). A next-year proposal covered by a SIBLING tool instead
+gets a `companion: {year, title, url}` on the entity (the City's 2027 budget →
+WPR's page for `wpr-city-budget`): `EditionBanner` and the landing point there.
+Remove it once that budget is adopted. Each entity has its own
 extractor, data file, schema, and body — they deliberately do NOT share a
 schema, because a county (per-department tax levy) and a city (fund-based, no
 per-department levy) are structurally different governments.
@@ -480,26 +496,41 @@ npm run build    # vite build + scripts/entity-pages.mjs (per-entity share stubs
   Pages origin for OG tags — update it too if the repo/site ever moves.)
 - Pushing to `main` triggers `.github/workflows/deploy.yml` (build + deploy to
   Pages). Enable Pages → "GitHub Actions" in repo settings once.
-- **WordPress embed (auto-height):** the app posts
-  `{type:"wpr-budget:height", height}` to its parent on every layout change
-  (`src/main.jsx`), so the iframe can match the content exactly — no inner
-  scrollbar in any language. Host-page snippet:
-
-  ```html
-  <iframe id="ftm" src="https://rowanflynnpilot.github.io/wpr-budget/"
-          style="width:100%;border:0" scrolling="no" title="Follow the Money"></iframe>
-  <script>
-  addEventListener("message", (e) => {
-    if (e.origin === "https://rowanflynnpilot.github.io" && e.data && e.data.type === "wpr-budget:height")
-      document.getElementById("ftm").style.height = e.data.height + "px";
-  });
-  </script>
-  ```
-
-  The bare URL opens the landing; embed a fixed view via its hash
-  (`…/wpr-budget/#marathon-county`). For share links with entity-specific
-  social cards, use the static stubs (`…/wpr-budget/<entity-id>/`) — they carry
-  per-entity OG tags and instantly redirect into the hash route.
+- **Embedding on WPR (no scripts!):** wausaupilotandreview.com's Cloudflare
+  firewall rejects any post containing `<script` (found by the sibling
+  `wpr-city-budget`), so the old postMessage auto-height listener can never run
+  in a WPR post. Snippets (README "Embedding on WordPress") are bare iframes:
+  the **story card** `…/wpr-budget/#card` ("What does your home pay?" —
+  `src/Card.jsx`, no chrome, no recharts) sized by a width formula fitted to its
+  measured height (EN + ES, 288–1100px; **re-measure `.card-inner` and refit if
+  the card's content changes**), and the **full tool** at `height:90vh` scrolling
+  inside its frame. Both carry `allow="web-share; clipboard-write"`. The app still
+  posts `{type:"wpr-budget:height"}` for hosts that can run a script.
+- **Share pages** (`scripts/entity-pages.mjs`, in `npm run build`): `/<entity>/`,
+  `/<entity>-<edition>/`, `/about/`, and one per municipality `/tax/<slug>/`
+  ("Town of Ringle: $1,905 a year on a $200,000 home"; it writes the Tax Bill
+  view's remembered municipality, then redirects — no reader data in the URL).
+  Each uses its own card image when `scripts/og_cards.py` made one.
+- **Share cards with numbers:** `python scripts/og_cards.py` (Pillow; Georgia +
+  Arial from the Windows font folder) draws og-image.png (suite: "the same
+  $200,000 home pays $1,905 … $3,683"), og-your-tax-bill.png (also every town
+  page) and og-<entity>-<edition>.png, and writes every figure to
+  public/og-cards.json. check-data recomputes them with src/taxmath.js and
+  **fails the deploy when a card is stale** — rerun after data changes.
+- **Analytics (Plausible, off until configured):** `src/analytics.js`, copied
+  from prep-sports (WPR's suite-wide account). Set repo variable
+  `PLAUSIBLE_SCRIPT_ID` (the `pa-…` id from the site's install snippet — sites
+  made under Plausible's newer flow DROP events from the legacy script) or
+  `PLAUSIBLE_DOMAIN`, then redeploy; deploy.yml passes them to the build.
+  Hash routes count as pageviews (scroll-spy replaceState doesn't). Events (add
+  each as a custom-event goal): Municipality {name, via}, Home value {view} (never
+  the value), Language, Share {view, method, town?}, Download, Chart table, Link
+  {to, view}, Sponsor click {slot}, Embed {host}. Verify from a real phone —
+  Plausible drops headless/bot traffic. The About page's privacy paragraph
+  mentions counting only when analytics is on.
+- **Sales demo:** `?demo` in the URL (e.g. `…/wpr-budget/?demo#marathon-county`)
+  fills every unsold sponsor slot with "Your business here" plus a ribbon and
+  WPR's sales mailto — for showing a prospect. Readers never see it.
 
 ## Design principles (house style)
 
@@ -548,10 +579,26 @@ beside them as `sources/_pages_*.json`.
 > growth in parentheses is negative (was silently flipped positive). The
 > School's 2026-27 book isn't posted yet (final levy Oct 27).
 >
+> **2026-10-10 funder & sponsor pass (read first).** Shipped locally on top of the
+> pushed review work: Plausible analytics (off until the repo variables are set),
+> an About page (#about), a support band (donate / newsletter — UTM-tagged —
+> / sponsor / about) on the landing, every Methodology and About; "What changed"
+> bands with records context; the 15-year County bill chart; "Same home, different
+> bill" (all 61 municipalities ranked) + the landing line; /tax/<town>/ share
+> pages + a "Share the <town>'s bill" button; the script-free #card embed;
+> "Have your say" + the change log on the 2027 County edition; share cards with
+> numbers; a business-property note; ?demo sales mode; ES/HMN loaded on demand;
+> the City 2027 pointer to wpr-city-budget (no duplicate City edition). WPR
+> decisions pending: Plausible site + repo variables; a LICENSE (MIT code +
+> CC BY 4.0 data?) before calling it open source; whether to keep serving the
+> AI-drafted Hmong (the City tool took its translations down Oct 5 pending
+> review); the editorial-independence line on the About page; and adding
+> Follow the Money to the Funding Desk's desk/profile.md builds table.
+>
 > **Next session — start here.** No half-finished code; the open items are
 > WPR/editorial actions, not bugs: (1) a **fluent-speaker review of the Hmong** (it's
-> AI-drafted, shipped behind a beta banner — corrections go in the `HMN` table of
-> `src/i18n.jsx`; the new `pc.*` keys are AI-drafted too); (2) the School
+> AI-drafted, shipped behind a beta banner — corrections go in
+> `src/strings/hmn.js`; the new `pc.*` keys are AI-drafted too); (2) the School
 > enrollment **consolidation annotation is now VERIFIED + sourced** (board voted
 > unanimously Jan 8, 2025 to close Hewitt-Texas/Hawthorn Hills/Grant/Lincoln,
 > effective 2025-26 — WPR's own 2025-01-09 article is the source link); the
@@ -729,7 +776,22 @@ Done and shipped:
   2020 decennial Census population/households for the per-capita toggle, source
   URLs inside. Update at the next decennial; don't silently swap in rolling
   estimates (the on-page note names the basis).
-- **Tax-bill unifier scope:** `TaxBillOverview` is specifically a *City of Wausau*
-  resident's bill (that's whose `tax_by_jurisdiction` the City book carries). Other
-  municipalities/towns in the county would need their own jurisdiction splits — a
-  clear future extension. Jurisdiction→entity mapping is `billEntityFor()`.
+- **Tax-bill math lives in `src/taxmath.js`** (plain JS): `billParts`/`billTotal`,
+  `MUNI_KEY`, `muniSlug`. ui.jsx's `billRates`, the CI check, the share pages and
+  og_cards.py's figures (re-checked by CI) all use that one formula — change it
+  there only. `TaxBillOverview` covers all 61 municipalities (DOR data); its
+  `#compare` section ranks them ("Same home, different bill").
+- **i18n files:** English in `src/i18n.jsx` (`const EN`); Spanish and Hmong in
+  `src/strings/es.js` / `hmn.js` (`export default {`), dynamic-imported on first
+  use so the landing/embeds ship English only (index ~36 kB gzip). A new key goes
+  in all three files (check-data enforces parity). Hmong corrections go in
+  `src/strings/hmn.js`.
+- **New routes:** `#about[/sponsor]` (About.jsx — the page for grant applications
+  and sponsors; its stats are computed from the data files) and `#card` (the story
+  card). Both bypass the entity fetch in App; Landing/About mount their anchor hook
+  only once data is in (so focus + deep links land on content).
+- **"What changed" (`Highlights`) never repeats the stat tiles:** each body
+  computes new facts, ranked against the entity's own records with
+  `rankLast`/`rankNote` ("the largest rise in records back to 2017", "the lowest
+  … back to 1968-69"). check-data guards that levy_history/homeowner_impact end
+  at budget_year.

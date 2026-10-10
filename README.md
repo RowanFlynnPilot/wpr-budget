@@ -89,6 +89,27 @@ For social cards that name the view, share the static pages: `…/wpr-budget/<en
 and `…/wpr-budget/about/` (the About page: the link for grant applications and
 sponsors).
 
+## Log a change to a proposed budget
+
+When a committee or the County Board amends the proposal (no new PDF), add an
+entry to the edition's updates file — `public/marathon-county-2027-updates.json`
+— and push. The "Changes since the proposal" box appears under the Proposed
+banner once the file has an entry:
+
+```json
+[
+  {
+    "date": "2026-11-09",
+    "body": "HR, Finance & Property Committee",
+    "summary": "One or two plain sentences on what changed.",
+    "url": "https://wausaupilotandreview.com/..."
+  }
+]
+```
+
+`date` is `YYYY-MM-DD`; use `"url": null` until there is a story to link. The
+deploy's data check rejects a malformed entry and names it.
+
 ## Updating the data (once a year)
 
 Download each government's adopted-budget PDF by hand (the official sites block
