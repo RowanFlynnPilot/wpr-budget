@@ -171,7 +171,7 @@ export default function CityLedger({ b, extra, chrome }) {
         <SectionHead kicker={t("kick.generalFund")} title={t("title.whereDollarGoes")}>
           {t("c.where.dek", compact(b.meta.gf_expenditures))}
         </SectionHead>
-        <div className="toggle" role="group" aria-label="General fund view">
+        <div className="toggle" role="group" aria-label={t("aria.gfView")}>
           <button aria-pressed={gfFlow === "departments"} className={gfFlow === "departments" ? "on" : ""} onClick={() => setGfFlow("departments")}>{t("btn.byDepartment")}</button>
           <button aria-pressed={gfFlow === "revenues"} className={gfFlow === "revenues" ? "on" : ""} onClick={() => setGfFlow("revenues")}>{t("btn.revenue")}</button>
         </div>
@@ -200,7 +200,7 @@ export default function CityLedger({ b, extra, chrome }) {
         </SectionHead>
         <MoneyFlowSankey data={sankey} height={440}
           margin={{ top: 24, right: 162, bottom: 24, left: 178 }}
-          ariaLabel={`Money-flow diagram: General Fund revenue sources flowing into the ${compact(b.meta.gf_expenditures)} general fund and out to departments. Largest department: ${sankey.nodes.find((n) => n.col === 2)?.name}.`}
+          ariaLabel={t("aria.flowCity", compact(b.meta.gf_expenditures), sankey.nodes.find((n) => n.col === 2).name)}
           note={t("c.flow.note")} />
       </section>
 
@@ -252,7 +252,7 @@ export default function CityLedger({ b, extra, chrome }) {
         <SectionHead kicker={t("c.workforce.kick")} title={t("c.workforce.title")}>
           {t("c.workforce.dek", wf.total[0], wf.total[wf.total.length - 1], b.meta.budget_year)}
         </SectionHead>
-        <div className="wf-pick" role="group" aria-label="Choose a department">
+        <div className="wf-pick" role="group" aria-label={t("aria.chooseDept")}>
           {wfDepts.map((d) => (
             <button key={d.department} type="button" aria-pressed={d.department === wfDept}
               className={"wf-chip" + (d.department === wfDept ? " on" : "")}
@@ -297,7 +297,7 @@ export default function CityLedger({ b, extra, chrome }) {
         <div className="gbars">
           {tifGrowth.map((g) => (
             <div className="gbar" key={g.tid}>
-              <span className="gbar-name">District {g.tid}</span>
+              <span className="gbar-name">{t("c.dev.district", g.tid)}</span>
               {/* A shrinking district (negative growth) gets no bar, only its signed figure. */}
               <span className="gbar-track"><i style={{ width: `${(Math.max(g.growth, 0) / tifMaxGrowth) * 100}%` }} /></span>
               <span className="gbar-val">{(g.growth > 0 ? "+" : g.growth < 0 ? "−" : "") + Math.abs(g.growth).toFixed(2)}%</span>
@@ -308,7 +308,7 @@ export default function CityLedger({ b, extra, chrome }) {
           <div className="tif-pays">
             {tif.developer_payments.map((p) => (
               <div className="tif-pay" key={p.tid}>
-                <b>District {p.tid}</b> &middot; {compact(p.amount)} <span>{p.note}</span>
+                <b>{t("c.dev.district", p.tid)}</b> &middot; {compact(p.amount)} <span>{p.note}</span>
               </div>
             ))}
           </div>

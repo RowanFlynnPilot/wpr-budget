@@ -145,6 +145,10 @@ body{margin:0; background:#f5f1e8;}
 .chart-note-src{color:var(--accent); text-decoration:none; font-weight:700;}
 .muted{color:var(--ink-soft);}
 .load{padding:90px 0; font-size:16px; color:var(--ink-soft);}
+.sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+  clip:rect(0,0,0,0); white-space:nowrap; border:0;}
+/* headings focused programmatically on a view switch (useAnchorOnMount) */
+.ftm [tabindex="-1"]:focus{outline:none;}
 
 /* toggle */
 .toggle{display:inline-flex; border:1px solid var(--ink); margin-bottom:24px;}

@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Sankey, Layer,
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Sankey, Layer, Line, Area,
 } from "recharts";
 import { useStrings } from "./i18n";
 import { usd, compact } from "./format";
@@ -9,6 +9,14 @@ import { usd, compact } from "./format";
 // the eager bundle (the landing page imports it), and anything here would drag
 // the ~560 kB recharts chunk into the first load. Only the lazy bodies import
 // this module.
+
+// Readers who ask their OS for reduced motion get static charts: the CSS
+// animations already honor it, but recharts animates in JS. Its series are
+// class components with defaultProps, so one switch covers every chart in the
+// suite (the bodies import this module). Evaluated once, at chunk load.
+if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  for (const C of [Bar, Line, Area]) C.defaultProps = { ...C.defaultProps, isAnimationActive: false };
+}
 
 /* ---------- chart tooltips ---------- */
 

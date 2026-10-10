@@ -39,6 +39,10 @@ export function SourceLink({ source, children }) {
 // linked section jumps straight to its target, anything else starts at the
 // top. Instant, not smooth — smooth programmatic scrolls are unreliably
 // canceled by chart reflows. The ref guards StrictMode's double-run.
+// After the first page load, a view switch also moves keyboard/screen-reader
+// focus to the new view's heading (the section's, for a deep link) — otherwise
+// focus falls back to <body> and the switch goes unannounced.
+let firstView = true;
 export function useAnchorOnMount() {
   const done = useRef(false);
   useEffect(() => {
@@ -48,6 +52,14 @@ export function useAnchorOnMount() {
     const el = section && document.getElementById(section);
     if (el) el.scrollIntoView({ behavior: "instant", block: "start" });
     else window.scrollTo({ top: 0, behavior: "instant" });
+    if (!firstView) {
+      const heading = (el || document).querySelector(el ? "h2, h3" : "h1");
+      if (heading) {
+        heading.setAttribute("tabindex", "-1");
+        heading.focus({ preventScroll: true });
+      }
+    }
+    firstView = false;
   }, []);
 }
 
@@ -281,7 +293,7 @@ export function DivisorToggle({ divisor, onChange }) {
   const t = useStrings();
   const opts = [["total", "pc.total"], ["resident", "pc.perResident"], ["household", "pc.perHousehold"]];
   return (
-    <div className="toggle" role="group" aria-label="Amount basis" style={{ marginLeft: 10 }}>
+    <div className="toggle" role="group" aria-label={t("aria.amountBasis")} style={{ marginLeft: 10 }}>
       {opts.map(([key, label]) => (
         <button key={key} aria-pressed={divisor === key} className={divisor === key ? "on" : ""}
           onClick={() => onChange(key)}>{t(label)}</button>

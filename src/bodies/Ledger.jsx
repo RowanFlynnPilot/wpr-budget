@@ -10,6 +10,7 @@ import {
   Methodology, HomeValueCalc, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
+import "../charts"; // applies the reduced-motion default to recharts
 import demographics from "../demographics.json";
 
 const SECTIONS = ["where", "departments", "trends", "bill", "funds", "debt", "methodology"];
@@ -70,6 +71,10 @@ export default function Ledger({ b, chrome }) {
 
   const deptMaxSpend = useMemo(() => Math.max(...b.departments.map(deptSpend)), [b.departments]);
   const debtTotal = useMemo(() => b.debt.reduce((s, d) => s + d.outstanding, 0), [b.debt]);
+
+  // Screen-reader-only sort state for the active column header.
+  const sortHint = (k) => (k === sortKey
+    ? <span className="sr-only">{", " + t(sortDir === "asc" ? "aria.sortedAsc" : "aria.sortedDesc")}</span> : null);
 
   const setSort = (k) => {
     if (k === sortKey) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -205,7 +210,7 @@ export default function Ledger({ b, chrome }) {
         {!b.general_fund ? (
           <p className="callout-plain">{t("co.where.pending", chrome.edition && fmtDate(chrome.edition.hearing, lang, false))}</p>
         ) : (<>
-        <div className="toggle" role="group" aria-label="General fund view">
+        <div className="toggle" role="group" aria-label={t("aria.gfView")}>
           <button aria-pressed={flow === "expenditures"} className={flow === "expenditures" ? "on" : ""} onClick={() => setFlow("expenditures")}>{t("btn.spending")}</button>
           <button aria-pressed={flow === "revenues"} className={flow === "revenues" ? "on" : ""} onClick={() => setFlow("revenues")}>{t("btn.revenue")}</button>
         </div>
@@ -242,11 +247,11 @@ export default function Ledger({ b, chrome }) {
 
         <div className="ledger">
           <div className="ledger-head">
-            <button aria-pressed={sortKey === "department"} className={sortKey === "department" ? "sorted" : ""} onClick={() => setSort("department")}>{t("co.dept.colDepartment")}</button>
-            <button aria-pressed={sortKey === "spend"} className={sortKey === "spend" ? "sorted" : ""} onClick={() => setSort("spend")}>{t("co.dept.colSpend")}</button>
-            <button aria-pressed={sortKey === "personnel"} className={"hide-sm " + (sortKey === "personnel" ? "sorted" : "")} onClick={() => setSort("personnel")}>{t("co.dept.colPersonnel")}</button>
-            <button aria-pressed={sortKey === "levy"} className={sortKey === "levy" ? "sorted" : ""} onClick={() => setSort("levy")}>{t("co.dept.colLevy")}</button>
-            <button aria-pressed={sortKey === "change"} className={"hide-sm " + (sortKey === "change" ? "sorted" : "")} onClick={() => setSort("change")}>{t("co.dept.colVs", prevYear)}</button>
+            <button aria-pressed={sortKey === "department"} className={sortKey === "department" ? "sorted" : ""} onClick={() => setSort("department")}>{t("co.dept.colDepartment")}{sortHint("department")}</button>
+            <button aria-pressed={sortKey === "spend"} className={sortKey === "spend" ? "sorted" : ""} onClick={() => setSort("spend")}>{t("co.dept.colSpend")}{sortHint("spend")}</button>
+            <button aria-pressed={sortKey === "personnel"} className={"hide-sm " + (sortKey === "personnel" ? "sorted" : "")} onClick={() => setSort("personnel")}>{t("co.dept.colPersonnel")}{sortHint("personnel")}</button>
+            <button aria-pressed={sortKey === "levy"} className={sortKey === "levy" ? "sorted" : ""} onClick={() => setSort("levy")}>{t("co.dept.colLevy")}{sortHint("levy")}</button>
+            <button aria-pressed={sortKey === "change"} className={"hide-sm " + (sortKey === "change" ? "sorted" : "")} onClick={() => setSort("change")}>{t("co.dept.colVs", prevYear)}{sortHint("change")}</button>
             <span className="chev-col" />
           </div>
 
@@ -328,7 +333,7 @@ export default function Ledger({ b, chrome }) {
         {deptCompare && (
           <div className="chart-wrap" style={{ marginTop: 44 }}>
             <h3 className="subhead">{t("co.trends.subhead", deptCompare.first, deptCompare.last)}</h3>
-            <div className="toggle" role="group" aria-label="Department comparison view">
+            <div className="toggle" role="group" aria-label={t("aria.deptCompareView")}>
               <button aria-pressed={deptView === "amount"} className={deptView === "amount" ? "on" : ""} onClick={() => setDeptView("amount")}>{t("co.trends.amounts")}</button>
               <button aria-pressed={deptView === "change"} className={deptView === "change" ? "on" : ""} onClick={() => setDeptView("change")}>{t("co.trends.change")}</button>
             </div>
@@ -468,27 +473,29 @@ export default function Ledger({ b, chrome }) {
 }
 
 function BillTip({ active, payload, label }) {
+  const t = useStrings();
   if (!active || !payload || !payload.length) return null;
   const rate = payload.find((p) => p.dataKey === "rate");
   const bill = payload.find((p) => p.dataKey === "bill");
   return (
     <div className="tip">
       <div className="tip-year">{label}</div>
-      {rate && <div><i className="sw sw-rate" /> Mill rate ${rate.value.toFixed(2)}</div>}
-      {bill && <div><i className="sw sw-bill" /> Avg bill {usd(Math.round(bill.value))}</div>}
+      {rate && <div><i className="sw sw-rate" /> {t("tip.millRate")} ${rate.value.toFixed(2)}</div>}
+      {bill && <div><i className="sw sw-bill" /> {t("tip.avgBill")} {usd(Math.round(bill.value))}</div>}
     </div>
   );
 }
 
 function LevyTip({ active, payload, label }) {
+  const t = useStrings();
   if (!active || !payload || !payload.length) return null;
   const levy = payload.find((p) => p.dataKey === "levy");
   const rate = payload.find((p) => p.dataKey === "rate");
   return (
     <div className="tip">
       <div className="tip-year">{label}</div>
-      {levy && <div><i className="sw sw-levy" /> Levy {usd(levy.value)}</div>}
-      {rate && <div><i className="sw sw-rate" /> Mill rate ${rate.value.toFixed(2)}</div>}
+      {levy && <div><i className="sw sw-levy" /> {t("tip.levy")} {usd(levy.value)}</div>}
+      {rate && <div><i className="sw sw-rate" /> {t("tip.millRate")} ${rate.value.toFixed(2)}</div>}
     </div>
   );
 }

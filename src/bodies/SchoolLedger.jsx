@@ -194,7 +194,7 @@ export default function SchoolLedger({ b, chrome }) {
         <SectionHead kicker={t("kick.generalFund")} title={t("title.whereDollarGoes")}>
           {t("s.where.dek", compact(b.meta.gf_expenditures))}
         </SectionHead>
-        <div className="toggle" role="group" aria-label="General fund view">
+        <div className="toggle" role="group" aria-label={t("aria.gfView")}>
           <button aria-pressed={gfFlow === "expenditures"} className={gfFlow === "expenditures" ? "on" : ""} onClick={() => setGfFlow("expenditures")}>{t("btn.spending")}</button>
           <button aria-pressed={gfFlow === "revenues"} className={gfFlow === "revenues" ? "on" : ""} onClick={() => setGfFlow("revenues")}>{t("btn.revenue")}</button>
         </div>
@@ -211,7 +211,7 @@ export default function SchoolLedger({ b, chrome }) {
         </div>
         {gfFlow === "expenditures" && (
           <>
-            <div className="toggle" role="group" aria-label="Salary and benefit detail" style={{ marginTop: 14 }}>
+            <div className="toggle" role="group" aria-label={t("aria.salaryDetail")} style={{ marginTop: 14 }}>
               <button aria-pressed={showPeople} className={showPeople ? "on" : ""} onClick={() => setShowPeople((v) => !v)}>
                 {t("s.where.showPeople", showPeople)}
               </button>
@@ -241,7 +241,7 @@ export default function SchoolLedger({ b, chrome }) {
         </SectionHead>
         <MoneyFlowSankey data={sankey} height={420}
           margin={{ top: 24, right: 150, bottom: 24, left: 150 }}
-          ariaLabel={`Money-flow diagram: General Fund revenue sources flowing into the ${compact(b.meta.gf_expenditures)} general fund and out to spending. Largest source: State Aids.`}
+          ariaLabel={t("aria.flowSchool", compact(b.meta.gf_expenditures), sankey.nodes.find((n) => n.col === 0).name)}
           note={t("s.flow.note")} />
       </section>
 

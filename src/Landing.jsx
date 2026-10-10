@@ -26,8 +26,8 @@ export default function Landing({ entities, chrome }) {
       .catch((e) => setErr(String(e.message || e)));
   }, [entities]);
 
-  if (err) return (<div className="ftm load"><p>Could not load budget data &mdash; {err}</p></div>);
-  if (!byFile) return (<div className="ftm load"><p>Loading the ledger&hellip;</p></div>);
+  if (err) return (<div className="ftm load"><p>{t("app.error")} — {err}</p></div>);
+  if (!byFile) return (<div className="ftm load"><p>{t("app.loading")}</p></div>);
 
   const year = byFile[entities[0].data].meta.budget_year;
   // The combined-bill hook and the Tax Bill card: a $200,000 (fair market value)
