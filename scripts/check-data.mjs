@@ -5,6 +5,7 @@
 //
 //   node scripts/check-data.mjs      # exit 1 with every failure listed
 import { readFileSync, existsSync } from "node:fs";
+import { billTotal, muniSlug } from "../src/taxmath.js";
 
 const failures = [];
 const fail = (where, msg) => failures.push(`${where}: ${msg}`);
@@ -88,12 +89,13 @@ for (const file of [countyEnt.data, ...(countyEnt.editions || []).map((ed) => ed
     if (!m.school_districts.length) fail(where, "no school districts");
     if (!m.technical_colleges.length) fail(where, "no technical college");
     for (const s of m.school_districts) {
-      // the same formula as billRates() in src/ui.jsx
-      const rate = ((m.taxes.county + m.taxes.local + m.taxes.technical_college) / m.full_value_ex_tif
-        + s.levy / s.full_value - m.school_levy_credit / m.full_value) * 1000;
+      const rate = billTotal(m, s); // the formula every tax-bill view uses
       if (!Number.isFinite(rate) || rate <= 0 || rate > 60) fail(where, `${s.name}: bill rate ${rate}`);
     }
   }
+  // every municipality gets its own share page at /tax/<slug>/
+  const slugs = d.municipalities.map(muniSlug);
+  if (new Set(slugs).size !== slugs.length) fail("marathon-tax-districts.json", "two municipalities share a page slug");
 }
 
 // ---- i18n: the three language tables carry exactly the same keys ----

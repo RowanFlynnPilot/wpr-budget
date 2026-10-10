@@ -16,6 +16,8 @@ const STORAGE_KEY = "wpr-budget-lang";
 // ---- string tables -------------------------------------------------------
 // Keys are grouped by area. Values are strings, or functions for interpolation.
 const EN = {
+  "tb.shareTown": (where) => `Share the ${where}'s bill`,
+  "tb.shareCopied": "Link copied",
   "tb.cmp.kick": "Across the county",
   "tb.cmp.title": "Same home, different bill",
   "tb.cmp.dek": (value, n) => `What a ${value} home pays in local property tax in each of Marathon County's ${n} cities, villages and towns, before the lottery and first-dollar credits.`,
@@ -409,6 +411,8 @@ const EN = {
 };
 
 const ES = {
+  "tb.shareTown": (where) => `Compartir la factura de ${where}`,
+  "tb.shareCopied": "Enlace copiado",
   "tb.cmp.kick": "En todo el condado",
   "tb.cmp.title": "La misma casa, otra factura",
   "tb.cmp.dek": (value, n) => `Lo que paga una casa de ${value} en impuestos locales a la propiedad en cada una de las ${n} ciudades, villas y pueblos del condado de Marathon, antes de los créditos de lotería y de primer dólar.`,
@@ -791,6 +795,8 @@ const ES = {
 
 // Hmong (Hmoob Dawb / RPA). BETA — AI-drafted, pending community review.
 const HMN = {
+  "tb.shareTown": (where) => `Qhia ${where} daim nqi se`,
+  "tb.shareCopied": "Tau luam qhov txuas",
   "tb.cmp.kick": "Thoob plaws lub county",
   "tb.cmp.title": "Tib lub tsev, daim nqi se txawv",
   "tb.cmp.dek": (value, n) => `Ib lub tsev ${value} them se vaj tse hauv zos npaum li cas hauv txhua ${n} lub nroog, zos thiab town ntawm Marathon County, ua ntej cov lottery thiab first-dollar credits.`,

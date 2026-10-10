@@ -6,11 +6,13 @@
 // https://rowanflynnpilot.github.io/wpr-budget/<entity-id>/ when the preview
 // card should name the entity.
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { billTotal, muniSlug, MUNI_KEY } from "../src/taxmath.js";
 
 const BASE = "https://rowanflynnpilot.github.io/wpr-budget/";
 const entities = JSON.parse(readFileSync("src/entities.json", "utf8"));
 // The tax-bill card states the municipality count from the data, not a literal.
-const munis = JSON.parse(readFileSync("public/marathon-tax-districts.json", "utf8")).municipalities.length;
+const dor = JSON.parse(readFileSync("public/marathon-tax-districts.json", "utf8"));
+const munis = dor.municipalities.length;
 
 const DESC = {
   county: (e) => `Where the money comes from and where it goes in ${e.name}'s adopted budget — every department, the tax levy, the mill rate, and outstanding debt.`,
@@ -39,9 +41,28 @@ const pages = entities.flatMap((e) => [
   })),
 ]);
 
-for (const { slug, title, desc, route } of pages) {
+// One page per municipality (/tax/<slug>/), for sharing a town's own bill in
+// its own Facebook group: the card states what a $200,000 home pays there, and
+// the page opens the Tax Bill view on that municipality (it writes the view's
+// remembered municipality first — the URL itself carries no reader data).
+const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
+const townPages = dor.municipalities.map((m) => {
+  const where = `${m.type} of ${m.name}`;
+  const bills = m.school_districts.map((sd) => 200 * billTotal(m, sd));
+  const amount = bills.length > 1 ? `${usd(Math.min(...bills))}–${usd(Math.max(...bills))}` : usd(bills[0]);
+  return {
+    slug: "tax/" + muniSlug(m),
+    title: `${where}: ${amount} a year on a $200,000 home — Follow the Money · Wausau Pilot & Review`,
+    desc: `What a $200,000 home in the ${where} pays in local property taxes at ${dor.meta.tax_year} rates${bills.length > 1 ? ", depending on its school district" : ""}, before the lottery and first-dollar credits — where every dollar goes, and how it compares with Marathon County's other ${munis - 1} cities, villages and towns.`,
+    route: "your-tax-bill",
+    remember: m.code,
+  };
+});
+
+for (const { slug, title, desc, route, remember } of [...pages, ...townPages]) {
   const target = BASE + "#" + route;
   const pageUrl = BASE + slug + "/";
+  const before = remember ? `try{localStorage.setItem(${JSON.stringify(MUNI_KEY)},${JSON.stringify(remember)})}catch(e){}` : "";
   const html = `<!doctype html>
 <html lang="en">
   <head>
@@ -63,7 +84,7 @@ for (const { slug, title, desc, route } of pages) {
     <meta name="twitter:description" content="${desc}" />
     <meta name="twitter:image" content="${BASE}og-image.png" />
     <meta http-equiv="refresh" content="0; url=${target}" />
-    <script>location.replace(${JSON.stringify(target)});</script>
+    <script>${before}location.replace(${JSON.stringify(target)});</script>
   </head>
   <body>
     <p><a href="${target}">Follow the Money — ${title}</a></p>

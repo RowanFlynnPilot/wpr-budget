@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useStrings } from "../i18n";
 import { usd } from "../format";
 import { track } from "../analytics";
+import { muniSlug } from "../taxmath";
 import {
   SponsorSlot, SourceLink, SectionHead, HomeValueCalc, TaxSplit, MuniPicker, SchoolPicker, billRates, billExtremes, placeLabel,
   useAnchorOnMount, useHomeValue, useMuniChoice, useSchoolChoice, WAUSAU_CITY_DOR,
@@ -15,6 +16,32 @@ import ChromeBar from "../ChromeBar";
 // has one. Sourced from the Wisconsin DOR's Town, Village and City Taxes data
 // (b = public/marathon-tax-districts.json): every municipality's actual levies
 // and values for the latest certified year, on one basis (see billRates).
+// Share this municipality's own page (/tax/<slug>/): its card names the
+// place and what a $200,000 home pays there. Never the reader's home value.
+function ShareTown({ muni, where }) {
+  const t = useStrings();
+  const [copied, setCopied] = useState(false);
+  const url = `${window.location.origin}${import.meta.env.BASE_URL}tax/${muniSlug(muni)}/`;
+  const share = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: `${where} — Follow the Money`, url });
+        track("Share", { view: "your-tax-bill", method: "native", town: where });
+      } else {
+        await navigator.clipboard.writeText(url);
+        track("Share", { view: "your-tax-bill", method: "copy", town: where });
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+      }
+    } catch (e) { /* dismissed, or the clipboard was blocked */ }
+  };
+  return (
+    <button type="button" className="table-toggle share-town" onClick={share}>
+      {copied ? t("tb.shareCopied") : t("tb.shareTown", where)}
+    </button>
+  );
+}
+
 // "Same home, different bill": every municipality's bill on the reader's own
 // home value, ranked dearest first. A municipality spanning several school
 // districts is ranked by its largest district (the thin line under its bar is
@@ -125,6 +152,7 @@ export default function TaxBillOverview({ b, chrome }) {
           onDrill={(id) => chrome.onSelect(id)} />
         <p className="note">{t("tb.note", year, total.toFixed(2), bill.where)}</p>
         {bill.collegeAveraged && <p className="note">{t("tb.collegeAveraged", bill.where)}</p>}
+        <ShareTown muni={muni} where={bill.where} />
       </section>
 
       <Ranking municipalities={b.municipalities} muni={muni} school={bill.school.code} homeValue={homeValue}

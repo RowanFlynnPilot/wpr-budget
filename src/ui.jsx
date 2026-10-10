@@ -5,6 +5,7 @@ import sponsors from "./sponsors.json";
 import { usd, compact, pct, downloadCSV, fmtDate } from "./format";
 import { consumePendingSection } from "./nav";
 import { track, currentView } from "./analytics";
+import { billParts, MUNI_KEY } from "./taxmath";
 import marathonLogo from "./assets/marathon-county.jpg";
 import wausauLogo from "./assets/wausau-city.jpg";
 import schoolLogo from "./assets/wausau-school.jpg";
@@ -461,7 +462,6 @@ function usePersisted(key, initial) {
   };
   return [v, set];
 }
-const MUNI_KEY = "wpr-budget-muni";
 export const useMuniChoice = () => usePersisted(MUNI_KEY, WAUSAU_CITY_DOR);
 // For a link that promises a specific municipality's bill (the landing hook).
 export function rememberMuni(code) {
@@ -483,29 +483,21 @@ export function useSchoolChoice(muniCode) {
 }
 
 // The bill rates for a home in municipality `muni`, school district `code`
-// (the municipality's largest district if `code` isn't one of its own).
-//   county / municipality / college: levy ÷ the municipality's TIF-out value —
-//     the base levies are apportioned on, and the rate every home pays;
-//   school: that district's levy ÷ its value within the municipality, net of
-//     the state school levy credit — applied as one rate on ALL the
-//     municipality's value (TIF increment included).
+// (the municipality's largest district if `code` isn't one of its own); the
+// formula itself is billParts in src/taxmath.js.
 // A town split between two technical college districts gets their combined
 // levy over the whole town (DOR doesn't split it by college) — flagged
 // `collegeAveraged` so the view can say so. Rows carry the suite entity to
 // drill into, where one exists.
 export function billRates(muni, code) {
-  const per1k = (levy, value) => (levy / value) * 1000;
   const sd = muni.school_districts.find((s) => s.code === code) || muni.school_districts[0];
-  const credit = per1k(muni.school_levy_credit, muni.full_value);
+  const part = billParts(muni, sd);
   const where = `${muni.type} of ${muni.name}`;
   const rows = [
-    { key: "county", label: "Marathon County", rate: per1k(muni.taxes.county, muni.full_value_ex_tif), drillId: "marathon-county" },
-    { key: "municipality", label: where, rate: per1k(muni.taxes.local, muni.full_value_ex_tif),
-      drillId: SUITE_IDS.municipality[muni.code] || null },
-    { key: "school", label: `${sd.name} School District (net)`, rate: per1k(sd.levy, sd.full_value) - credit,
-      drillId: SUITE_IDS.school[sd.code] || null },
-    { key: "college", label: muni.technical_colleges.map((c) => c.name).join(" / "),
-      rate: per1k(muni.taxes.technical_college, muni.full_value_ex_tif), drillId: null },
+    { key: "county", label: "Marathon County", rate: part.county, drillId: "marathon-county" },
+    { key: "municipality", label: where, rate: part.municipality, drillId: SUITE_IDS.municipality[muni.code] || null },
+    { key: "school", label: `${sd.name} School District (net)`, rate: part.school, drillId: SUITE_IDS.school[sd.code] || null },
+    { key: "college", label: muni.technical_colleges.map((c) => c.name).join(" / "), rate: part.college, drillId: null },
   ];
   return {
     rows,

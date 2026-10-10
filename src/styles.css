@@ -358,6 +358,7 @@ body{margin:0; background:#f5f1e8;}
 .about-sec p{font-size:16.5px; line-height:1.6; margin:0 0 12px; color:#2b2822;}
 .about-sec a{color:var(--accent); font-weight:600;}
 
+.share-town{margin-top:16px;}
 /* "Same home, different bill" — every municipality ranked (Tax Bill view) */
 .rank-lede{font-family:var(--serif); font-size:clamp(18px,2.2vw,22px); line-height:1.4; margin:4px 0 0; max-width:48ch;}
 .rank-list{list-style:none; margin:20px 0 0; padding:0; border-top:1px solid var(--rule);}
