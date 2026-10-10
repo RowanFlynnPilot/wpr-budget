@@ -9,7 +9,7 @@ body{margin:0; background:#f5f1e8;}
   --paper:#f5f1e8; --paper-2:#efe9da; --ink:#1c1a16; --ink-soft:#6b6555; --rule:#ddd5c2;
   --accent:#16584a; --pos:#2f6f4f; --neg:#a8492f; --gold:#9a7b2e;
   --gold-ink:#7a5f1f; /* gold for TEXT: 5.35:1 on paper (gold itself is 3.55:1) */
-  --serif:'Fraunces',Georgia,serif; --sans:'Public Sans',system-ui,sans-serif;
+  --serif:'Fraunces Variable',Georgia,serif; --sans:'Public Sans Variable',system-ui,sans-serif;
   background:var(--paper); color:var(--ink); font-family:var(--sans);
   font-feature-settings:"tnum" 1; line-height:1.5; max-width:1080px; margin:0 auto;
   padding:0 24px 80px;

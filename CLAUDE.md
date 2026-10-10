@@ -431,8 +431,11 @@ for 2025-26) for a per-student denominator.
     downloadCSV), `src/data.js` (fetchData promise cache), `src/nav.js`
     (pending-section handoff between App and body mounts).
   - `src/styles.css` — a real stylesheet now (imported in main.jsx; minified +
-    cached separately). Fonts load from index.html `<link>` (preconnect), NOT
-    from CSS, so they fetch before React mounts.
+    cached separately). Fonts are SELF-HOSTED (since 2026-10-10): Fontsource
+    packages imported in main.jsx — `@fontsource-variable/fraunces/opsz.css`
+    (family 'Fraunces Variable', optical-size axis), `@fontsource-variable/
+    public-sans` ('Public Sans Variable'), `@fontsource/playfair-display/
+    latin-900.css` (the WPR wordmark). No Google Fonts request.
   - `src/entities.json` (manifest, bundled), `src/annotations.json`,
     `src/sponsors.json`, `src/demographics.json` (all curated, not extracted).
   - `vite.config.js` pins `react` and `recharts` vendor chunks (manualChunks

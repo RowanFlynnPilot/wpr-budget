@@ -11,11 +11,8 @@
     <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
     <meta name="theme-color" content="#0d7377" />
 
-    <!-- Fonts load from the static shell (not the JS bundle), so the fetch
-         starts before React mounts — no late-font flash on the editorial type. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=Playfair+Display:wght@900&display=swap" rel="stylesheet" />
+    <!-- Fonts are self-hosted (Fontsource packages, imported in src/main.jsx):
+         no third-party font request, served from the same origin as the page. -->
 
     <!-- Open Graph / social cards -->
     <meta property="og:type" content="website" />

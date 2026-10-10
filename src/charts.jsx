@@ -49,7 +49,7 @@ export function SankeyNode({ x, y, width, height, payload }) {
       <Layer>
         <rect x={x} y={y} width={width} height={height} fill={fill} />
         <text x={x + width / 2} y={y - 9} textAnchor="middle" fontSize={13} fontWeight={700}
-          fontFamily="Public Sans, system-ui, sans-serif" fill="#1c1a16">{payload.name} {amt}</text>
+          fontFamily="Public Sans Variable, system-ui, sans-serif" fill="#1c1a16">{payload.name} {amt}</text>
       </Layer>
     );
   }
@@ -63,7 +63,7 @@ export function SankeyNode({ x, y, width, height, payload }) {
       <rect x={x} y={y} width={width} height={barH} fill={fill} fillOpacity={0.9} />
       <text x={left ? x - 8 : x + width + 8} y={y + barH / 2} textAnchor={left ? "end" : "start"}
         dominantBaseline="middle" fontSize={11.5} fontWeight={600}
-        fontFamily="Public Sans, system-ui, sans-serif" fill="#1c1a16">
+        fontFamily="Public Sans Variable, system-ui, sans-serif" fill="#1c1a16">
         {payload.name} <tspan fill="#6b6555" fontWeight={400}>{amt}</tspan>
       </text>
     </Layer>

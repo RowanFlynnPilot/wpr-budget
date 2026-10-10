@@ -1,6 +1,12 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
+// Self-hosted type (Fontsource): Fraunces with its optical-size axis, Public
+// Sans, and Playfair Display 900 for the WPR wordmark — Latin subsets load on
+// demand by unicode-range, no request to a font CDN.
+import "@fontsource-variable/fraunces/opsz.css";
+import "@fontsource-variable/public-sans/index.css";
+import "@fontsource/playfair-display/latin-900.css";
 import "./styles.css";
 import { initAnalytics, track } from "./analytics";
 
