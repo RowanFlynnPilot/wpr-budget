@@ -8,13 +8,16 @@ homeowner_impact, debt).
 Budget data changes once a year, so this is a one-shot annual ingest, NOT a
 scheduled scraper. Run it on the official PDF you've downloaded by hand -- that
 sidesteps the county site's Akamai datacenter-IP block entirely, so no proxy is
-needed.
+needed. It reads both editions of the book: the Administrator's Proposed budget
+(late September) and the board-Approved one (November); meta.status says which.
 
     python scripts/extract_budget.py 2026-Annual-Budget.pdf public/marathon-county.json [2025-Annual-Budget.pdf ...] [--cache]
 
 Design notes:
-- One parser serves both the by-fund (Appendix E) and by-department (Appendix F)
-  tables; they share an identical six-column layout.
+- One parser serves both the by-fund and the General-Fund-by-department appendix
+  tables; they share an identical six-column layout. They are located by TITLE:
+  the appendix letters shift whenever the county adds or drops an appendix (2027
+  dropped one, moving by-fund from E to D).
 - extract_text() + line parsing is used instead of extract_tables(): the tables
   are whitespace-aligned (no rules), so cell detection is unreliable, while the
   text layer is clean.
@@ -23,13 +26,14 @@ Design notes:
 """
 import re
 import argparse
+from itertools import combinations, product
 
 from lib import money, load_pages, find_page, find_first, reconcile, write_json
 
 MONEY = r"\$\s?\(?[\d,]+\)?"
 
-# Appendix E wraps some fund names across their number line, so canonical names
-# are keyed off the stable leading fund number instead of reconstructed text.
+# The by-fund table wraps some fund names across their number line, so canonical
+# names are keyed off the stable leading fund number instead of reconstructed text.
 FUND_NAMES = {
     "101": "General Fund",
     "200": "Social Improvement Fund",
@@ -42,6 +46,9 @@ FUND_NAMES = {
     "700": "Employee Benefits Fund",
     "710": "Property and Casualty Insurance Fund",
 }
+# By-fund rows the book prints with no fund number (fund_no null). 2027 added a
+# State Special Charges levy line; any other unnumbered row is an error.
+UNNUMBERED_FUND_ROWS = ("State Special Charges",)
 
 SIX_COLS = [
     "tax_levy",
@@ -70,19 +77,66 @@ def clean(text):
 def split_label_and_numbers(line):
     """('Clerk of Courts', ['$1,674,440', ...]) for a data row, else (None, [])."""
     nums = re.findall(MONEY, line)
-    if len(nums) < 5:  # a real row carries 5-6 money values; headers carry none
+    if len(nums) < 3:  # a row prints at least half its six cells; headers print none
         return None, []
     label = line[: line.find(nums[0])].strip()
     return label, nums
 
 
-def parse_six_col_table(text, is_fund):
-    """Parse the shared Appendix E / Appendix F layout into rows + the total row.
+def placements(values):
+    """Every way to lay a row's printed values onto SIX_COLS — in printed order,
+    each unprinted cell zero — that satisfies the table's own row identities:
+    spending == levy + revenue, and levy - prior levy == difference.
 
-    Returns (rows, total) where each row is {name/department, ...SIX_COLS} and
-    total is the SIX_COLS dict from the printed 'Total' line.
+    The book leaves some cells blank instead of printing '$ -' (Capital Projects'
+    personnel in 2026, UW-Extension's in 2027, Contingency's difference in 2025),
+    so a short row can't be padded at the end: that shifts every later column one
+    place left, and the levy-only check never noticed.
     """
-    rows = []
+    out = set()
+    for blanks in combinations(range(len(SIX_COLS)), len(SIX_COLS) - len(values)):
+        cells = iter(values)
+        levy, rev, opex, pers, prior, diff = (0 if i in blanks else next(cells) for i in range(len(SIX_COLS)))
+        if opex + pers == levy + rev and levy - prior == diff:
+            out.add((levy, rev, opex, pers, prior, diff))
+    return out
+
+
+def resolve(names, candidates, total, label):
+    """Choose each row's reading so all six columns sum exactly to the printed
+    Total. Rows the identities pin down contribute their single reading; the rare
+    ambiguous ones (e.g. a blank that fits either spending column) are settled
+    jointly by the column totals. Exactly one consistent assignment must exist —
+    the table's arithmetic, not cell position, places every value."""
+    for name, cands in zip(names, candidates):
+        if not cands:
+            raise ValueError(f"{label}: row '{name}' fits no layout with spending = levy + revenue "
+                             f"and levy - prior levy = difference")
+    target = tuple(total[k] for k in SIX_COLS)
+    open_rows = [i for i, cands in enumerate(candidates) if len(cands) > 1]
+    fits = []
+    for combo in product(*(sorted(candidates[i]) for i in open_rows)):
+        chosen = [min(cands) for cands in candidates]
+        for i, reading in zip(open_rows, combo):
+            chosen[i] = reading
+        if tuple(sum(col) for col in zip(*chosen)) == target:
+            fits.append(chosen)
+    if len(fits) != 1:
+        first = tuple(sum(col) for col in zip(*(min(c) for c in candidates)))
+        off = {k: f"parsed {p:,} vs printed {t:,}" for k, p, t in zip(SIX_COLS, first, target) if p != t}
+        raise ValueError(f"{label}: {len(fits)} layouts reconcile all six columns to the printed Total "
+                         f"(expected exactly 1){'; ' + str(off) if off else ''}")
+    return fits[0]
+
+
+def parse_six_col_table(text, is_fund, label):
+    """Parse the shared by-fund / by-department layout into rows + the total row.
+
+    Returns (rows, total) where each row is {...SIX_COLS, fund_no+name | department}
+    and total is the SIX_COLS dict from the printed 'Total' line. Every column of
+    every row is reconciled (see resolve); the caller needs no further checks.
+    """
+    names, candidates = [], []
     total = None
     pending = ""  # accumulates a label that wrapped onto its own line
 
@@ -91,8 +145,8 @@ def parse_six_col_table(text, is_fund):
         if not line:
             continue
 
-        label, nums = split_label_and_numbers(line)
-        if label is None:
+        row_label, nums = split_label_and_numbers(line)
+        if row_label is None:
             # Not a data row. Keep it as a wrapped-name fragment only if it looks
             # like a name (has lowercase letters) and isn't a column header.
             if re.search(r"[a-z]", line) and not any(t in line for t in HEADER_TOKENS):
@@ -101,32 +155,40 @@ def parse_six_col_table(text, is_fund):
                 pending = ""
             continue
 
-        full_label = (pending + " " + label).strip()
+        full_label = (pending + " " + row_label).strip()
         pending = ""
         values = [money(n) for n in nums]
-        while len(values) < 6:  # e.g. Contingency Fund omits the trailing difference
-            values.append(None)
-        record = dict(zip(SIX_COLS, values))
 
         if "total" in full_label.lower():
-            total = record
+            if len(values) != len(SIX_COLS):
+                raise ValueError(f"{label}: Total row prints {len(values)} values; expected {len(SIX_COLS)}")
+            total = dict(zip(SIX_COLS, values))
             break  # table ends at its total; ignore any per-line detail that follows
+        names.append(full_label)
+        candidates.append(placements(values))
 
+    if total is None:
+        raise ValueError(f"{label}: no Total row found")
+
+    rows = []
+    for full_label, reading in zip(names, resolve(names, candidates, total, label)):
+        record = dict(zip(SIX_COLS, reading))
         if is_fund:
             fund_no = re.match(r"(\d{3})", full_label)
-            if not fund_no:
-                continue  # stray line, not a fund row
-            no = fund_no.group(1)
-            if no not in FUND_NAMES:
-                raise ValueError(f"unknown fund number {no} in Appendix E — add its canonical name to FUND_NAMES")
-            record["fund_no"] = no
-            record["name"] = FUND_NAMES[no]
+            if fund_no:
+                no = fund_no.group(1)
+                if no not in FUND_NAMES:
+                    raise ValueError(f"{label}: unknown fund number {no} — add its canonical name to FUND_NAMES")
+                record["fund_no"] = no
+                record["name"] = FUND_NAMES[no]
+            elif full_label in UNNUMBERED_FUND_ROWS:
+                record["fund_no"] = None
+                record["name"] = full_label
+            else:
+                raise ValueError(f"{label}: row '{full_label}' has no fund number and isn't in UNNUMBERED_FUND_ROWS")
         else:
             record["department"] = re.sub(r"\s+", " ", full_label)
         rows.append(record)
-
-    if total is None:
-        raise ValueError("no Total row found in six-column table")
     return rows, total
 
 
@@ -182,36 +244,122 @@ def parse_homeowner_impact(text):
     return [by_year[y] for y in sorted(by_year)]
 
 
-def parse_debt(text):
-    """Outstanding-balance list under 'TOTAL DEBT AS OF ...'.
+SCHEDULES = "Debt Service Schedules as of"
+SERIES_ID = r"(?:19|20)\d{2}[A-Z]?"
 
-    Targets the series -> balance summary in the current budget format, e.g.
-    '2012A GENERAL OBLIGATIONS BONDS-AIRPORT 700,000'. The grand-total line ends
-    the list AND reconciles it: a series whose label drifts from the
-    'NNNNX GENERAL OBLIGATION...' pattern would otherwise be dropped silently,
-    understating county debt. (Years that publish only a per-year amortization
-    schedule are not handled; the current budget uses this summary.)
+
+def schedule_tokens(line):
+    """A schedule row's cells. pdfplumber splits the leading digit off many figures
+    ('1 ,025,000', '9 40,000'); no schedule cell is a single digit, so a lone digit
+    always belongs to the figure after it. Every cell must then be a whole
+    comma-grouped figure or the '-' a retired series prints."""
+    raw = line.replace("$", " ").split()
+    cells = []
+    i = 0
+    while i < len(raw):
+        tok = raw[i]
+        if re.fullmatch(r"\d", tok) and i + 1 < len(raw) and re.match(r"[\d,]", raw[i + 1]):
+            tok += raw[i + 1]
+            i += 1
+        if tok != "-" and not re.fullmatch(r"\d{1,3}(?:,\d{3})*", tok):
+            raise ValueError(f"debt schedule cell {tok!r} is not a figure in: {line!r}")
+        cells.append(tok)
+        i += 1
+    return cells
+
+
+def schedule_slots(cells, line):
+    """Group a row's cells into per-series slots: a (principal, interest, total)
+    triple that must add up, or None for a retired series' single '-'."""
+    slots = []
+    i = 0
+    while i < len(cells):
+        if cells[i] == "-":
+            slots.append(None)
+            i += 1
+            continue
+        triple = cells[i:i + 3]
+        if len(triple) != 3 or "-" in triple:
+            raise ValueError(f"debt schedule row has a broken principal/interest/total triple: {line!r}")
+        p, n, t = (money(c) for c in triple)
+        if p + n != t:
+            raise ValueError(f"debt schedule: principal {p:,} + interest {n:,} != total {t:,} in: {line!r}")
+        slots.append((p, n, t))
+        i += 3
+    return slots
+
+
+def parse_debt(texts, budget_year):
+    """Outstanding principal per bond/note series, from the per-series 'Debt
+    Service Schedules as of 12/31/<prior year>' tables — present in both the
+    proposed and the approved book, and current as of the start of the budget
+    year. (The approved book's public-hearing notice also lists 'TOTAL DEBT', but
+    a year staler: the 2026 book's notice was as of January 1, 2025.)
+
+    Each table is printed in bands of series columns; a band row holds one
+    (principal, interest, total) triple per series, or a single '-' once a series
+    is retired, and the table's last band ends with a Total column. Reconciled
+    three ways: every triple adds up; every series' years sum to its printed Total
+    row; and the grand principal equals the book's own narrative figure
+    ('outstanding general debt obligation as of December 31, YYYY, will be $X').
     """
+    page = texts[find_page(texts, SCHEDULES)]
+    parts = re.split(SCHEDULES + r"\s+(\d{1,2}/\d{1,2}/20\d{2})", page)
+    as_of = set(parts[1::2])
+    if as_of != {f"12/31/{budget_year - 1}"}:
+        raise ValueError(f"debt schedules dated {as_of}; expected 12/31/{budget_year - 1}")
+
     out = []
-    capture = False
-    printed_total = None
-    for line in text.split("\n"):
-        s = line.strip()
-        if "TOTAL DEBT" in s.upper():
-            capture = True
-            continue
-        if not capture:
-            continue
-        m = re.match(r"^(\d{4}[A-Z]\s+GENERAL OBLIGATION.*?)\s+([\d,]{5,})$", s)
-        if m:
-            out.append({"series": m.group(1).strip(), "outstanding": int(m.group(2).replace(",", ""))})
-        elif re.match(r"^[\d,]{6,}$", s) and out:
-            printed_total = int(s.replace(",", ""))
-            break  # grand-total line ends the list
-    if printed_total is None:
-        raise ValueError("debt grand-total line not found (no series parsed, or the summary format changed)")
-    reconcile(out, printed_total, "outstanding", "debt series")
-    return out
+    for table in parts[2::2]:
+        lines = [l.strip() for l in table.split("\n")]
+        sums, printed = {}, {}
+        band = None  # this band's column names, '' standing for the Total column
+        for line, nxt in zip(lines, lines[1:] + [""]):
+            if nxt.startswith("Year"):
+                head = line.removesuffix(" Total")
+                names = [n.strip() for n in re.findall(r".*?\b" + SERIES_ID + r"\b", head)]
+                if not names or "".join(re.findall(r".*?\b" + SERIES_ID + r"\b", head)) != head:
+                    raise ValueError(f"debt schedule band header not split into series cleanly: {line!r}")
+                band = names + ([""] if head != line else [])
+                for name in names:
+                    sums[name], printed[name] = [0, 0, 0], None
+                continue
+            key, _, rest = line.partition(" ")
+            if band is None or not (key == "Total" or re.fullmatch(r"20\d{2}", key)):
+                continue  # titles, the Year label line, page furniture
+            cells = schedule_tokens(rest)
+            if all(c == "-" for c in cells):
+                continue  # every series in this band is retired by this year
+            slots = schedule_slots(cells, line)
+            if len(slots) != len(band):
+                raise ValueError(f"debt schedule row has {len(slots)} slots for {len(band)} columns: {line!r}")
+            for name, slot in zip(band, slots):
+                if name == "":
+                    continue  # the Total column; implied by the per-series checks below
+                if key == "Total":
+                    if slot is None:
+                        raise ValueError(f"debt schedule Total row has no figures for {name!r}")
+                    printed[name] = slot
+                elif slot:
+                    sums[name] = [a + b for a, b in zip(sums[name], slot)]
+            if key == "Total":
+                band = None  # a band ends at its Total row
+        for name, total in printed.items():
+            # Principal is the integrity anchor and must sum exactly; the interest
+            # (and so total) columns carry the book's own $1 rounding (2026's
+            # Series 2020B interest years sum $1 over its printed Total).
+            if total is None or sums[name][0] != total[0] or any(
+                    abs(a - b) > 1 for a, b in zip(sums[name][1:], total[1:])):
+                raise ValueError(f"debt schedule {name!r}: years sum to {sums[name]} vs printed Total {total}")
+            out.append({"series": name, "outstanding": total[0]})
+
+    full = "\n".join(texts)
+    m = re.search(r"outstanding\s+general\s+debt\s+obligation\s+as\s+of\s+December\s+31,\s+(20\d{2}),?\s+"
+                  r"will\s+be\s+\$([\d,]+)\s+\(principal\s+only\)", full)
+    if not m or int(m.group(1)) != budget_year - 1:
+        raise ValueError(f"narrative outstanding-debt figure as of December 31, {budget_year - 1} not found")
+    reconcile(out, money(m.group(2)), "outstanding", "debt schedules vs narrative outstanding principal")
+    return sorted(out, key=lambda d: re.search(SERIES_ID + r"$", d["series"]).group(0))
 
 
 def parse_gf_summary(text):
@@ -266,24 +414,50 @@ MONTHS = ["January", "February", "March", "April", "May", "June",
           "July", "August", "September", "October", "November", "December"]
 
 
+DATE = r"(" + "|".join(MONTHS) + r")\s+(\d{1,2}),\s+(20\d{2})"
+
+
+def iso(m):
+    """'November 11, 2025' match groups -> '2025-11-11'."""
+    return f"{m.group(3)}-{MONTHS.index(m.group(1)) + 1:02d}-{int(m.group(2)):02d}"
+
+
+def edition(full_text, budget_year):
+    """('adopted', date, None) when the book carries THIS budget's adoption
+    sentence — the board votes in November of the prior year, so a passing mention
+    of an earlier budget's adoption never counts — else ('proposed', None, date)
+    from the Administrator's 'Presented to the ... Committee on <date>' cover line.
+    A book with neither is an edition this extractor doesn't know: fail loud."""
+    adopted = {iso(m) for m in re.finditer(DATE + r",?\s+the\s+Marathon\s+County\s+Board", full_text)
+               if int(m.group(3)) == budget_year - 1}
+    if len(adopted) > 1:
+        raise ValueError(f"conflicting adoption dates for the {budget_year} budget: {sorted(adopted)}")
+    if adopted:
+        return "adopted", adopted.pop(), None
+    m = re.search(r"Presented\s+to\s+the\s+[^.]*?\s+on\s+" + DATE, full_text)
+    if not m or int(m.group(3)) != budget_year - 1:
+        raise ValueError(f"neither an adoption sentence nor a {budget_year - 1} 'Presented to the ... on <date>' "
+                         f"line found — unknown edition of the {budget_year} book")
+    return "proposed", None, iso(m)
+
+
 def build_meta(fund_total, levy_history, full_text):
     """Top-level facts for the masthead, derived from the parsed tables + text.
 
     Budget year and rate come from the (latest) levy-history row; the levy and
-    all-funds spending come from the by-fund total; the adoption date is parsed
-    from the approval sentence (the masthead renders it, so its absence is an
-    error, not a None).
+    all-funds spending come from the by-fund total; status and its date come from
+    the book itself (see edition) — the masthead renders them, so their absence is
+    an error, not a None.
     """
-    year = max((l["year"] for l in levy_history), default=None)
-    rate = next((l["rate"] for l in levy_history if l["year"] == year), None)
-    m = re.search(r"(" + "|".join(MONTHS) + r")\s+(\d{1,2}),\s+(20\d{2}),?\s+the Marathon County Board", full_text)
-    if not m:
-        raise ValueError("adoption-date sentence ('... the Marathon County Board') not found")
-    adopted = f"{m.group(3)}-{MONTHS.index(m.group(1)) + 1:02d}-{int(m.group(2)):02d}"
+    year = max(l["year"] for l in levy_history)
+    rate = next(l["rate"] for l in levy_history if l["year"] == year)
+    status, adopted, presented = edition(full_text, year)
     return {
         "entity": "Marathon County",
         "budget_year": year,
+        "status": status,
         "adopted": adopted,
+        "presented": presented,
         "tax_levy": fund_total["tax_levy"],
         "tax_rate": rate,
         "total_expenditures": fund_total["operating_expenditures"] + fund_total["personnel_expenditures"],
@@ -337,9 +511,11 @@ def build_history(extractions):
             } for e in extractions
         },
         "departments": merge(lambda e: e["departments"], "department", "tax_levy"),
+        # A proposed edition carries no GF summary (general_fund is null), so it
+        # contributes no GF year.
         "general_fund": {
-            "expenditures": merge(lambda e: e["general_fund"]["expenditures"], "category", "proposed_next"),
-            "revenues": merge(lambda e: e["general_fund"]["revenues"], "category", "proposed_next"),
+            flow: merge(lambda e: e["general_fund"][flow] if e["general_fund"] else [], "category", "proposed_next")
+            for flow in ("expenditures", "revenues")
         },
     }
 
@@ -348,10 +524,10 @@ def extract(latest_pdf, prior_pdfs=(), cache=False):
     """Full extraction for the latest budget, plus a multi-year `history` block.
 
     The latest PDF drives every detailed single-year section. Each prior PDF
-    contributes only the slice `history` needs — its Appendix E (by-fund) and
-    Appendix F (by-department) tables — via extract_history_slice. That avoids
-    the General Fund summary / debt / levy / homeowner parsers, whose formats
-    drift in older books and which `history` does not use.
+    contributes only the slice `history` needs — its by-fund and by-department
+    appendix tables — via extract_history_slice. That avoids the General Fund
+    summary / debt / levy / homeowner parsers, whose formats drift in older books
+    and which `history` does not use.
     """
     latest = extract_one(latest_pdf, cache=cache)
     priors = [extract_history_slice(p, cache=cache) for p in prior_pdfs]
@@ -359,35 +535,39 @@ def extract(latest_pdf, prior_pdfs=(), cache=False):
     return latest
 
 
-# The by-fund (E) and by-department (F) summary tables share this column header.
-# Pairing it with the appendix marker isolates the summary-table page even when
-# the appendix spans several pages of per-line account detail.
+# The by-fund and by-department summary tables share this column header. Pairing
+# it with the table's title isolates the summary-table page even when the
+# appendix spans several pages of per-line account detail.
 TABLE = "Expenditures Expenditures Tax Levy Difference"
+FUND_TITLE = "Budget by Fund"
+DEPT_TITLE = "General Fund Budget by Department"
+
+
+def appendix_tables(texts):
+    """(funds, fund_total, departments, budget year printed in the by-department
+    title) — the two summary tables every book since 2025 carries, found by title."""
+    funds, fund_total = parse_six_col_table(
+        clean(texts[find_page(texts, FUND_TITLE, TABLE)]), is_fund=True, label="by-fund table")
+    dept_raw = texts[find_page(texts, DEPT_TITLE, TABLE)]
+    departments, _ = parse_six_col_table(clean(dept_raw), is_fund=False, label="by-department table")
+    m = re.search(r"APPENDIX [A-Z]:\s*(20\d{2})\s+" + DEPT_TITLE, dept_raw, re.IGNORECASE)
+    if not m:
+        raise ValueError(f"could not read the budget year from the '{DEPT_TITLE}' appendix title")
+    return funds, fund_total, departments, int(m.group(1))
 
 
 def extract_history_slice(pdf_path, cache=False):
-    """Minimal prior-year parse for the `history` block: the Appendix E/F summary
-    tables plus the budget year, with the same loud reconciliation as the full
-    extractor. Books that lack these appendices (the pre-2025 format) fail here
-    with a clear missing-section error rather than emitting partial data.
+    """Minimal prior-year parse for the `history` block: the by-fund and
+    by-department summary tables plus the budget year, with the same loud
+    reconciliation as the full extractor. Books that lack these appendices (the
+    pre-2025 format) fail here with a clear missing-section error rather than
+    emitting partial data.
     """
     texts = load_pages(pdf_path, cache=cache)
-
-    fund_text = clean(texts[find_page(texts, "APPENDIX E:", TABLE)])
-    funds, fund_total = parse_six_col_table(fund_text, is_fund=True)
-    reconcile(funds, fund_total["tax_levy"], "tax_levy", "Appendix E funds")
-
-    dept_raw = texts[find_page(texts, "APPENDIX F:", TABLE)]
-    departments, dept_total = parse_six_col_table(clean(dept_raw), is_fund=False)
-    reconcile(departments, dept_total["tax_levy"], "tax_levy", "Appendix F departments")
-
-    m = re.search(r"APPENDIX F:\s*(20\d{2})", dept_raw)
-    if not m:
-        raise ValueError(f"could not read budget year from Appendix F header in {pdf_path}")
-
+    funds, fund_total, departments, year = appendix_tables(texts)
     return {
         "meta": {
-            "budget_year": int(m.group(1)),
+            "budget_year": year,
             "total_expenditures": fund_total["operating_expenditures"] + fund_total["personnel_expenditures"],
             "tax_levy": fund_total["tax_levy"],
             "tax_rate": None,
@@ -398,55 +578,65 @@ def extract_history_slice(pdf_path, cache=False):
     }
 
 
+# The consolidated General Fund summary's function-row labels. It is printed in
+# the public-hearing notice, which the approved book reprints but the proposed
+# book predates (the notice is published ~2 weeks before the hearing).
+GF_SUMMARY = ("General Government", "Capital Outlay", "Other Financing Uses")
+
+
 def extract_one(pdf_path, cache=False):
     texts = load_pages(pdf_path, cache=cache)
 
     # Only the appendix tables suffer pdfplumber's in-number spacing, so clean()
     # is applied there alone. The early-page tables are already clean, and cleaning
     # them would merge a levy with the first digit of its rate.
-    fund_text = clean(texts[find_page(texts, "APPENDIX E:", TABLE)])
-    funds, fund_total = parse_six_col_table(fund_text, is_fund=True)
-    reconcile(funds, fund_total["tax_levy"], "tax_levy", "Appendix E funds")
-
-    dept_text = clean(texts[find_page(texts, "APPENDIX F:", TABLE)])
-    departments, dept_total = parse_six_col_table(dept_text, is_fund=False)
-    reconcile(departments, dept_total["tax_levy"], "tax_levy", "Appendix F departments")
-
-    # The consolidated General Fund summary, located by its function-row labels.
-    gf_text = texts[find_first(texts, "General Government", "Capital Outlay", "Other Financing Uses")]
-    general_fund = parse_gf_summary(gf_text)
+    funds, fund_total, departments, table_year = appendix_tables(texts)
 
     full_text = "\n".join(texts)
     levy_history = parse_levy_history(full_text)
     # The homeowner row pattern is distinctive enough to find anywhere in the
     # document; the parser de-duplicates the table's reprinted copies by year.
     homeowner = parse_homeowner_impact(full_text)
+    meta = build_meta(fund_total, levy_history, full_text)
+    # Two independent spots in the book must agree on the budget year.
+    if table_year != meta["budget_year"]:
+        raise ValueError(f"budget-year cross-check: appendix title says {table_year}, "
+                         f"levy history says {meta['budget_year']}")
+
+    if any(all(n.lower() in t.lower() for n in GF_SUMMARY) for t in texts):
+        general_fund = parse_gf_summary(texts[find_first(texts, *GF_SUMMARY)])
+    elif meta["status"] == "proposed":
+        general_fund = None
+    else:
+        raise ValueError(f"approved book has no General Fund summary (needles {GF_SUMMARY})")
 
     return {
-        "meta": build_meta(fund_total, levy_history, full_text),
+        "meta": meta,
         "funds": funds,
         "departments": departments,
         "general_fund": general_fund,
         "levy_history": levy_history,
         "homeowner_impact": homeowner,
-        "debt": parse_debt(full_text),
+        "debt": parse_debt(texts, meta["budget_year"]),
     }
 
 
 def main():
     ap = argparse.ArgumentParser(description="Extract the Marathon County annual-budget book to JSON.")
-    ap.add_argument("pdf", help="the latest Approved/Adopted Budget PDF (downloaded by hand)")
+    ap.add_argument("pdf", help="the latest budget book PDF, Proposed or Approved edition (downloaded by hand)")
     ap.add_argument("out", help="output JSON path (public/marathon-county.json)")
     ap.add_argument("priors", nargs="*",
-                    help="prior-year Adopted Budget PDFs; each contributes only its Appendix E/F slice to `history`")
+                    help="prior-year Approved Budget PDFs; each contributes only its by-fund/by-department "
+                         "tables to `history`")
     ap.add_argument("--cache", action="store_true",
                     help="cache page texts in sources/ keyed on the PDF's size+mtime (fast re-runs)")
     args = ap.parse_args()
     data = extract(args.pdf, args.priors, cache=args.cache)
     write_json(args.out, data)
     m = data["meta"]
-    print(f"wrote {args.out}: {m['entity']} {m['budget_year']} | "
+    print(f"wrote {args.out}: {m['entity']} {m['budget_year']} {m['status']} | "
           f"{len(data['departments'])} departments, {len(data['funds'])} funds, "
+          f"GF summary {'yes' if data['general_fund'] else 'none (proposed edition)'}, "
           f"{len(data['levy_history'])} levy yrs, {len(data['homeowner_impact'])} homeowner yrs, "
           f"{len(data['debt'])} debt series | history years {data['history']['years']}")
 

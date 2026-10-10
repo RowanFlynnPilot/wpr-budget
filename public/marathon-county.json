@@ -2,7 +2,9 @@
   "meta": {
     "entity": "Marathon County",
     "budget_year": 2026,
+    "status": "adopted",
     "adopted": "2025-11-11",
+    "presented": null,
     "tax_levy": 61225481,
     "tax_rate": 3.49,
     "total_expenditures": 196351665
@@ -62,9 +64,9 @@
       "tax_levy": 0,
       "operating_revenues": 5522619,
       "operating_expenditures": 5522619,
-      "personnel_expenditures": 1182844,
-      "prior_tax_levy": -1182844,
-      "levy_difference": null,
+      "personnel_expenditures": 0,
+      "prior_tax_levy": 1182844,
+      "levy_difference": -1182844,
       "fund_no": "400",
       "name": "Capital Projects Fund"
     },
@@ -588,40 +590,40 @@
   ],
   "debt": [
     {
-      "series": "2012A GENERAL OBLIGATIONS BONDS-AIRPORT",
-      "outstanding": 700000
+      "series": "General Obligation Airport Bonds (AMT), Series 2012",
+      "outstanding": 500000
     },
     {
-      "series": "2015A GENERAL OBLIGATIONS BONDS-AIRPORT",
-      "outstanding": 1610000
+      "series": "General Obligation Airport Bonds (AMT), Series 2015",
+      "outstanding": 1360000
     },
     {
-      "series": "2019A GENERAL OBLIGATIONS PROMISSORY NOTES",
-      "outstanding": 5520000
+      "series": "GO Promissory Notes, Series 2019A",
+      "outstanding": 4140000
     },
     {
-      "series": "2020A GENERAL OBLIGATIONS PROMISSORY NOTES",
-      "outstanding": 5745000
+      "series": "GO Promissory Notes, Series 2020A",
+      "outstanding": 4860000
     },
     {
-      "series": "2020B GENERAL OBLIGATIONS PROMISSORY NOTES",
-      "outstanding": 16085000
+      "series": "GO Health Care Project Building Bonds, Series 2020B",
+      "outstanding": 15190000
     },
     {
-      "series": "2021A GENERAL OBLIGATIONS PROMISSORY NOTES",
-      "outstanding": 4840000
+      "series": "GO Promissory Notes, Series 2021A",
+      "outstanding": 4505000
     },
     {
-      "series": "2021B GENERAL OBLIGATIONS PROMISSORY NOTES",
-      "outstanding": 18690000
+      "series": "GO Health Care Project Building Bonds, Series 2021B",
+      "outstanding": 18380000
     },
     {
-      "series": "2022A GENERAL OBLIGATIONS PROMISSORY NOTES",
-      "outstanding": 21920000
+      "series": "GO Capital Improvement Bonds, 2022A",
+      "outstanding": 21050000
     },
     {
-      "series": "2022B GENERAL OBLIGATIONS PROMISSORY NOTES",
-      "outstanding": 18675000
+      "series": "GO Health Care Project Building Bonds, Series 2022B",
+      "outstanding": 18105000
     }
   ],
   "history": {

@@ -91,10 +91,16 @@ python scripts/verify.py
 
 # Multi-year: pass prior-year "Adopted Budget" PDFs as trailing args. The FIRST
 # PDF drives every detailed section; each prior PDF contributes only the slice
-# `history` needs (its Appendix E/F tables) via extract_history_slice, keyed by
-# year. The committed county file is built from 2026 + 2025:
+# `history` needs (its by-fund + by-department appendix tables) via
+# extract_history_slice, keyed by year. The committed county file is built from 2026 + 2025:
 python scripts/extract_budget.py 2026-Annual-Budget.pdf public/marathon-county.json \
        2025-Annual-Budget.pdf --cache
+# The FIRST PDF may also be the Administrator's PROPOSED edition (posted late Sept;
+# the board adopts in November). meta.status records which edition it was. Tested
+# 2026-10-09 against the 2027 proposed book (NOT yet committed — the UI still says
+# "Adopted" everywhere; see Current state):
+python scripts/extract_budget.py sources/2027-Annual-Budget-Proposed.pdf <out>.json \
+       2026-Annual-Budget.pdf 2025-Annual-Budget.pdf --cache
 
 # City of Wausau (separate extractor, separate schema — see extract_wausau.py):
 python scripts/extract_wausau.py "2026-Wausau-Budget.pdf" public/wausau-city.json --cache
@@ -131,11 +137,11 @@ python scripts/extract_school.py sources/2026-Wausau-School-Budget.pdf public/wa
        --prior-book sources/2024-Wausau-School-Budget.pdf --cache
 ```
 
-**Prior-year format limitation.** Only the **2025 and 2026** books use the
-Appendix E/F detailed-table layout the extractor needs. The **2021–2024** books
-are an older, chart-and-summary format (~141 pp) with **no Appendix E/F tables**,
+**Prior-year format limitation.** Only the **2025+** books carry the by-fund /
+GF-by-department appendix tables the extractor needs. The **2021–2024** books
+are an older, chart-and-summary format (~141 pp) with **no such tables**,
 so per-department/per-fund history cannot be extracted from them; passing one as
-a trailing arg fails loud at the `APPENDIX E:` lookup. Each prior year is taken
+a trailing arg fails loud at the "Budget by Fund" lookup. Each prior year is taken
 from its own adopted book (the apples-to-apples basis); the county occasionally
 restates a prior year in the newer book for reorganizations (for 2025→2026, 18
 of 20 departments matched exactly, County Treasurer and Administration differed),
@@ -146,22 +152,49 @@ column. The "Over Time" department chart omits revenue-returning offices
 The extractor locates tables by section marker (robust to page-number drift
 year to year) and **reconciles** parsed rows against the budget's own printed
 totals — it raises on any mismatch rather than emitting silently-wrong numbers.
-It targets the **current** budget-book layout. If a future year's PDF changes
-the General Fund summary or debt page format, those two parsers are the likely
-break points; the failure will be loud (a thrown error or a missing-section
-error), not silent.
+Hard-won specifics (2026-10-09 rework, after the 2027 proposed book broke it):
+- **Appendix tables are found by TITLE** ("Budget by Fund", "General Fund Budget
+  by Department"), never by letter — 2027 dropped an appendix and every letter
+  shifted (by-fund E→D, by-department F→E).
+- **Blank cells are placed by arithmetic, not position.** The book sometimes
+  leaves a cell blank instead of printing `$ -` (2026 Capital Projects personnel,
+  2027 UW-Extension personnel, 2025 Contingency difference). The old end-padding
+  shifted later columns left and only the levy column was reconciled, so the
+  committed 2026 file shipped Capital Projects with $1.18M phantom personnel
+  spending until this fix. Now every row must satisfy spending = levy + revenue
+  and levy − prior = difference, and ALL SIX columns must sum to the printed
+  Total; `resolve()` requires exactly one layout that does.
+- **Edition** is read from the book: this budget's adoption sentence (dated the
+  prior November) → `adopted`; else the cover's "Presented to the … Committee
+  on <date>" → `proposed`; neither → error.
+- **GF summary** comes from the public-hearing notice the approved book reprints
+  (pp. 7–9 in 2026). The proposed book predates the notice (published ~2 weeks
+  before the hearing), so `general_fund` is `null` in a proposed edition —
+  required in an approved one.
+- **Debt** comes from the per-series "Debt Service Schedules as of 12/31/<prior
+  yr>" tables (both editions). Every principal+interest=total triple must add
+  up, each series' years must sum to its Total row (principal exactly; interest
+  ±$1 — the book's own rounding), and the grand principal must equal the
+  narrative "outstanding general debt obligation as of December 31 … will be $X".
+  (The hearing notice's "TOTAL DEBT" list was used before; it is a year staler.)
 
 ### budget.json schema
 
 ```
-meta:            { entity, budget_year, adopted, tax_levy, tax_rate, total_expenditures }
-general_fund:    { expenditures[], revenues[] }   # each: category, actual_prior, budget_current, proposed_next, pct_change
+meta:            { entity, budget_year, status, adopted, presented, tax_levy, tax_rate, total_expenditures }
+                 # status "adopted" (adopted = ISO date, presented = null) or
+                 # "proposed" (adopted = null, presented = ISO date the Administrator
+                 # presented it to the HR/Finance & Property Committee)
+general_fund:    { expenditures[], revenues[] } | null   # each: category, actual_prior, budget_current, proposed_next, pct_change
+                 # null ONLY in a proposed edition (see the GF-summary note above)
 departments[]:   department, tax_levy, operating_revenues, operating_expenditures,
                  personnel_expenditures, prior_tax_levy, levy_difference
-funds[]:         fund_no, name, tax_levy, operating_revenues, operating_expenditures, personnel_expenditures
+funds[]:         fund_no, name, tax_levy, operating_revenues, operating_expenditures, personnel_expenditures,
+                 prior_tax_levy, levy_difference
+                 # fund_no is null for UNNUMBERED_FUND_ROWS (2027+: "State Special Charges")
 levy_history[]:  year, levy, rate
 homeowner_impact[]: year, avg_value, tax_rate, tax_amount, pct_change_bill
-debt[]:          series, outstanding
+debt[]:          series, outstanding   # outstanding principal as of Dec 31 of the prior year
 history:         { years[], totals{}, departments[], general_fund:{expenditures[],revenues[]} }
                  # multi-year ADOPTED figures merged across the PDFs passed to the
                  # extractor. totals: {<year>:{total_expenditures,tax_levy,tax_rate}};
@@ -395,6 +428,19 @@ prior books `sources/2025-…` and `sources/2024-Wausau-School-Budget.pdf` +
 `sources/enrollment_certified_<yr>.zip` ×5 (School); page-text caches live
 beside them as `sources/_pages_*.json`.
 
+> **FY2027 budget season (2026-10-09).** The County extractor now reads the 2027
+> PROPOSED book (`sources/2027-Annual-Budget-Proposed.pdf`, county doc 19303) —
+> reconciled, `meta.status: "proposed"`, but NOT committed to `public/`: the UI
+> hardcodes "Adopted" (masthead/i18n/entity-pages/index.html), renders
+> `meta.adopted` as a date (null → "Invalid Date"), needs `general_fund: null`
+> and `fund_no: null` handling, and the Landing FY label reads the County's year
+> for the whole suite. County calendar: board Q&A Oct 15 & 20, **public hearing
+> Nov 2**, amendments due Nov 6, **adoption Nov 10**. The City's 2027 proposed
+> book (`sources/2027-Wausau-Budget-Proposed.pdf`) still fails: no
+> jurisdiction-split page in the proposed edition, personnel short a new "City
+> Administrator 1.00 - - -" row, debt $1 rounding. The School's 2026-27 book
+> isn't posted yet (final levy Oct 27).
+>
 > **Next session — start here.** No half-finished code; the open items are
 > WPR/editorial actions, not bugs: (1) a **fluent-speaker review of the Hmong** (it's
 > AI-drafted, shipped behind a beta banner — corrections go in the `HMN` table of
