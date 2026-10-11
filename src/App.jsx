@@ -129,7 +129,11 @@ export default function App() {
 
   // Fetch the active route's data, plus any supporting files the manifest
   // lists under `with` (e.g. the DOR taxing-district data the tax-bill views
-  // need) — all before the body renders, so a body never sees half its data.
+  // need) — all before the body renders, so a body never sees half its data —
+  // except the `with` files the entity names under `later`: those download at
+  // the same time but reach the body as each lands (the Tax Bill paints the
+  // bill without waiting for the receipt's budgets or the next-door counties;
+  // its sections hold their place meanwhile). `settled` says they're all in.
   // The stale flag closes a race: switching A->B while A's (slower) fetch is in
   // flight must not let A's late response overwrite B's data — with the route
   // gate below, that would strand the view on the loading screen.
@@ -142,10 +146,22 @@ export default function App() {
     // shares the same import, so the body mounts as soon as both are in).
     BODY_LOADERS[ent.kind]().catch(() => {});
     // An edition's change log (amendments since the proposal) rides along as `updates`.
-    const extras = Object.entries({ ...(ent.with || {}), ...(edition && edition.updates ? { updates: edition.updates } : {}) });
+    const all = Object.entries({ ...(ent.with || {}), ...(edition && edition.updates ? { updates: edition.updates } : {}) });
+    const late = new Set(ent.later || []);
+    const extras = all.filter(([key]) => !late.has(key));
+    const later = all.filter(([key]) => late.has(key)).map(([key, file]) => {
+      const p = fetchData(file);
+      p.catch(() => {}); // reported below, once the view is up
+      return [key, p];
+    });
     Promise.all([fetchData(dataFile), ...extras.map(([, file]) => fetchData(file))])
       .then(([payload, ...more]) => {
-        if (!stale) setData({ route, payload, extra: Object.fromEntries(extras.map(([key], i) => [key, more[i]])) });
+        if (stale) return;
+        setData({ route, payload, extra: Object.fromEntries(extras.map(([key], i) => [key, more[i]])), settled: !later.length });
+        let left = later.length;
+        later.forEach(([key, p]) => p.then(
+          (v) => { if (!stale) { left -= 1; setData((d) => ({ ...d, extra: { ...d.extra, [key]: v }, settled: left === 0 })); } },
+          (e) => { if (!stale) setErr(String(e.message || e)); }));
       })
       .catch((e) => { if (!stale) setErr(String(e.message || e)); });
     return () => { stale = true; };
@@ -211,7 +227,7 @@ export default function App() {
     <LangProvider>
       <ViewBoundary key={route} chrome={chrome}>
         <Suspense fallback={<Frame chrome={chrome} msg="app.loading" />}>
-          <Body key={route} b={data.payload} extra={data.extra} chrome={chrome} />
+          <Body key={route} b={data.payload} extra={data.extra} settled={data.settled} chrome={chrome} />
         </Suspense>
       </ViewBoundary>
     </LangProvider>

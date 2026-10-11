@@ -104,6 +104,7 @@
       "map": "marathon-map.json",
       "neighbors": "neighbor-tax-districts.json",
       "prior": "marathon-tax-districts-2024.json"
-    }
+    },
+    "later": ["county", "city", "school", "neighbors"]
   }
 ]

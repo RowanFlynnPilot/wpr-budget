@@ -94,10 +94,12 @@ export default function SchoolLedger({ b, chrome }) {
       return { year: cy, label: r.label, rate: r.rate, valuation: valByYear[cy] ?? null };
     });
   }, [rate, b.valuation_history]);
+  // Every step-th year counted back from the latest: even gaps, and the latest
+  // year always labeled (counting forward from 1968 left a short last gap).
   const otTicks = useMemo(() => {
     const ys = overTime.map((d) => d.year);
     const step = Math.ceil(ys.length / 8);
-    return ys.filter((_, i) => i % step === 0 || i === ys.length - 1);
+    return ys.filter((_, i) => (ys.length - 1 - i) % step === 0);
   }, [overTime]);
   const valFirst = b.valuation_history[0], valLast = b.valuation_history[b.valuation_history.length - 1];
   const valGrowth = (valLast.value / valFirst.value).toFixed(0);

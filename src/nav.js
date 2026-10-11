@@ -5,6 +5,7 @@
 let pendingSection = null;
 
 export const setPendingSection = (s) => { pendingSection = s; };
+export const hasPendingSection = () => pendingSection !== null;
 
 export function consumePendingSection() {
   const s = pendingSection;

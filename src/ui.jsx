@@ -4,7 +4,7 @@ import { useLang, useStrings } from "./i18n";
 import sponsors from "./sponsors.json";
 import RAMP from "./map-ramp.json";
 import { usd, compact, pct, downloadCSV, fmtDate } from "./format";
-import { consumePendingSection } from "./nav";
+import { consumePendingSection, hasPendingSection } from "./nav";
 import { track, currentView } from "./analytics";
 import { billParts, billDollars, netBill, MUNI_KEY } from "./taxmath";
 import marathonLogo from "./assets/marathon-county.jpg";
@@ -75,10 +75,13 @@ export const countLink = (to) => () => track("Link", { to, view: currentView() }
 // focus to the new view's heading (the section's, for a deep link) — otherwise
 // focus falls back to <body> and the switch goes unannounced.
 let firstView = true;
-export function useAnchorOnMount() {
+// `ready` false: a deep-linked section waits for the content above it (a view's
+// `later` files, App.jsx) so it isn't pushed down after the scroll. With no
+// section named, nothing waits.
+export function useAnchorOnMount(ready = true) {
   const done = useRef(false);
   useEffect(() => {
-    if (done.current) return;
+    if (done.current || (!ready && hasPendingSection())) return;
     done.current = true;
     const section = consumePendingSection();
     const el = section && document.getElementById(section);
@@ -92,7 +95,7 @@ export function useAnchorOnMount() {
       }
     }
     firstView = false;
-  }, []);
+  }, [ready]);
 }
 
 // Scroll-spy: returns the id of the section near mid-viewport, and mirrors it

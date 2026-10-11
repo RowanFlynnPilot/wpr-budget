@@ -14,6 +14,10 @@ const SECTIONS = ["where", "departments", "trends", "bill", "funds", "debt", "me
 // A proposed edition adds "Have your say" before the methodology.
 const SECTIONS_PROPOSED = ["where", "departments", "trends", "bill", "funds", "debt", "say", "methodology"];
 
+// Full dollars, or $26M on the narrowest phones (styles.css .xs-only), where a
+// ledger row of full figures is wider than the screen.
+const Money = ({ n }) => <><span className="xs-hide">{usd(n)}</span><span className="xs-only">{compact(n)}</span></>;
+
 // Marathon County body — the original "Follow the Money" ledger: General Fund
 // spending/revenue, the per-department levy ledger, the levy/mill-rate history,
 // the homeowner tax-bill calculator, other funds, and outstanding debt.
@@ -309,7 +313,7 @@ export default function Ledger({ b, extra, chrome }) {
                     {d.department}
                     <span className="d-spark"><span style={{ width: `${(spend / deptMaxSpend) * 100}%` }} /></span>
                   </span>
-                  <span className="d-spend">{usd(spend)}</span>
+                  <span className="d-spend"><Money n={spend} /></span>
                   <span className="d-pers hide-sm">{usd(d.personnel_expenditures)}</span>
                   <span className="d-levy"><span className="lg-only">{usd(d.tax_levy)}</span><span className="sm-only">{compact(d.tax_levy)}</span></span>
                   <span className="d-change hide-sm"><Delta value={d.levy_difference} money /></span>
@@ -360,7 +364,7 @@ export default function Ledger({ b, extra, chrome }) {
                 <R.ResponsiveContainer width="100%" height={250}>
                   <R.BarChart data={levyTrend} margin={{ top: 8, right: 6, bottom: 4, left: 0 }}>
                     <R.CartesianGrid stroke="var(--rule)" vertical={false} />
-                    <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
+                    <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveEnd" minTickGap={14} />
                     <R.YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={44} />
                     <R.Tooltip content={<LevyTip />} cursor={{ fill: "var(--paper-2)" }} />
                     <R.Bar dataKey="levy" fill="var(--gold)" radius={[4, 4, 0, 0]} maxBarSize={30}>
@@ -380,7 +384,7 @@ export default function Ledger({ b, extra, chrome }) {
                 <R.ResponsiveContainer width="100%" height={250}>
                   <R.LineChart data={levyTrend} margin={{ top: 8, right: 20, bottom: 4, left: 0 }}>
                     <R.CartesianGrid stroke="var(--rule)" vertical={false} />
-                    <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
+                    <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveEnd" minTickGap={14} />
                     <R.YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(0)} width={34} />
                     <R.Tooltip content={<LevyTip />} cursor={{ stroke: "var(--rule)" }} />
                     <R.Line type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
@@ -470,7 +474,7 @@ export default function Ledger({ b, extra, chrome }) {
                 <R.ResponsiveContainer width="100%" height={250}>
                   <R.LineChart data={trend} margin={{ top: 8, right: 20, bottom: 4, left: 0 }}>
                     <R.CartesianGrid stroke="var(--rule)" vertical={false} />
-                    <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
+                    <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveEnd" minTickGap={14} />
                     <R.YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(0)} width={34} />
                     <R.Tooltip content={<BillTip />} cursor={{ stroke: "var(--rule)" }} />
                     <R.Line type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
@@ -484,7 +488,7 @@ export default function Ledger({ b, extra, chrome }) {
                 <R.ResponsiveContainer width="100%" height={250}>
                   <R.BarChart data={trend} margin={{ top: 8, right: 16, bottom: 4, left: 0 }}>
                     <R.CartesianGrid stroke="var(--rule)" vertical={false} />
-                    <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
+                    <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveEnd" minTickGap={14} />
                     <R.YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => usd(Math.round(v))} width={56} />
                     <R.Tooltip content={<BillTip />} cursor={{ fill: "var(--paper-2)" }} />
                     <R.Bar dataKey="bill" fill="var(--gold)" radius={[4, 4, 0, 0]} maxBarSize={26}>
@@ -515,9 +519,9 @@ export default function Ledger({ b, extra, chrome }) {
             <div className="fund-row" key={f.fund_no || f.name}>
               {/* fund_no is null for the book's unnumbered levy lines (State Special Charges) */}
               <span className="f-name"><b>{f.name}</b>{f.fund_no && <em>#{f.fund_no}</em>}</span>
-              <span>{f.tax_levy ? usd(f.tax_levy) : <span className="muted">{t("co.funds.none")}</span>}</span>
+              <span>{f.tax_levy ? <Money n={f.tax_levy} /> : <span className="muted">{t("co.funds.none")}</span>}</span>
               <span className="hide-sm">{usd(f.operating_revenues)}</span>
-              <span>{usd(f.operating_expenditures + f.personnel_expenditures)}</span>
+              <span><Money n={f.operating_expenditures + f.personnel_expenditures} /></span>
             </div>
           ))}
         </div>

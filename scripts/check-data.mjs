@@ -18,6 +18,8 @@ const entities = read("src/entities.json");
 for (const e of entities) {
   const files = [e.data, ...Object.values(e.with || {}), ...(e.editions || []).map((ed) => ed.data)];
   for (const f of files) if (!existsSync(`public/${f}`)) fail(`entities.json ${e.id}`, `missing public/${f}`);
+  // `later`: the `with` files a view can render before (App.jsx delivers them as they land)
+  for (const k of e.later || []) if (!(e.with || {})[k]) fail(`entities.json ${e.id}`, `later names "${k}", which isn't one of its with files`);
   for (const s of [e.source, ...(e.editions || []).map((ed) => ed.source)]) {
     if (!s || !/^https:\/\//.test(s.url) || !s.title) fail(`entities.json ${e.id}`, "source needs {title, https url}");
   }

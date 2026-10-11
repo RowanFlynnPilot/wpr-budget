@@ -56,6 +56,19 @@ function ShareTown({ muni, where }) {
 // property tax (src/receipt.js). The county is itemized for every home; the
 // City of Wausau and the Wausau School District where the home is in them (the
 // suite has their budgets); any other municipality or district stays one line.
+// A section not drawn yet (its `later` file, App.jsx, is on its way, or the
+// view is still painting the bill first): its heading now and a box about its
+// height meanwhile, so the menu, the scroll-spy and the sections below are in place.
+function SectionWait({ id, kicker, title, height }) {
+  const t = useStrings();
+  return (
+    <section id={id} className="block" aria-busy="true">
+      <SectionHead kicker={t(kicker)} title={t(title)} />
+      <div className="chart-wait" style={{ height }} aria-hidden="true" />
+    </section>
+  );
+}
+
 const DETAIL = {
   "marathon-county": (bud) => countyShares(bud.county),
   "wausau-city": (bud) => cityShares(bud.city),
@@ -605,13 +618,22 @@ function KeyDates({ muni, where }) {
 // reading position into the hash like every other view).
 const TB_SECTIONS = ["bill", "receipt", "compare", "neighbors", "assessment", "dates"];
 
-export default function TaxBillOverview({ b, extra, chrome }) {
+export default function TaxBillOverview({ b, extra, settled, chrome }) {
   const t = useStrings();
   const { lang } = useLang();
   const active = useScrollSpy(TB_SECTIONS, chrome.routeId);
   const [homeValue, setHomeValue] = useHomeValue();
   const [muniCode, setMuniCode] = useMuniChoice();
-  useAnchorOnMount();
+  // The bill first: the sections below it (the receipt, the map and ranking,
+  // the next-door counties, ~0.3 s of work on a slow phone) render just after
+  // the browser has painted it.
+  const [below, setBelow] = useState(false);
+  useEffect(() => {
+    let later;
+    const frame = requestAnimationFrame(() => { later = setTimeout(() => setBelow(true)); });
+    return () => { cancelAnimationFrame(frame); clearTimeout(later); };
+  }, []);
+  useAnchorOnMount(settled && below);
 
   const year = b.meta.tax_year;
   // A saved choice from an older data year that no longer exists starts over at Wausau.
@@ -695,19 +717,25 @@ export default function TaxBillOverview({ b, extra, chrome }) {
 
       </section>
 
-      <Receipt rows={splitRows} homeValue={homeValue} credits={credits} primary={primary}
-        where={bill.where} school={bill.school} year={year} budgets={extra}
-        was={{ ...was, credits: prior.meta.credits, year: prior.meta.tax_year }} />
+      {below && extra.county && extra.city && extra.school
+        ? <Receipt rows={splitRows} homeValue={homeValue} credits={credits} primary={primary}
+          where={bill.where} school={bill.school} year={year} budgets={extra}
+          was={{ ...was, credits: prior.meta.credits, year: prior.meta.tax_year }} />
+        : <SectionWait id="receipt" kicker="rc.kick" title="rc.title" height={1200} />}
 
-      <Ranking municipalities={b.municipalities} muni={muni} school={bill.school.code} homeValue={homeValue}
-        credits={cr} primary={primary} map={extra.map} prior={prior} onChoose={setMuniCode}
-        onPick={(code) => {
-          setMuniCode(code);
-          document.getElementById("bill").scrollIntoView({ behavior: "instant", block: "start" });
-        }} />
+      {below
+        ? <Ranking municipalities={b.municipalities} muni={muni} school={bill.school.code} homeValue={homeValue}
+          credits={cr} primary={primary} map={extra.map} prior={prior} onChoose={setMuniCode}
+          onPick={(code) => {
+            setMuniCode(code);
+            document.getElementById("bill").scrollIntoView({ behavior: "instant", block: "start" });
+          }} />
+        : <SectionWait id="compare" kicker="tb.cmp.kick" title="tb.cmp.title" height={1580} />}
 
-      <Neighbors nb={extra.neighbors} municipalities={b.municipalities} muni={muni} school={bill.school.code}
-        homeValue={homeValue} credits={cr} primary={primary} />
+      {below && extra.neighbors
+        ? <Neighbors nb={extra.neighbors} municipalities={b.municipalities} muni={muni} school={bill.school.code}
+          homeValue={homeValue} credits={cr} primary={primary} />
+        : <SectionWait id="neighbors" kicker="nb.kick" title="nb.title" height={1200} />}
 
       <AssessmentCheck muni={muni} where={bill.where} homeValue={homeValue} year={year} />
 

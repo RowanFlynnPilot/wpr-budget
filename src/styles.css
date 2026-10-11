@@ -46,11 +46,17 @@ body{margin:0; background:#f5f1e8;}
   background:transparent; border:none; font-family:var(--sans); font-weight:600; font-size:12.5px;
   letter-spacing:.02em; padding:4px 4px; opacity:.9;}
 .chrome-bar__home:hover{opacity:1; text-decoration:underline; text-underline-offset:3px;}
-.chrome-bar__lang{appearance:none; -webkit-appearance:none; background:rgba(255,255,255,.10);
+/* The language pill: what it shows is drawn here; the <select> lies over it,
+   transparent (16px, so iOS doesn't zoom the page when it opens). */
+.chrome-bar__lang{position:relative; display:inline-flex; align-items:center; gap:5px; background:rgba(255,255,255,.10);
   border:1px solid rgba(255,255,255,.32); color:#fff; font-family:var(--sans); font-weight:600;
-  font-size:12px; padding:6px 10px; border-radius:18px; cursor:pointer; line-height:1;}
+  font-size:12px; padding:6px 10px; border-radius:18px; cursor:pointer; line-height:1; white-space:nowrap;}
+.chrome-bar__lang select{position:absolute; inset:0; width:100%; height:100%; margin:0; border:0; padding:0;
+  opacity:0; cursor:pointer; font-size:16px;}
 .chrome-bar__lang option{color:#1c1a16;}
 .chrome-bar__lang:hover{background:rgba(255,255,255,.2);}
+.chrome-bar__lang:has(select:focus-visible){outline:2px solid #fff; outline-offset:2px;}
+.chrome-bar__lang-short{display:none;}
 /* Hmong beta notice — full-bleed strip directly under the chrome bar. */
 .beta-banner{margin:0 -24px; padding:9px 24px; background:#c9a94f; color:#1c1a16;
   font-family:var(--sans); font-size:12.5px; line-height:1.45;}
@@ -75,20 +81,36 @@ body{margin:0; background:#f5f1e8;}
 .chrome-bar__ent-icon{width:24px; height:24px; padding:3px; border-radius:5px;
   background:rgba(255,255,255,.16); color:inherit; flex-shrink:0;}
 .chrome-bar__ent.on .chrome-bar__ent-icon{background:var(--paper-2);}
-@media (max-width:560px){
+@media (max-width:820px){ .chrome-bar__meta{display:none;} }
+@media (max-width:680px){
   .chrome-bar__divider,.chrome-bar__section{display:none;}
-  /* The controls cluster (language · share · FY) gets its own row so the added
-     language selector never pushes past the edge. */
-  .chrome-bar__right{flex:1 1 100%; flex-wrap:wrap; gap:8px 10px;}
+  /* The brand and the controls share one row: Overview and Share as icons (their
+     words stay for screen readers), the language as its code. The controls take
+     a row of their own only where even that doesn't fit (under ~330px). */
+  .chrome-bar{gap:8px;}
+  .chrome-bar__left{display:contents;}
+  .chrome-bar__brand{margin-right:auto; gap:8px; min-height:28px;}
+  .chrome-bar__logo-img{width:26px; height:26px;}
+  .chrome-bar__wordmark{font-size:12px;}
+  .chrome-bar__right{gap:6px;}
+  .chrome-bar__home, .chrome-bar__share{justify-content:center; width:28px; height:28px; padding:0;
+    background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.32); border-radius:50%; opacity:1;}
+  .chrome-bar__txt{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+    clip:rect(0,0,0,0); white-space:nowrap; border:0;}
+  .chrome-bar__lang{padding:6px 9px;}
+  .chrome-bar__lang-long{display:none;}
+  .chrome-bar__lang-short{display:inline;}
   /* The entity buttons as a 2x2 grid — four stacked full-width buttons took
-     ~175px, over a fifth of a phone screen, before any content. */
+     ~175px, over a fifth of a phone screen, before any content. A long name
+     wraps to two lines rather than losing its end ("Marathon Cou…"). */
   .chrome-bar__switch{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
-  .chrome-bar__ent{justify-content:flex-start; min-width:0; font-size:12px; padding:6px 10px 6px 5px;}
-  .chrome-bar__ent span{overflow:hidden; text-overflow:ellipsis;}
+  .chrome-bar__ent{justify-content:flex-start; min-width:0; font-size:12px; padding:6px 10px 6px 5px;
+    white-space:normal; line-height:1.15; text-align:left;}
   .chrome-bar__ent img, .chrome-bar__ent-icon{width:22px; height:22px;}
-  /* The FY label repeats the masthead (and the proposed-edition banner). */
-  .chrome-bar__meta{display:none;}
 }
+/* The smallest phones: the wordmark alone names the brand, then a size down. */
+@media (max-width:400px){ .chrome-bar__logo-img{display:none;} }
+@media (max-width:340px){ .chrome-bar__wordmark{font-size:11px;} }
 
 /* masthead */
 .masthead{padding:54px 0 30px; border-bottom:2px solid var(--ink);}
@@ -377,7 +399,7 @@ body{margin:0; background:#f5f1e8;}
 .about-sec{margin-top:38px; max-width:70ch;}
 .about-sec h2{font-size:clamp(22px,3vw,28px); margin-bottom:10px;}
 .about-sec p{font-size:16.5px; line-height:1.6; margin:0 0 12px; color:#2b2822;}
-.about-sec a{color:var(--accent); font-weight:600;}
+.about-sec a{color:var(--accent); font-weight:600; overflow-wrap:anywhere;}
 
 .share-town{margin-top:16px;}
 /* "Own a business property?" — a question readers open, under the tax bill */
@@ -818,6 +840,7 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
 @keyframes rise{from{opacity:0; transform:translateY(8px);}to{opacity:1; transform:translateY(0);}}
 
 .sm-only{display:none;}
+.xs-only{display:none;}
 
 /* print: drop the chrome/nav/controls, keep the ledger — this is journalism,
    people print these pages. */
@@ -886,4 +909,25 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
   .ledger-head,.ledger-row{grid-template-columns:2fr 1fr 1fr 22px;}
   .detail-grid{grid-template-columns:1fr; gap:18px;}
   .fund-head,.fund-row{grid-template-columns:2fr 1fr 1fr;}
+}
+
+/* The narrowest phones (WPR's article column on a 320px phone is 288px): the
+   department ledger's spending goes compact like its levy, and toggles and the
+   tax-split rows tighten, so nothing pushes the page sideways. Last in the
+   file, so these win over the base rules above. */
+@media (max-width:380px){
+  .xs-hide{display:none;}
+  .xs-only{display:inline;}
+  .ledger-row{gap:8px; padding:12px 4px; font-size:14px;}
+  .fund-head, .fund-row{gap:8px; padding-left:4px; padding-right:4px;}
+  .d-name, .f-name{hyphens:auto;}
+  /* columns that can't be forced wider than the screen by one long word (the
+     Spanish "PROPUESTA", "DEPARTAMENTO"), which breaks instead */
+  .stat-strip{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .ledger-head, .ledger-row{grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) 22px;}
+  .stat-label, .ledger-head button{overflow-wrap:anywhere;}
+}
+@media (max-width:400px){
+  .toggle button{padding:7px 12px;}
+  .jrow{grid-template-columns:12px minmax(0,1fr) 72px 40px; gap:8px;}
 }

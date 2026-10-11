@@ -50,6 +50,13 @@ CLIPPED_TEXT = """() => [...document.querySelectorAll("svg.recharts-surface")].f
     return over > 0.5 ? [`${sec} "${t.textContent.trim().slice(0, 24)}" ${over.toFixed(1)} px`] : [];
   });
 })"""
+# Year axes whose labels skip unevenly (2017, 2019, 2021, 2023, 2026).
+UNEVEN_YEARS = """() => [...document.querySelectorAll("svg.recharts-surface")].flatMap((svg) => {
+  const ys = [...svg.querySelectorAll(".recharts-xAxis .recharts-cartesian-axis-tick text")].map((t) => t.textContent.trim());
+  if (!ys.length || !ys.every((y) => /^\\d{4}$/.test(y))) return [];
+  const steps = new Set(ys.slice(1).map((y, i) => y - ys[i]));
+  return steps.size > 1 ? [`${svg.closest("section")?.id || "?"}: ${ys.join(" ")}`] : [];
+})"""
 
 
 def check(name, ok, detail=""):
@@ -199,6 +206,29 @@ def main():
         check("Tax Bill view: no console errors", not errors, "; ".join(errors[:3]))
         ctx.close()
 
+        # ---- deep links land on their section and stay there: the sections above
+        # it draw a moment after the bill (some from files that arrive later), so
+        # the scroll must wait for them. Opened fresh, as a shared link is (no
+        # scroll restoration), on a phone, with scroll anchoring off as in Safari
+        # (Chrome's anchoring would hide a scroll that came too early), each in a
+        # new profile, as a reader following a link arrives: nothing cached. ----
+        off = []
+        for sec in ("receipt", "compare", "neighbors", "assessment", "dates"):
+            ctx = browser.new_context(viewport={"width": 390, "height": 844})
+            ctx.add_init_script("document.addEventListener('DOMContentLoaded', () => document.documentElement.style.overflowAnchor = 'none')")
+            page = ctx.new_page()
+            page.goto(base + f"#your-tax-bill/{sec}")
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(800)
+            # where it should sit: the page's scroll padding plus the section's scroll margin
+            top, want = page.evaluate(f"""(() => {{ const s = document.getElementById('{sec}');
+              return [s.getBoundingClientRect().top, parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)
+                + parseFloat(getComputedStyle(s).scrollMarginTop)]; }})()""")
+            if abs(top - want) > 2:
+                off.append(f"{sec} at {top:.0f} px, not {want:.0f}")
+            ctx.close()
+        check("deep links: each Tax Bill section lands where it should", not off, "; ".join(off))
+
         # ---- the charts arrive on their own: every chart box filled, none left waiting,
         # and no chart text clipped at the chart's edge, on a desktop or a phone ----
         ctx = browser.new_context(viewport={"width": 1100, "height": 900})
@@ -211,12 +241,14 @@ def main():
             page.wait_for_timeout(500)
             charts, waiting = page.locator(".recharts-surface").count(), page.locator(".chart-wait").count()
             check(f"charts {v}: drawn once the library lands", charts >= 3 and waiting == 0, f"{charts} drawn, {waiting} waiting")
-            clipped = []
+            clipped, uneven = [], []
             for w in (1100, 720, 360):
                 page.set_viewport_size({"width": w, "height": 900})
                 page.wait_for_timeout(1500)  # the charts resize and re-animate
                 clipped += [f"{w}px {c}" for c in page.evaluate(CLIPPED_TEXT)]
+                uneven += [f"{w}px {c}" for c in page.evaluate(UNEVEN_YEARS)]
             check(f"charts {v}: no label cut off at a chart's edge", not clipped, " | ".join(clipped[:4]))
+            check(f"charts {v}: year labels evenly spaced", not uneven, " | ".join(uneven[:3]))
         ctx.close()
 
         # ---- "Use my location" on a phone, with real (granted) geolocation ----
@@ -254,6 +286,27 @@ def main():
         fonts = page.evaluate("performance.getEntriesByType('resource').map((e) => e.name).filter((n) => n.endsWith('.woff2'))")
         check("fonts: the trimmed Fraunces, no Playfair", any("fraunces-opsz" in f for f in fonts)
               and not any("playfair" in f.lower() for f in fonts), str(fonts))
+        ctx.close()
+
+        # ---- the narrowest phones: no page pushed sideways (WPR's article column on
+        # a 320 px phone is 288 px, which is what an embedded frame gets) ----
+        ctx = browser.new_context(viewport={"width": 288, "height": 800})
+        page = ctx.new_page()
+        page.goto(base)
+        wide = []
+        for w, langs in ((288, ("en", "es", "hmn")), (320, ("en",))):
+            page.set_viewport_size({"width": w, "height": 800})
+            for lang in langs:
+                page.evaluate(f"localStorage.setItem('wpr-budget-lang', '{lang}')")
+                for v in [""] + ["#" + r for r in ROUTES if r != "home"]:
+                    page.goto(base + v)
+                    page.reload()
+                    page.wait_for_load_state("networkidle")
+                    page.wait_for_timeout(300)
+                    over = page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
+                    if over > 0:
+                        wide.append(f"{v or '#home'} {lang} at {w} px: {over} px")
+        check("narrow phones (288, 320 px): no page scrolls sideways", not wide, "; ".join(wide[:4]))
         ctx.close()
 
         # ---- the story card fits the frame the README's WordPress snippet gives it ----

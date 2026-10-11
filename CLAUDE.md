@@ -80,7 +80,17 @@ per-department levy) are structurally different governments.
 | Your Tax Bill (overview) | taxbill | `scripts/extract_dor.py` (state data) | `public/marathon-tax-districts.json` | `TaxBillOverview` |
 
 (The City body also loads `marathon-tax-districts.json`, via the manifest's
-`with` key, for its own tax-bill section.)
+`with` key, for its own tax-bill section.) An entity's `later` list names the
+`with` files its view can render before: App fetches them alongside the rest
+and hands each to the body as it lands (`settled` once all are in; check-data
+holds every name to a `with` key). The Tax Bill lists the receipt's three
+budgets and the next-door counties there, and paints the bill FIRST: the
+receipt, the map + ranking and the neighbors render one frame after it
+(`below`), each held meanwhile by a `SectionWait` box of about its height
+(slow-phone headline 2.09 → 1.77 s in the DOM, LCP 2.12 → 1.95 s). A deep link
+waits for all of it (`useAnchorOnMount(settled && below)`): Chrome's scroll
+anchoring would hide an early scroll, but Safari has none, so e2e opens each
+Tax Bill deep link in a fresh profile with anchoring off.
 
 **State taxing-district data (DOR).** `extract_dor.py` reads the Wisconsin DOR
 "Town, Village and City Taxes" workbook (`sources/dor-tvc25.xlsx`, from
@@ -202,7 +212,14 @@ City Sankey's left margin is 186 to fit "General Property Taxes $24M"). A line o
 area chart's year axis needs a right margin of 20 (the last year's label is
 centered on the edge point; at 10-12 it lost 5 px: "202"); e2e fails on any
 chart text cut off at its chart's edge (County, the edition, City, School at
-1100/720/360 px). Fonts:
+1100/720/360 px), and on year labels that skip unevenly (the County's axes use
+`interval="preserveEnd"`, counting back from the latest year; the School's
+half-century ticks count back too). No page scrolls sideways at 288 px (WPR's
+article column on a 320 px phone, so every embed) in any language, or at 320
+(e2e): the departments/funds ledgers show compact dollars under 380 px
+(`.xs-only`/`.xs-hide`, `Money` in Ledger.jsx), and the stat strip and ledger
+columns are `minmax(0, …)` so one long Spanish word breaks instead of widening
+the page. Fonts:
 `scripts/fonts.py` builds `src/assets/fonts/fraunces-opsz.woff2` (Fraunces
 subset to the site's characters, weights 400–700, opsz kept — 67 → 58 kB, an
 @font-face at the top of styles.css) and `src/wordmark.json` (the WPR wordmark
@@ -616,7 +633,11 @@ for 2025-26) for a per-student denominator.
   `onSelect(id)`; the ChromeBar Home button returns. Direct deep links like
   `#marathon-county` still skip the landing. `ChromeBar` is a **two-tier** bar
   (brand + Share/FY on top, the entity switcher as its own full-width `<nav>`
-  with `aria-current` beneath), with a `navigator.share`-or-clipboard **Share**
+  with `aria-current` beneath; on phones, under 680 px, Overview and Share are
+  icons, the language pill shows its code over a transparent native `<select>`,
+  the brand and controls share a row down to ~330 px, the logo circle drops
+  under 400 px, and the 2x2 entity buttons wrap long names: 181 → 141 px tall),
+  with a `navigator.share`-or-clipboard **Share**
   button that emits a canonical `#<activeId>` deep link (no personal data in the
   URL). Hooks are top-level in each body (no conditional hooks).
   Charts use `recharts`; icons `lucide-react`; sparklines, the Sankey nodes, and
