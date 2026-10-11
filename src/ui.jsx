@@ -752,7 +752,9 @@ export function SchoolPicker({ options, value, onChange, where, step }) {
 export function MoneyInput({ value, onValue, ...rest }) {
   const ref = useRef(null);
   const digitsBefore = useRef(null);
-  const text = value.toLocaleString("en-US");
+  // No value shows an empty box, not "0": a reader typing in front of a "0"
+  // would otherwise turn 150,000 into 1,500,000.
+  const text = value ? value.toLocaleString("en-US") : "";
   useLayoutEffect(() => {
     const el = ref.current;
     if (digitsBefore.current == null || document.activeElement !== el) return;

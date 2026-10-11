@@ -92,7 +92,20 @@ municipalities span more than one district), and its technical college(s).
 Header text is checked per column; sums reconcile within $1 per part (DOR rounds
 each part to the dollar); and a **method check** requires the tool's bill-rate
 formula to reproduce DOR's own published effective rate for every
-single-school-district municipality (33 of them; within 1¢ per $1,000).
+single-school-district municipality (33 of them; within 1¢ per $1,000). DOR's
+rate also spreads SPECIAL-DISTRICT taxes (sanitary/lake districts) over the
+whole municipality; the bill leaves them out (only parcels in the district pay)
+and they share "other taxes" with TIF increment (which DOR's rate excludes), so
+where "other" isn't zero the check is a bracket: bill rate ≤ DOR's ≤ bill rate +
+all of "other", ±1¢ (found on the neighbors — Town of Ainsworth, Langlade:
+$9.006 + $0.150 = $9.16; statewide every single-district municipality fits but
+one cent's rounding in Calumet). Zero-value parts (Milladore's sliver of Portage
+County) are skipped on purpose. `extract(..., county=)` builds any county;
+`extract_neighbors` the eight around Marathon (Lincoln, Langlade, Shawano,
+Waupaca, Portage, Wood, Clark, Taylor) into `public/neighbor-tax-districts.json`
+= {meta:{source, source_url, tax_year, credits, counties}, counties:[{county,
+municipalities}]} — same municipality schema; TECH_COLLEGES now names every code
+those counties use (from DOR's LGSDIST302WI report, Tech section).
 
 **Every tax-bill view uses this one source and ONE basis — per $1,000 of FAIR
 MARKET value** (DOR "full" value; on every WI tax bill as "Est. Fair Mkt.";
@@ -169,6 +182,28 @@ extractor proves no overlaps, no gaps, and that the outline built from the
 grid's once-used edges encloses the county (neighbors share borders exactly).
 A new DOR year that adds/renames a municipality fails check-data until the map
 is re-extracted (use the next GENZ vintage).
+
+**Three reader-service sections after the map** (Tax Bill view):
+`Neighbors` (#neighbors, "The same home, across the county line": the nine
+counties sorted by typical/median bill, each a strip from cheapest to dearest
+municipality on one scale, a dot for its largest place, the reader's pick on
+Marathon's row; loaded via the manifest `with.neighbors`); `AssessmentCheck`
+(#assessment: assessed value from the bill ÷ the bill's average assessment
+ratio — prefilled with DOR's two-decimal level, editable because each year's
+bill prints its own — = implied market value, vs the home value above: > 10%
+over the municipality's average = "high", the band Wisconsin's assessment
+standard uses; Open Book / Board of Review (48-hour notice, PA-115A complete,
+evidence) + DOR's PB-060 guide and PA-115A links; the assessed value is never
+stored); `KeyDates` (#dates: the County edition's hearing/vote while ahead,
+"December" bills and "Spring" Open Book/BOR placed in the timeline by season,
+installments to the right treasurer — City of Wausau collects its own Jan 31 /
+Apr 30 / Jul 31, elsewhere Jan 31 local and Jul 31 County Treasurer (Marathon
+County Treasurer's "Dates to remember") — each its next occurrence from today;
+an .ics made on the device for the dated ones; WPR newsletter link tagged
+utm_content=key-dates. The tool can't promise WPR emails deadline reminders —
+the copy says "votes and tax news"; a real reminder list is WPR's to set up).
+MoneyInput shows an EMPTY box for 0 (typing in front of a "0" had turned 150,000
+into 1,500,000 — caught by the Playwright run).
 
 **Zoom and location (src/mapgeo.js).** "Zoom to the Wausau area" animates the
 map's viewBox (420 ms; instant under reduced motion) to `WAUSAU_AREA` — the
@@ -279,8 +314,10 @@ python scripts/extract_wausau.py "2026-Wausau-Budget.pdf" public/wausau-city.jso
 
 # Every Marathon County municipality's levies (DOR TVC workbook) + the state's
 # per-home credits (DOR's lottery and first-dollar "Credit Amount" reports):
+# (--neighbors: the eight counties around Marathon, same basis, one file)
 python scripts/extract_dor.py sources/dor-tvc25.xlsx sources/dor-2025lotcr.pdf \
-       sources/dor-2025fdcred.pdf public/marathon-tax-districts.json --cache
+       sources/dor-2025fdcred.pdf public/marathon-tax-districts.json \
+       --neighbors public/neighbor-tax-districts.json --cache
 # then redraw the share cards (CI fails while their figures are stale):
 python scripts/og_cards.py
 # and the map's boundaries (Census cartographic boundary file, same Jan 1 as DOR):

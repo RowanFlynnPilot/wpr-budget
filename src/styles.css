@@ -532,6 +532,63 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
 .cmap-scale span{white-space:nowrap;}
 .cmap figcaption{margin-top:14px;}
 
+/* "The same home, across the county line" (Tax Bill view) */
+.nb-list{list-style:none; margin:20px 0 0; padding:0; border-top:1px solid var(--rule);}
+.nb-row{display:grid; grid-template-columns:minmax(0,190px) minmax(0,1fr); gap:4px 18px; align-items:center;
+  padding:10px 6px; border-bottom:1px solid var(--rule);}
+.nb-row.home{background:var(--paper-2);}
+.nb-head{display:flex; flex-direction:column; grid-row:span 2;}
+.nb-head b{font-size:15px;}
+.nb-head span{font-size:12px; color:var(--ink-soft); font-variant-numeric:tabular-nums;}
+.nb-strip{position:relative; height:14px;}
+.nb-range{position:absolute; top:6px; height:3px; background:var(--accent); opacity:.35; border-radius:2px;}
+.nb-big{position:absolute; top:2px; width:11px; height:11px; margin-left:-5.5px; border-radius:50%; background:var(--accent);}
+.nb-mine{position:absolute; top:-1px; width:3px; height:16px; margin-left:-1.5px; background:var(--ink); box-shadow:0 0 0 1.5px var(--gold);}
+.nb-ends{display:flex; justify-content:space-between; gap:12px; font-size:12px; color:var(--ink-soft); font-variant-numeric:tabular-nums;}
+.nb-ends span + span{text-align:right;}
+.nb-big-label{grid-column:2; font-size:13px; font-variant-numeric:tabular-nums;}
+.nb-big-label > i{display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--accent); margin-right:6px;}
+.nb-big-label em{font-style:normal; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--gold-ink);}
+@media (max-width:560px){
+  .nb-row{grid-template-columns:1fr;}
+  .nb-head{grid-row:auto; flex-direction:row; justify-content:space-between; align-items:baseline; gap:10px;}
+  .nb-big-label{grid-column:1;}
+}
+
+/* "Is your assessment fair?" (Tax Bill view) */
+.as-inputs{display:flex; flex-wrap:wrap; gap:14px 22px; margin-top:18px;}
+.as-field{display:flex; flex-direction:column; gap:6px; flex:1 1 220px; max-width:320px;}
+.as-field > span:first-child{font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);}
+.as-ratio{height:40px; border:1px solid var(--ink); background:var(--paper); padding:0 10px; font:inherit; font-size:18px;
+  font-variant-numeric:tabular-nums; color:var(--ink); width:100%; box-sizing:border-box;}
+.as-hint{margin-top:8px;}
+.as-out{margin-top:14px; padding:14px 18px; background:var(--paper-2); border-left:3px solid var(--accent);
+  font-family:var(--serif); font-size:17px; line-height:1.5;}
+.as-out p{margin:0;}
+.as-out p + p{margin-top:8px;}
+.as-verdict.high{color:var(--neg);}
+.as-how{font-family:var(--serif); font-size:20px; margin:26px 0 0;}
+.as-steps{margin:10px 0 0; padding-left:22px; line-height:1.55; max-width:70ch;}
+.as-steps li + li{margin-top:6px;}
+.as-links{display:flex; flex-wrap:wrap; gap:8px 22px; margin:14px 0 0; font-weight:600;}
+.as-links a{color:var(--accent);}
+
+/* "Key dates" (Tax Bill view) */
+.kd-list{list-style:none; margin:18px 0 0; padding:0; border-top:2px solid var(--ink);}
+.kd-list li{display:grid; grid-template-columns:minmax(0,170px) 1fr; gap:4px 18px; padding:10px 2px;
+  border-bottom:1px solid var(--rule); font-size:15px; line-height:1.4;}
+.kd-list time, .kd-when{font-weight:700; font-variant-numeric:tabular-nums;}
+.kd-loose{color:var(--ink-soft);}
+.kd-actions{display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; margin-top:16px;}
+.kd-actions .note{margin:0;}
+.kd-ics{display:inline-flex; align-items:center; gap:6px;}
+.kd-alerts{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px 20px; margin-top:18px;
+  padding:14px 18px; background:var(--accent); color:#fff;}
+.kd-alerts p{margin:0; font-family:var(--serif); font-size:17px; line-height:1.4; max-width:52ch;}
+.kd-alerts .support-btn{background:#fff; color:var(--accent); text-decoration:none; padding:10px 18px; font-weight:700;}
+.kd-alerts .support-btn:hover{background:var(--paper);}
+@media (max-width:560px){ .kd-list li{grid-template-columns:1fr;} }
+
 /* ---------- suite landing page ---------- */
 .lp-hero{padding-bottom:24px;}
 /* The statement: two figures side by side — one home's bill, and how far the

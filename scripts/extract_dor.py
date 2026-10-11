@@ -42,25 +42,28 @@ import argparse
 
 from lib import load_pages, money, write_json
 
-# One line of a DOR credit report, for a Marathon County municipality:
-# year, CoMun, auth code, name, county, district code (county + 4-digit district),
-# auth, district name, district levy, TIF-out equalized value, school tax rate,
-# maximum credit value, maximum credit.
-CREDIT_LINE = re.compile(
-    r"^(20\d\d) (\d{5}) \d{4} .+? MARATHON (\d{6}) \d{4} .+? "
-    r"\$([\d,]+\.\d\d) \$([\d,]+\.\d\d) (0\.\d+) \$([\d,]+\.\d\d) \$([\d,]+\.\d\d)$")
+# One line of a DOR credit report, for a municipality in `county`: year, CoMun,
+# auth code, name, county, district code (county + 4-digit district), auth,
+# district name, district levy, TIF-out equalized value, school tax rate, maximum
+# credit value, maximum credit. (The county must sit right before the district
+# code, so the Town of Wood in Burnett County never reads as Wood County.)
+def credit_line(county):
+    return re.compile(
+        rf"^(20\d\d) (\d{{5}}) \d{{4}} .+? {county} (\d{{6}}) \d{{4}} .+? "
+        r"\$([\d,]+\.\d\d) \$([\d,]+\.\d\d) (0\.\d+) \$([\d,]+\.\d\d) \$([\d,]+\.\d\d)$")
 
 
-def credit_report(pdf, title, cache):
+def credit_report(pdf, title, cache, county):
     """{(municipality code, school district code): (school tax rate, max credit)},
     the report's maximum credit value, and the year its bills are payable."""
     texts = load_pages(pdf, cache)
     if title not in texts[0]:
         raise ValueError(f"{pdf}: expected the {title!r} report, got {texts[0][:80]!r}")
     rows, mcvs, years = {}, set(), set()
+    line_re = credit_line(county)
     for t in texts:
         for line in t.split("\n"):
-            m = CREDIT_LINE.match(line.strip())
+            m = line_re.match(line.strip())
             if not m:
                 continue
             year, comun, sd6, levy, value, rate, mcv, credit = m.groups()
@@ -79,12 +82,11 @@ def credit_report(pdf, title, cache):
             mcvs.add(mcv)
             years.add(int(year))
     if not rows:
-        raise ValueError(f"{pdf}: no Marathon County lines parsed — the report layout changed")
+        raise ValueError(f"{pdf}: no {county.title()} County lines parsed — the report layout changed")
     if len(mcvs) != 1 or len(years) != 1:
         raise ValueError(f"{pdf}: expected one maximum credit value and one year, got {mcvs} / {years}")
     return rows, int(mcvs.pop()), years.pop()
 
-COUNTY = "MARATHON COUNTY"
 TYPES = {"T": "Town", "V": "Village", "C": "City"}
 
 # Municipal Data columns, keyed by the header text stacked over each column
@@ -110,8 +112,17 @@ MUNI_COLS = {
 }
 # Technical college districts, by the code the bulletin lists among the
 # districts "containing territory" (the codes that aren't school districts).
-# Three Marathon County towns (Day, Green Valley, McMillan) straddle both.
-TECH_COLLEGES = {"1500": "Northcentral Technical College", "1400": "Mid-State Technical College"}
+# Three Marathon County towns (Day, Green Valley, McMillan) straddle two. Codes
+# and names from DOR's "School Districts With Underlying Tax District" report
+# (LGSDIST302WI, its Tech section: https://www.revenue.wi.gov/DOR%20Publications/schtxd.pdf);
+# the first two serve Marathon County, the rest its neighbors.
+TECH_COLLEGES = {"1500": "Northcentral Technical College", "1400": "Mid-State Technical College",
+                 "0100": "Chippewa Valley Technical College", "0200": "Western Technical College",
+                 "1200": "Fox Valley Technical College", "1300": "Northeast Wisconsin Technical College",
+                 "1600": "Nicolet College"}
+# Marathon County's neighbors, clockwise from the north (the Tax Bill view's
+# "The same home, next door").
+NEIGHBORS = ["LINCOLN", "LANGLADE", "SHAWANO", "WAUPACA", "PORTAGE", "WOOD", "CLARK", "TAYLOR"]
 SD_COLS = {"sd_code": (0, "CODE"), "sd_name": (1, "SCHOOL NAME"), "code": (2, "DISTRICT CODE"),
            "full_value": (4, "WITHIN SCHOOL DISTRICT"), "levy": (6, "DISTRICT LEVY")}
 
@@ -139,7 +150,8 @@ def check_headers(head, spec, sheet):
                              f"the workbook layout changed; re-map MUNI_COLS/SD_COLS")
 
 
-def extract(xlsx, lottery_pdf, first_dollar_pdf, cache=False):
+def extract(xlsx, lottery_pdf, first_dollar_pdf, cache=False, county="MARATHON"):
+    """One county's municipalities (DOR's county name, as the workbook prints it)."""
     import openpyxl
     wb = openpyxl.load_workbook(xlsx, read_only=True, data_only=True)
 
@@ -151,9 +163,14 @@ def extract(xlsx, lottery_pdf, first_dollar_pdf, cache=False):
     tax_year = int(my.group(1))
     check_headers(headers(mrows, 1, 4), MUNI_COLS, "Municipal Data")
 
-    munis = {}
+    munis, empty = {}, set()
     for r in mrows[5:]:
-        if not r[0] or str(r[0]).strip() != COUNTY:
+        if not r[0] or str(r[0]).strip() != f"{county} COUNTY":
+            continue
+        # A part with no property (the Village of Milladore's sliver of Portage
+        # County 2025: $0 value, no residents) sends no one a bill.
+        if int(r[MUNI_COLS["full_value"][0]]) == 0:
+            empty.add(str(r[2]).strip().strip('"'))
             continue
         code = str(r[2]).strip().strip('"')
         kind, _, name = str(r[3]).strip().partition(" ")
@@ -185,7 +202,7 @@ def extract(xlsx, lottery_pdf, first_dollar_pdf, cache=False):
             "_territory": str(r[MUNI_COLS["territory"][0]]).split(),
         }
     if not munis:
-        raise ValueError(f"no {COUNTY} rows in the Municipal Data sheet")
+        raise ValueError(f"no {county} COUNTY rows in the Municipal Data sheet")
 
     srows = list(wb["School District Data"].iter_rows(values_only=True))
     check_headers(headers(srows, 1, 4), SD_COLS, "School District Data")
@@ -228,6 +245,8 @@ def extract(xlsx, lottery_pdf, first_dollar_pdf, cache=False):
         # would render as $NaN, so it isn't offered. (Dropped only after the
         # colleges are derived above, which subtracts every listed school code.)
         m["school_districts"] = sds = [s for s in sds if s["full_value"] > 0]
+        if not sds:
+            raise ValueError(f"{label}: no school district with any value")
 
         # Method check: the tool's bill rate (billRates in src/ui.jsx — levies
         # over the TIF-out value, the school district's levy over its value, the
@@ -235,19 +254,29 @@ def extract(xlsx, lottery_pdf, first_dollar_pdf, cache=False):
         # effective rate wherever the municipality has a single school district.
         # (DOR prints that rate to 5 decimals and its parts are whole dollars,
         # hence one cent per $1,000; the Village of Unity's sliver in Marathon
-        # County is the loosest, at $0.006.)
+        # County is the loosest, at $0.006.) One part of DOR's rate the bill
+        # leaves out on purpose: special-district taxes (sanitary, lake,
+        # protection districts), which DOR spreads over the whole municipality
+        # but only the parcels inside the district pay. They're in "other
+        # taxes" with TIF increment (which DOR's rate excludes), and the bulletin
+        # doesn't split the two, so where "other" isn't zero DOR's rate must lie
+        # between the bill rate and the bill rate plus all of "other" (Town of
+        # Ainsworth, Langlade County 2025: $9.006 + $0.150 of special districts
+        # = DOR's $9.16). Statewide in 2025 every single-district municipality
+        # but one fits, and that one is a cent's rounding in Calumet County.
         if len(sds) == 1:
             t = m["taxes"]
             ours = ((t["county"] + t["local"] + t["technical_college"]) / m["full_value_ex_tif"]
                     + sds[0]["levy"] / sds[0]["full_value"] - m["school_levy_credit"] / m["full_value"]) * 1000
-            if abs(ours - m["effective_rate"] * 1000) > 0.01:
-                raise ValueError(f"{label}: bill rate ${ours:.3f}/$1,000 vs DOR effective rate "
-                                 f"${m['effective_rate'] * 1000:.2f} — the rate method no longer matches DOR's")
+            dor = m["effective_rate"] * 1000
+            if not ours - 0.01 <= dor <= ours + t["other"] / m["full_value_ex_tif"] * 1000 + 0.01:
+                raise ValueError(f"{label}: bill rate ${ours:.3f}/$1,000 vs DOR effective rate ${dor:.2f} "
+                                 f"(other taxes ${t['other']:,}) — the rate method no longer matches DOR's")
 
     # The state's per-home credits (see the module notes): one rate per
     # municipality / school district, shared by both reports.
-    lottery, lottery_mcv, lottery_year = credit_report(lottery_pdf, "Lottery Credit Estimate Report", cache)
-    first, first_mcv, first_year = credit_report(first_dollar_pdf, "First Dollar Credit Estimate Report", cache)
+    lottery, lottery_mcv, lottery_year = credit_report(lottery_pdf, "Lottery Credit Estimate Report", cache, county)
+    first, first_mcv, first_year = credit_report(first_dollar_pdf, "First Dollar Credit Estimate Report", cache, county)
     if not lottery_year == first_year == tax_year + 1:
         raise ValueError(f"credit reports are for bills payable {lottery_year}/{first_year}, "
                          f"the TVC bulletin's taxes are payable {tax_year + 1}")
@@ -259,16 +288,16 @@ def extract(xlsx, lottery_pdf, first_dollar_pdf, cache=False):
             if (m["code"], sd["code"]) not in lottery:
                 raise ValueError(f"{label}: no credit line for school district {sd['code']} {sd['name']}")
             sd["credit_rate"] = lottery[(m["code"], sd["code"])][0]
-    unknown = sorted({c for c, _ in lottery} - set(munis))
+    unknown = sorted({c for c, _ in lottery} - set(munis) - empty)
     if unknown:
-        raise ValueError(f"credit reports list Marathon County municipalities not in the bulletin: {unknown}")
+        raise ValueError(f"credit reports list {county.title()} County municipalities not in the bulletin: {unknown}")
 
     return {
         "meta": {
             "source": f"Wisconsin Department of Revenue, {tax_year} Town, Village and City Taxes",
             "source_url": "https://www.revenue.wi.gov/Pages/Report/tvc-bulletin.aspx",
             "tax_year": tax_year,
-            "county": "Marathon",
+            "county": county.title(),
             "credits": {
                 "payable": tax_year + 1,
                 "lottery_max_value": lottery_mcv,
@@ -280,6 +309,22 @@ def extract(xlsx, lottery_pdf, first_dollar_pdf, cache=False):
     }
 
 
+def extract_neighbors(xlsx, lottery_pdf, first_dollar_pdf, cache=False):
+    """The eight counties around Marathon, each as extract() builds it, in one
+    file: { meta: {source, source_url, tax_year, credits, counties}, counties:
+    [{county, municipalities}] }. Same bills, same credits, same year — or fail."""
+    parts = [extract(xlsx, lottery_pdf, first_dollar_pdf, cache, county=c) for c in NEIGHBORS]
+    meta = parts[0]["meta"]
+    for part in parts[1:]:
+        if (part["meta"]["tax_year"], part["meta"]["credits"]) != (meta["tax_year"], meta["credits"]):
+            raise ValueError(f"{part['meta']['county']} County: a different tax year or credit values")
+    return {
+        "meta": {**{k: meta[k] for k in ("source", "source_url", "tax_year", "credits")},
+                 "counties": [part["meta"]["county"] for part in parts]},
+        "counties": [{"county": part["meta"]["county"], "municipalities": part["municipalities"]} for part in parts],
+    }
+
+
 def main():
     ap = argparse.ArgumentParser(description="Extract Marathon County taxing districts from the DOR TVC workbook.")
     ap.add_argument("xlsx", help="the DOR Town, Village and City Taxes workbook (tvcYY.xlsx)")
@@ -287,6 +332,8 @@ def main():
     ap.add_argument("first_dollar", help="DOR's first-dollar credit amounts for the same bills (YYYYfdcred.pdf)")
     ap.add_argument("out", help="output JSON path (public/marathon-tax-districts.json)")
     ap.add_argument("--cache", action="store_true", help="cache the PDFs' page texts in sources/")
+    ap.add_argument("--neighbors", metavar="OUT", help="also write the eight neighboring counties "
+                    "(public/neighbor-tax-districts.json)")
     args = ap.parse_args()
     data = extract(args.xlsx, args.lottery, args.first_dollar, cache=args.cache)
     write_json(args.out, data)
@@ -294,6 +341,10 @@ def main():
     multi = [f"{m['type']} of {m['name']}" for m in ms if len(m["school_districts"]) > 1]
     print(f"wrote {args.out}: {len(ms)} Marathon County municipalities, tax year {data['meta']['tax_year']} | "
           f"{len(multi)} span more than one school district")
+    if args.neighbors:
+        nb = extract_neighbors(args.xlsx, args.lottery, args.first_dollar, cache=args.cache)
+        write_json(args.neighbors, nb)
+        print(f"wrote {args.neighbors}: " + ", ".join(f"{c['county']} {len(c['municipalities'])}" for c in nb["counties"]))
 
 
 if __name__ == "__main__":

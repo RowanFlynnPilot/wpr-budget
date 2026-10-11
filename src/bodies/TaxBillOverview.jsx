@@ -1,7 +1,8 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { LocateFixed, ZoomIn, ZoomOut } from "lucide-react";
-import { useStrings } from "../i18n";
-import { usd } from "../format";
+import { CalendarPlus, LocateFixed, ZoomIn, ZoomOut } from "lucide-react";
+import { useLang, useStrings } from "../i18n";
+import { usd, fmtDate } from "../format";
+import entities from "../entities.json";
 import { track } from "../analytics";
 import { billDollars, billParts, muniBills, muniSlug, netBill, stateCredits } from "../taxmath";
 import { countyShares, cityShares, schoolShares, itemize } from "../receipt";
@@ -9,7 +10,7 @@ import { locate, ringsOf, WAUSAU_AREA } from "../mapgeo";
 import {
   SponsorSlot, SourceLink, SectionHead, HomeValueCalc, TaxSplit, MuniPicker, SchoolPicker, billRates, billExtremes, placeLabel,
   PrimaryHomeToggle, useAnchorOnMount, useHomeValue, useMuniChoice, useSchoolChoice, usePrimaryHome, WAUSAU_CITY_DOR,
-  CountyShapes, RAMP, rampColor,
+  CountyShapes, RAMP, rampColor, MoneyInput, NEWSLETTER_URL, countLink,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
 
@@ -367,6 +368,198 @@ function Ranking({ municipalities, muni, school, homeValue, credits, primary, ma
   );
 }
 
+// "The same home, across the county line": Marathon County and the eight
+// counties around it (public/neighbor-tax-districts.json — the same DOR data,
+// year and credits), each municipality's bill on the reader's home in its
+// largest school district (muniBills), the reader's own pick as they set it.
+// One row per county on one scale: a line from its lowest bill to its highest,
+// a dot for its largest place. Sorted by the county's typical (median) bill.
+function Neighbors({ nb, municipalities, muni, school, homeValue, credits, primary }) {
+  const t = useStrings();
+  const dollars = (n) => usd(Math.round(n));
+  const counties = useMemo(() => [{ county: "Marathon", municipalities }, ...nb.counties].map((c) => {
+    const rows = muniBills(c.municipalities, credits, homeValue, primary,
+      c.municipalities === municipalities ? { code: muni.code, school } : null);
+    const sorted = [...rows].sort((a, z) => a.bill - z.bill);
+    const big = [...c.municipalities].sort((a, z) => z.population - a.population)[0];
+    return {
+      county: c.county, home: c.municipalities === municipalities, n: rows.length,
+      lo: sorted[0], hi: sorted.at(-1), median: sorted[Math.floor(sorted.length / 2)].bill,
+      big: rows.find((r) => r.m.code === big.code), mine: rows.find((r) => r.m.code === muni.code),
+    };
+  }).sort((a, z) => z.median - a.median), [nb, municipalities, muni.code, school, homeValue, credits, primary]);
+  const lo = Math.min(...counties.map((c) => c.lo.bill)), hi = Math.max(...counties.map((c) => c.hi.bill));
+  const x = (bill) => ((bill - lo) / (hi - lo)) * 100 + "%";
+  const place = (r, county) => `${r.m.type} of ${r.m.name}${r.m.split_county ? " " + t("nb.part", county) : ""}`;
+  const loC = counties.find((c) => c.lo.bill === lo), hiC = counties.find((c) => c.hi.bill === hi);
+  return (
+    <section id="neighbors" className="block">
+      <SectionHead kicker={t("nb.kick")} title={t("nb.title")}>{t("nb.dek", usd(homeValue))}</SectionHead>
+      <p className="rank-lede">{t("nb.lede", dollars(lo), place(loC.lo, loC.county) + ", " + t("nb.county", loC.county),
+        dollars(hi), place(hiC.hi, hiC.county) + ", " + t("nb.county", hiC.county))}</p>
+      <ol className="nb-list">
+        {counties.map((c) => (
+          <li key={c.county} className={"nb-row" + (c.home ? " home" : "")}>
+            <div className="nb-head">
+              <b>{t("nb.county", c.county)}</b>
+              <span>{t("nb.typical", dollars(c.median))} · {t("nb.places", c.n)}</span>
+            </div>
+            <div className="nb-strip" aria-hidden="true">
+              <i className="nb-range" style={{ left: x(c.lo.bill), width: `calc(${x(c.hi.bill)} - ${x(c.lo.bill)})` }} />
+              <i className="nb-big" style={{ left: x(c.big.bill) }} />
+              {c.home && <i className="nb-mine" style={{ left: x(c.mine.bill) }} />}
+            </div>
+            <div className="nb-ends">
+              <span>{dollars(c.lo.bill)} {place(c.lo, c.county)}</span>
+              <span>{dollars(c.hi.bill)} {place(c.hi, c.county)}</span>
+            </div>
+            <div className="nb-big-label">
+              <i aria-hidden="true" />{place(c.big, c.county)} <b>{dollars(c.big.bill)}</b>
+              {c.home && <> · <em>{t("tb.cmp.yours")}</em> {place(c.mine, c.county)} <b>{dollars(c.mine.bill)}</b></>}
+            </div>
+          </li>
+        ))}
+      </ol>
+      <p className="note">{t("nb.note", nb.meta.tax_year)}</p>
+    </section>
+  );
+}
+
+// "Is your assessment fair?": the bill is figured on the ASSESSED value, and
+// each municipality assesses at its own share of market value (DOR's
+// assessment level: 0.54 to 1.02 here). Assessed value ÷ the bill's average
+// assessment ratio = the market value the assessment stands for; next to what
+// the reader says the home would sell for (the value above), a ratio more than
+// 10% over the municipality's average — the band Wisconsin's own assessment
+// standard uses — is worth raising at Open Book or the Board of Review. A rough
+// check, said so; the assessed value is never stored.
+const DOR_GUIDE_URL = "https://www.revenue.wi.gov/DOR%20Publications/pb060.pdf";
+const PA115A_URL = "https://www.revenue.wi.gov/DORForms/pa-115a.pdf";
+function AssessmentCheck({ muni, where, homeValue, year }) {
+  const t = useStrings();
+  const [assessed, setAssessed] = useState(0);
+  const [ratioText, setRatioText] = useState(null); // null: DOR's level for the municipality
+  useEffect(() => setRatioText(null), [muni.code]);
+  const ratio = ratioText == null ? muni.assessment_level : Number(ratioText);
+  const ok = assessed > 0 && ratio > 0.2 && ratio <= 1.5;
+  const pct = (f) => Math.round(f * 100) + "%";
+  const mine = assessed / homeValue;
+  const verdict = !ok ? null : mine > ratio * 1.1 ? "as.high" : mine < ratio * 0.9 ? "as.low" : "as.fair";
+  return (
+    <section id="assessment" className="block">
+      <SectionHead kicker={t("as.kick")} title={t("as.title")}>{t("as.dek")}</SectionHead>
+      <div className="as-inputs">
+        <label className="as-field">
+          <span>{t("as.assessed")}</span>
+          <span className="card-field">$<MoneyInput value={assessed} onValue={setAssessed} aria-describedby="as-out" /></span>
+        </label>
+        <label className="as-field">
+          <span>{t("as.ratio")}</span>
+          <input type="text" inputMode="decimal" className="as-ratio" value={ratioText ?? String(muni.assessment_level)}
+            onChange={(e) => setRatioText(e.target.value)} />
+        </label>
+      </div>
+      <p className="note as-hint">{t("as.ratioHint", where, String(muni.assessment_level), year)}</p>
+      <div id="as-out" className="as-out" aria-live="polite">
+        {!ok ? <p>{t("as.prompt")}</p> : <>
+          <p>{t("as.implied", usd(assessed), String(ratio), usd(Math.round(assessed / ratio)))}</p>
+          <p className={"as-verdict " + verdict.slice(3)}>{t(verdict, pct(mine), pct(ratio), usd(homeValue), where)}</p>
+        </>}
+      </div>
+      <h3 className="as-how">{t("as.how")}</h3>
+      <ol className="as-steps">
+        <li>{t("as.step1")}</li>
+        <li>{t("as.step2")}</li>
+        <li>{t("as.step3")}</li>
+      </ol>
+      <p className="as-links">
+        <a href={DOR_GUIDE_URL} target="_blank" rel="noopener noreferrer" onClick={countLink("dor-guide")}>{t("as.guide")}</a>
+        <a href={PA115A_URL} target="_blank" rel="noopener noreferrer" onClick={countLink("pa-115a")}>{t("as.form")}</a>
+      </p>
+      <p className="note">{t("as.dates")} {t("as.note")}</p>
+    </section>
+  );
+}
+
+// "Key dates": what's ahead for a home in the reader's municipality — the
+// County budget's hearing and vote (the proposed edition's own dates, while
+// they're ahead), the bills, and the installments to the right treasurer: the
+// City of Wausau collects its own three (Jan 31, Apr 30, Jul 31); everywhere
+// else, the first goes to the municipal treasurer and the last to the County
+// Treasurer (Marathon County Treasurer's "Dates to remember"). Each date is its
+// next occurrence from today. "Add to calendar" writes an .ics file on the
+// device; nothing is sent. The newsletter link is tagged for this section.
+const TREASURER_DATES_URL = "https://www.marathoncounty.gov/about-us/departments/county-treasurer/dates-to-remember";
+const DATES_SIGNUP_URL = NEWSLETTER_URL + "&utm_content=key-dates";
+const nextDate = (month, day, from) => {
+  const d = new Date(from.getFullYear(), month - 1, day);
+  return d < from ? new Date(from.getFullYear() + 1, month - 1, day) : d;
+};
+const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+function KeyDates({ muni, where }) {
+  const t = useStrings();
+  const { lang } = useLang();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const wausau = muni.code === WAUSAU_CITY_DOR;
+  const county = entities.find((e) => e.kind === "county");
+  const ed = (county.editions || [])[0];
+  const items = [
+    ...(ed ? [
+      { date: new Date(ed.hearing + "T00:00:00"), what: t("kd.hearing", ed.year) },
+      { date: new Date(ed.vote + "T00:00:00"), what: t("kd.vote", ed.year) },
+    ] : []),
+    { date: nextDate(1, 31, today), what: t("kd.first", wausau ? t("kd.toWausau") : t("kd.toLocal")) },
+    ...(wausau ? [{ date: nextDate(4, 30, today), what: t("kd.second") }] : []),
+    { date: nextDate(7, 31, today), what: t("kd.final", wausau ? t("kd.toWausau") : t("kd.toCounty")) },
+    // no fixed date: placed in the timeline by season, shown by season, left out of the calendar file
+    { date: nextDate(12, 31, today), what: t("kd.bills"), when: t("kd.december") },
+    { date: nextDate(5, 31, today), what: t("kd.review"), when: t("kd.spring") },
+  ].filter((i) => i.date >= today).sort((a, z) => a.date - z.date);
+  const calendar = () => {
+    track("Download", { view: "your-tax-bill", format: "ics" });
+    const stamp = new Date().toISOString().replace(/[-:]|\.\d+/g, "");
+    const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Wausau Pilot & Review//Follow the Money//EN", "CALSCALE:GREGORIAN",
+      ...items.filter((i) => !i.when).flatMap((i) => {
+        const day = iso(i.date).replace(/-/g, "");
+        const end = iso(new Date(i.date.getFullYear(), i.date.getMonth(), i.date.getDate() + 1)).replace(/-/g, "");
+        return ["BEGIN:VEVENT", `UID:${day}-${i.what.length}@follow-the-money`, `DTSTAMP:${stamp}`,
+          `DTSTART;VALUE=DATE:${day}`, `DTEND;VALUE=DATE:${end}`,
+          `SUMMARY:${i.what.replace(/[,;]/g, (c) => "\\" + c)}`, `DESCRIPTION:${where} · Follow the Money`, "END:VEVENT"];
+      }), "END:VCALENDAR"].join("\r\n");
+    const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = "follow-the-money-tax-dates.ics"; a.click();
+    URL.revokeObjectURL(url);
+  };
+  return (
+    <section id="dates" className="block">
+      <SectionHead kicker={t("kd.kick")} title={t("kd.title")}>{t("kd.dek", where)}</SectionHead>
+      <ol className="kd-list">
+        {items.map((i) => (
+          <li key={iso(i.date) + i.what} className={i.when ? "kd-loose" : undefined}>
+            {i.when ? <span className="kd-when">{i.when}</span> : <time dateTime={iso(i.date)}>{fmtDate(iso(i.date), lang)}</time>}
+            <span>{i.what}</span>
+          </li>
+        ))}
+      </ol>
+      <p className="note">{t("kd.note")} <a href={TREASURER_DATES_URL} target="_blank" rel="noopener noreferrer">{t("kd.source")}</a></p>
+      <div className="kd-actions">
+        <button type="button" className="table-toggle kd-ics" onClick={calendar}>
+          <CalendarPlus size={15} strokeWidth={2.25} aria-hidden="true" />{t("kd.ics")}
+        </button>
+        <span className="note">{t("kd.icsNote")}</span>
+      </div>
+      <div className="kd-alerts">
+        <p>{t("kd.alerts")}</p>
+        <a className="support-btn" href={DATES_SIGNUP_URL} target="_blank" rel="noopener noreferrer" onClick={countLink("newsletter-dates")}>
+          {t("kd.signup")}
+        </a>
+      </div>
+    </section>
+  );
+}
+
 export default function TaxBillOverview({ b, extra, chrome }) {
   const t = useStrings();
   const [homeValue, setHomeValue] = useHomeValue();
@@ -438,6 +631,13 @@ export default function TaxBillOverview({ b, extra, chrome }) {
           setMuniCode(code);
           document.getElementById("bill").scrollIntoView({ behavior: "instant", block: "start" });
         }} />
+
+      <Neighbors nb={extra.neighbors} municipalities={b.municipalities} muni={muni} school={bill.school.code}
+        homeValue={homeValue} credits={cr} primary={primary} />
+
+      <AssessmentCheck muni={muni} where={bill.where} homeValue={homeValue} year={year} />
+
+      <KeyDates muni={muni} where={bill.where} />
 
       <footer className="foot">
         <p><b>{t("foot.sourceLabel")}</b> <SourceLink source={chrome.source}>{t("tb.foot.source", year)}</SourceLink></p>

@@ -123,7 +123,7 @@ pip install -r scripts/requirements.txt
 python scripts/extract_budget.py 2026-Annual-Budget.pdf public/marathon-county.json 2025-Annual-Budget.pdf --cache
 python scripts/extract_wausau.py 2026-Wausau-Budget.pdf public/wausau-city.json --cache
 python scripts/extract_school.py sources/2026-Wausau-School-Budget.pdf public/wausau-school.json sources/enrollment_certified_*.zip --cache
-python scripts/extract_dor.py sources/dor-tvc25.xlsx sources/dor-2025lotcr.pdf sources/dor-2025fdcred.pdf public/marathon-tax-districts.json --cache
+python scripts/extract_dor.py sources/dor-tvc25.xlsx sources/dor-2025lotcr.pdf sources/dor-2025fdcred.pdf public/marathon-tax-districts.json --neighbors public/neighbor-tax-districts.json --cache
 python scripts/extract_map.py sources/census-cousub-2025/cb_2025_55_cousub_500k.zip public/marathon-tax-districts.json public/marathon-map.json
 python scripts/og_cards.py # the share cards carry figures; CI fails while they're stale
 

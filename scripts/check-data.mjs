@@ -150,6 +150,29 @@ for (const file of [countyEnt.data, ...(countyEnt.editions || []).map((ed) => ed
   if (new Set(slugs).size !== slugs.length) fail("marathon-tax-districts.json", "two municipalities share a page slug");
 }
 
+// ---- the neighboring counties: the same data, the same year and credits, real bills ----
+{
+  const d = read("public/marathon-tax-districts.json");
+  const nb = read(`public/${entities.find((e) => e.kind === "taxbill").with.neighbors}`);
+  const where = "neighbor-tax-districts.json";
+  if (nb.meta.tax_year !== d.meta.tax_year || JSON.stringify(nb.meta.credits) !== JSON.stringify(d.meta.credits)) {
+    fail(where, "a different tax year or credit values from marathon-tax-districts.json — re-extract both together");
+  }
+  if (nb.counties.length !== 8 || nb.counties.map((c) => c.county).join() !== nb.meta.counties.join()) fail(where, "expected the eight neighboring counties");
+  for (const c of nb.counties) {
+    if (!c.municipalities.length) fail(where, `${c.county}: no municipalities`);
+    for (const m of c.municipalities) {
+      if (!m.school_districts.length) fail(where, `${c.county} ${m.type} of ${m.name}: no school districts`);
+      for (const s of m.school_districts) {
+        const rate = billTotal(m, s);
+        if (!(rate > 0 && rate <= 60) || !(s.credit_rate > 0 && s.credit_rate < 0.03) || !(netBill(m, s, nb.meta.credits, 200000) > 0)) {
+          fail(where, `${c.county} ${m.type} of ${m.name} / ${s.name}: bill rate ${rate}, credit rate ${s.credit_rate}`);
+        }
+      }
+    }
+  }
+}
+
 // ---- the map: one shape per municipality, each inside the map (scripts/extract_map.py) ----
 {
   const d = read("public/marathon-tax-districts.json");

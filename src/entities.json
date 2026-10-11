@@ -101,7 +101,8 @@
       "county": "marathon-county.json",
       "city": "wausau-city.json",
       "school": "wausau-school.json",
-      "map": "marathon-map.json"
+      "map": "marathon-map.json",
+      "neighbors": "neighbor-tax-districts.json"
     }
   }
 ]

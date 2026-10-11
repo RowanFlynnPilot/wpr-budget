@@ -36,6 +36,10 @@ BUILDS = [
     ("public/marathon-tax-districts.json",
      lambda: extract_dor.extract("sources/dor-tvc25.xlsx", "sources/dor-2025lotcr.pdf",
                                  "sources/dor-2025fdcred.pdf", cache=True)),
+    # The eight counties around Marathon, on the same basis (the Tax Bill view's "next door").
+    ("public/neighbor-tax-districts.json",
+     lambda: extract_dor.extract_neighbors("sources/dor-tvc25.xlsx", "sources/dor-2025lotcr.pdf",
+                                           "sources/dor-2025fdcred.pdf", cache=True)),
     # The municipalities' boundaries (Census), matched one to one to the DOR file.
     ("public/marathon-map.json",
      lambda: extract_map.extract("sources/census-cousub-2025/cb_2025_55_cousub_500k.zip",
