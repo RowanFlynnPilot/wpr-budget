@@ -4,13 +4,14 @@ import { useLang, useStrings } from "../i18n";
 import { usd, fmtDate } from "../format";
 import entities from "../entities.json";
 import { track } from "../analytics";
-import { billDollars, billParts, muniBills, muniSlug, netBill, stateCredits } from "../taxmath";
+import { billDollars, billParts, muniBills, muniSlug, netBill, priorOf, stateCredits } from "../taxmath";
 import { countyShares, cityShares, schoolShares, itemize } from "../receipt";
 import { locate, ringsOf, WAUSAU_AREA } from "../mapgeo";
 import {
   SponsorSlot, SourceLink, SectionHead, HomeValueCalc, TaxSplit, MuniPicker, SchoolPicker, billRates, billExtremes, placeLabel,
   PrimaryHomeToggle, useAnchorOnMount, useHomeValue, useMuniChoice, useSchoolChoice, usePrimaryHome, WAUSAU_CITY_DOR,
-  CountyShapes, RAMP, rampColor, MoneyInput, NEWSLETTER_URL, countLink,
+  CountyShapes, RAMP, rampColor, CHANGE_RAMP, changeColor, MoneyInput, NEWSLETTER_URL, countLink, SubNav, useScrollSpy,
+  Delta,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
 
@@ -21,6 +22,9 @@ import ChromeBar from "../ChromeBar";
 // has one. Sourced from the Wisconsin DOR's Town, Village and City Taxes data
 // (b = public/marathon-tax-districts.json): every municipality's actual levies
 // and values for the latest certified year, on one basis (see billRates).
+const signedUsd = (n) => (Math.round(n) > 0 ? "+" : Math.round(n) < 0 ? "\u2212" : "") + usd(Math.abs(Math.round(n)));
+const signedPct = (f) => (f > 0.0005 ? "+" : f < -0.0005 ? "\u2212" : "") + Math.abs(f * 100).toFixed(1) + "%";
+
 // Share this municipality's own page (/tax/<slug>/): its card names the
 // place and what a $200,000 home pays there. Never the reader's home value.
 function ShareTown({ muni, where }) {
@@ -57,9 +61,13 @@ const DETAIL = {
   "wausau-city": (bud) => cityShares(bud.city),
   "wausau-school": (bud) => schoolShares(bud.school),
 };
-function Receipt({ rows, homeValue, credits, where, school, year, budgets }) {
+function Receipt({ rows, homeValue, credits, where, school, year, budgets, was, primary }) {
   const t = useStrings();
   const bill = billDollars(rows.map((r) => r.rate), homeValue, credits); // the same dollars as the bill above
+  // the same lines a year earlier, on the same value (each government's change)
+  const was$ = billParts(was.m, was.sd);
+  const before = billDollars(rows.map((r) => was$[r.key]), homeValue, stateCredits(was.sd, was.credits, homeValue, primary));
+  const chg = (n) => <span className="rc-chg"><Delta value={n} money exact /></span>;
   return (
     <section id="receipt" className="block">
       <SectionHead kicker={t("rc.kick")} title={t("rc.title")}>{t("rc.dek", usd(bill.net))}</SectionHead>
@@ -67,6 +75,7 @@ function Receipt({ rows, homeValue, credits, where, school, year, budgets }) {
         <div className="receipt-head">
           <b>{t("rc.head")}</b>
           <span>{t("rc.meta", where, school.name, usd(homeValue), year)}</span>
+          <span className="rc-vs">{t("rc.vs", was.year)}</span>
         </div>
         <table>
           <caption className="sr-only">{t("rc.title")}</caption>
@@ -75,7 +84,7 @@ function Receipt({ rows, homeValue, credits, where, school, year, budgets }) {
             const detail = r.drillId && DETAIL[r.drillId];
             return (
               <tbody key={r.key}>
-                <tr className="rc-gov"><th scope="row">{r.label}{r.suffix && " " + t(r.suffix)}</th><td>{usd(amount)}</td></tr>
+                <tr className="rc-gov"><th scope="row">{r.label}{r.suffix && " " + t(r.suffix)}</th><td>{usd(amount)}{chg(amount - before.lines[i])}</td></tr>
                 {detail
                   ? itemize(detail(budgets), amount).map((it) => (
                     <tr className="rc-item" key={it.key || it.label}>
@@ -91,7 +100,7 @@ function Receipt({ rows, homeValue, credits, where, school, year, budgets }) {
             <tr><th scope="row">{t("tb.leviedRow")}</th><td>{usd(bill.levied)}</td></tr>
             {credits.lottery > 0 && <tr className="rc-credit"><th scope="row">{t("tb.credit.lottery")}</th><td>{"\u2212" + usd(bill.lottery)}</td></tr>}
             <tr className="rc-credit"><th scope="row">{t("tb.credit.first")}</th><td>{"\u2212" + usd(bill.firstDollar)}</td></tr>
-            <tr className="rc-total"><th scope="row">{t("rc.pay")}</th><td>{usd(bill.net)}</td></tr>
+            <tr className="rc-total"><th scope="row">{t("rc.pay")}</th><td>{usd(bill.net)}{chg(bill.net - before.net)}</td></tr>
           </tfoot>
         </table>
       </div>
@@ -156,9 +165,17 @@ function UseLocation({ map, municipalities, onPick }) {
 // shading: rampColor (ui.jsx).
 const median = (xs) => { const s = [...xs].sort((a, c) => a - c); return s[Math.floor(s.length / 2)]; };
 
-function CountyMap({ map, rows, mine, homeValue, onPick }) {
+function CountyMap({ map, rows, mine, homeValue, priorYear, onPick }) {
   const t = useStrings();
   const [tip, setTip] = useState(null); // { r, x, y, w } — px within the map
+  // "bill": this year's bill (sequential ramp); "change": the change since the
+  // year before on the same value, on a diverging ramp centered on no change and
+  // symmetric, so a fall and a rise of the same size look the same size.
+  const [mode, setMode] = useState("bill");
+  const chg = (r) => r.bill / r.prior - 1;
+  const reach = Math.max(...rows.map((r) => Math.abs(chg(r)))) || 1;
+  const fell = rows.filter((r) => chg(r) < 0).length;
+  const growth = median(rows.map((r) => r.m.full_value / r.priorValue - 1));
   const wrap = useRef(null);
   const byCode = useMemo(() => new Map(rows.map((r) => [r.m.code, r])), [rows]);
   const bills = rows.map((r) => r.bill);
@@ -247,14 +264,21 @@ function CountyMap({ map, rows, mine, homeValue, onPick }) {
   return (
     <figure className="cmap">
       <div className="cmap-tools">
+        <div className="toggle cmap-mode" role="group" aria-label={t("tb.map.modeLabel")}>
+          <button type="button" aria-pressed={mode === "bill"} onClick={() => setMode("bill")}>{t("tb.map.modeBill")}</button>
+          <button type="button" aria-pressed={mode === "change"} onClick={() => setMode("change")}>{t("tb.map.modeChange", priorYear)}</button>
+        </div>
         <button type="button" className="table-toggle cmap-zoom" aria-pressed={zoom} onClick={() => { setTip(null); setZoom(!zoom); }}>
           {zoom ? <ZoomOut size={15} strokeWidth={2.25} aria-hidden="true" /> : <ZoomIn size={15} strokeWidth={2.25} aria-hidden="true" />}
           {zoom ? t("tb.map.zoomOut") : t("tb.map.zoomIn")}
         </button>
       </div>
       <div className="cmap-wrap" ref={wrap} onMouseLeave={() => setTip(null)}>
-        <CountyShapes map={map} view={view} fill={(code) => shade(byCode.get(code).bill)}
-          label={t("tb.map.alt", rows.length, usd(homeValue), dollars(lo), name(loRow.m), dollars(hi), name(hiRow.m))}
+        <CountyShapes map={map} view={view}
+          fill={(code) => (mode === "bill" ? shade(byCode.get(code).bill) : changeColor(chg(byCode.get(code)) / reach))}
+          label={mode === "bill"
+            ? t("tb.map.alt", rows.length, usd(homeValue), dollars(lo), name(loRow.m), dollars(hi), name(hiRow.m))
+            : t("tb.map.altChange", rows.length, usd(homeValue), fell, rows.length - fell, priorYear)}
           shapeProps={(s) => ({
             onMouseMove: (e) => {
               const b = wrap.current.getBoundingClientRect();
@@ -271,7 +295,7 @@ function CountyMap({ map, rows, mine, homeValue, onPick }) {
         {selShown && <>
           <span className="cmap-pin" style={pos(sel.label)} aria-hidden="true" />
           <span ref={label} className={"cmap-label" + (below ? " below" : "")} style={{ top: pos(sel.label).top }} aria-hidden="true">
-            <em>{t("tb.cmp.yours")}</em>{name(mine.m)} <b>{dollars(mine.bill)}</b>
+            <em>{t("tb.cmp.yours")}</em>{name(mine.m)} <b>{mode === "bill" ? dollars(mine.bill) : signedPct(chg(mine))}</b>
           </span>
         </>}
         <div className="cmap-scale" style={{ width: `${((miles * upm) / vw) * 100}%` }} aria-hidden="true">
@@ -281,21 +305,35 @@ function CountyMap({ map, rows, mine, homeValue, onPick }) {
           <div className="cmap-tip" style={{ left: Math.max(100, Math.min(tip.x, tip.w - 100)), top: tip.y }}>
             <div className="tip-year">{name(tip.r.m)}{tip.r.m.split_county ? " " + t("tb.splitPart") : ""}</div>
             <div>{t("tb.map.perYear", dollars(tip.r.bill))}</div>
+            <div className="cmap-tip-range">{t("tb.map.chg", signedUsd(tip.r.bill - tip.r.prior), signedPct(chg(tip.r)), priorYear)}</div>
             {tip.r.max > tip.r.min && <div className="cmap-tip-range">{t("tb.map.range", dollars(tip.r.min), dollars(tip.r.max))}</div>}
           </div>
         )}
       </div>
       <div className="cmap-legend" aria-hidden="true">
-        <div className="cmap-ramp">
-          <div className="cmap-ramp-label">{t("tb.map.legend", usd(homeValue))}</div>
-          <div className="cmap-ramp-bar" style={{ background: `linear-gradient(90deg, ${RAMP.join(", ")})` }}>
-            <i style={{ left: ((mine.bill - lo) / (hi - lo || 1)) * 100 + "%" }} />
+        {mode === "bill" ? (
+          <div className="cmap-ramp">
+            <div className="cmap-ramp-label">{t("tb.map.legend", usd(homeValue))}</div>
+            <div className="cmap-ramp-bar" style={{ background: `linear-gradient(90deg, ${RAMP.join(", ")})` }}>
+              <i style={{ left: ((mine.bill - lo) / (hi - lo || 1)) * 100 + "%" }} />
+            </div>
+            <div className="cmap-ramp-ends"><span>{dollars(lo)}</span><span>{dollars(hi)}</span></div>
           </div>
-          <div className="cmap-ramp-ends"><span>{dollars(lo)}</span><span>{dollars(hi)}</span></div>
-        </div>
+        ) : (
+          <div className="cmap-ramp">
+            <div className="cmap-ramp-label">{t("tb.map.legendChange", priorYear)}</div>
+            <div className="cmap-ramp-bar" style={{ background: `linear-gradient(90deg, ${CHANGE_RAMP.join(", ")})` }}>
+              <i style={{ left: ((chg(mine) / reach + 1) / 2) * 100 + "%" }} />
+            </div>
+            <div className="cmap-ramp-ends">
+              <span>{signedPct(-reach)} {t("tb.map.fell")}</span><span>0</span><span>{signedPct(reach)} {t("tb.map.rose")}</span>
+            </div>
+          </div>
+        )}
       </div>
       <figcaption className="note">
-        {t("tb.map.why", local("Town"), local("Village"), local("City"))} {t("tb.map.how")}{" "}
+        {mode === "bill" ? t("tb.map.why", local("Town"), local("Village"), local("City")) : t("tb.map.changeNote", priorYear, signedPct(growth))}
+        {" "}{t(mode === "bill" ? "tb.map.how" : "tb.map.howChange")}{" "}
         <a href={map.meta.source_url} rel="noopener">{t("tb.map.source")}</a>
       </figcaption>
     </figure>
@@ -309,13 +347,16 @@ function CountyMap({ map, rows, mine, homeValue, onPick }) {
 // they chose. Collapsed: the five dearest, the five cheapest, and the reader's.
 // A row is a button: it opens that municipality's bill above.
 const RANK_EDGE = 5;
-function Ranking({ municipalities, muni, school, homeValue, credits, primary, map, onPick, onChoose }) {
+function Ranking({ municipalities, muni, school, homeValue, credits, primary, map, prior, onPick, onChoose }) {
   const t = useStrings();
   const [all, setAll] = useState(false);
   // Bills after the state's credits, in dollars, on the reader's own value and
   // primary-home choice (credits are capped, so the order can shift with value).
-  const rows = useMemo(() => muniBills(municipalities, credits, homeValue, primary, { code: muni.code, school }),
-    [municipalities, muni.code, school, credits, homeValue, primary]);
+  // ... and each one's bill a year earlier, on the same value (the map's "change" view)
+  const rows = useMemo(() => muniBills(municipalities, credits, homeValue, primary, { code: muni.code, school }).map((r) => {
+    const w = priorOf(prior, r.m, r.sd);
+    return { ...r, prior: netBill(w.m, w.sd, prior.meta.credits, homeValue, primary), priorValue: w.m.full_value };
+  }), [municipalities, muni.code, school, credits, homeValue, primary, prior]);
   const { lo, hi } = useMemo(() => billExtremes(municipalities, credits, homeValue, primary), [municipalities, credits, homeValue, primary]);
   const top = Math.max(...rows.map((r) => r.max)) || 1;
   const dollars = (n) => usd(Math.round(n));
@@ -328,7 +369,7 @@ function Ranking({ municipalities, muni, school, homeValue, credits, primary, ma
         {t("tb.cmp.dek", usd(homeValue), rows.length)}
       </SectionHead>
       <p className="rank-lede">{t("tb.cmp.range", dollars(lo.bill), placeLabel(t, lo), dollars(hi.bill), placeLabel(t, hi), dollars(hi.bill - lo.bill))}</p>
-      <CountyMap map={map} rows={rows} mine={rows[mine]} homeValue={homeValue} onPick={(code) => {
+      <CountyMap map={map} rows={rows} mine={rows[mine]} homeValue={homeValue} priorYear={prior.meta.tax_year} onPick={(code) => {
         const { m } = rows.find((r) => r.m.code === code);
         track("Municipality", { name: `${m.type} of ${m.name}`, via: "map" });
         onChoose(code);
@@ -560,8 +601,13 @@ function KeyDates({ muni, where }) {
   );
 }
 
+// The view's sections, in page order (the subnav; the scroll-spy mirrors the
+// reading position into the hash like every other view).
+const TB_SECTIONS = ["bill", "receipt", "compare", "neighbors", "assessment", "dates"];
+
 export default function TaxBillOverview({ b, extra, chrome }) {
   const t = useStrings();
+  const active = useScrollSpy(TB_SECTIONS, chrome.routeId);
   const [homeValue, setHomeValue] = useHomeValue();
   const [muniCode, setMuniCode] = useMuniChoice();
   useAnchorOnMount();
@@ -582,6 +628,15 @@ export default function TaxBillOverview({ b, extra, chrome }) {
   const cr = b.meta.credits;
   const credits = stateCredits(bill.school, cr, homeValue, primary);
   const net = netBill(muni, bill.school, cr, homeValue, primary);
+  // The same home a year earlier (with.prior: the prior year's DOR file) on the same
+  // value, so the change is in effect the tax rate's; values moved too, which the
+  // note says with the municipality's own value change and what a home that kept
+  // pace with it paid.
+  const prior = extra.prior;
+  const was = priorOf(prior, muni, bill.school);
+  const priorNet = netBill(was.m, was.sd, prior.meta.credits, homeValue, primary);
+  const growth = muni.full_value / was.m.full_value - 1;
+  const keptPace = netBill(was.m, was.sd, prior.meta.credits, homeValue / (1 + growth), primary);
 
   return (
     <div className="ftm">
@@ -600,6 +655,8 @@ export default function TaxBillOverview({ b, extra, chrome }) {
         <p className="dek">{t("tb.dek")}</p>
       </header>
 
+      <SubNav sections={TB_SECTIONS} active={active} routeId={chrome.routeId} />
+
       {/* The tool first: where -> (school) -> value -> the bill, split. */}
       <section id="bill" className="block tb-steps">
         <MuniPicker municipalities={b.municipalities} value={muni.code} onChange={setMuniCode} step={1} />
@@ -607,13 +664,17 @@ export default function TaxBillOverview({ b, extra, chrome }) {
         <SchoolPicker options={bill.schoolOptions} value={bill.school.code} onChange={setSchool} where={bill.where} step={2} />
 
         <HomeValueCalc id="homeval-all" label={t("tb.homeLabel")} outLabel={t("tb.estOut")} step={bill.schoolOptions ? 3 : 2}
-          outValue={usd(Math.round(net))} value={homeValue} onChange={setHomeValue} />
+          outValue={usd(Math.round(net))} value={homeValue} onChange={setHomeValue}
+          outSub={<><Delta value={Math.round(net) - Math.round(priorNet)} money exact />{" "}
+            {t("yc.vs", signedPct(net / priorNet - 1), prior.meta.tax_year)}</>} />
         <PrimaryHomeToggle value={primary} onChange={setPrimary} />
 
         <TaxSplit rows={splitRows} total={total} homeValue={homeValue} credits={credits}
           totalLabel={t("tb.leviedRow")} exploreLabel={t("tb.explore")}
           onDrill={(id) => chrome.onSelect(id)} />
         <p className="note">{t("tb.note", year, total.toFixed(2), bill.where, usd(cr.lottery_max_value), usd(cr.first_dollar_max_value))}</p>
+        <p className="note">{t("yc.note", usd(homeValue), prior.meta.tax_year, bill.where, signedPct(growth),
+          usd(Math.round(keptPace)), signedUsd(net - keptPace))}</p>
         {bill.collegeAveraged && <p className="note">{t("tb.collegeAveraged", bill.where)}</p>}
         <details className="tb-more">
           <summary>{t("tb.businessQ")}</summary>
@@ -622,11 +683,12 @@ export default function TaxBillOverview({ b, extra, chrome }) {
         <ShareTown muni={muni} where={bill.where} />
       </section>
 
-      <Receipt rows={splitRows} homeValue={homeValue} credits={credits}
-        where={bill.where} school={bill.school} year={year} budgets={extra} />
+      <Receipt rows={splitRows} homeValue={homeValue} credits={credits} primary={primary}
+        where={bill.where} school={bill.school} year={year} budgets={extra}
+        was={{ ...was, credits: prior.meta.credits, year: prior.meta.tax_year }} />
 
       <Ranking municipalities={b.municipalities} muni={muni} school={bill.school.code} homeValue={homeValue}
-        credits={cr} primary={primary} map={extra.map} onChoose={setMuniCode}
+        credits={cr} primary={primary} map={extra.map} prior={prior} onChoose={setMuniCode}
         onPick={(code) => {
           setMuniCode(code);
           document.getElementById("bill").scrollIntoView({ behavior: "instant", block: "start" });

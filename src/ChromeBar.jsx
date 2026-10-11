@@ -3,6 +3,7 @@ import { Receipt, Share2, Check, Home } from "lucide-react";
 import { LANGS, useLang, useStrings } from "./i18n";
 import { ENTITY_LOGOS, CORRECTIONS_URL, DEMO, SPONSOR_MAILTO } from "./ui";
 import logoUrl from "./assets/logo-32.png";
+import wordmark from "./wordmark.json";
 import { track, currentView } from "./analytics";
 import { prefetchProps } from "./views";
 
@@ -42,7 +43,9 @@ export default function ChromeBar({ entities, activeId, routeId, onSelect, year,
           <a className="chrome-bar__brand" href="https://wausaupilotandreview.com"
              target="_blank" rel="noopener noreferrer">
             <img className="chrome-bar__logo-img" src={logoUrl} alt="Wausau Pilot &amp; Review" />
-            <span className="chrome-bar__wordmark">Wausau Pilot &amp; Review</span>
+            {/* the wordmark as artwork (scripts/fonts.py); the logo's alt names the link */}
+            <svg className="chrome-bar__wordmark" viewBox={wordmark.viewBox} style={{ height: wordmark.height_em + "em" }}
+              aria-hidden="true" focusable="false"><path d={wordmark.d} /></svg>
           </a>
           {routeId && (
             <button type="button" className="chrome-bar__home" onClick={() => onSelect(null)}>

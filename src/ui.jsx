@@ -648,12 +648,19 @@ export function billExtremes(municipalities, credits, value, primaryHome = true)
 // card (scripts/og_cards.py) reads too, so the card and the page shade alike.
 export { RAMP };
 const rgbOf = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
-export function rampColor(f) {
-  const x = Math.min(1, Math.max(0, f)) * (RAMP.length - 1);
-  const i = Math.min(RAMP.length - 2, Math.floor(x));
-  const [a, b] = [rgbOf(RAMP[i]), rgbOf(RAMP[i + 1])];
+function mix(stops, f) {
+  const x = Math.min(1, Math.max(0, f)) * (stops.length - 1);
+  const i = Math.min(stops.length - 2, Math.floor(x));
+  const [a, b] = [rgbOf(stops[i]), rgbOf(stops[i + 1])];
   return `rgb(${a.map((v, k) => Math.round(v + (b[k] - v) * (x - i))).join(",")})`;
 }
+export const rampColor = (f) => mix(RAMP, f);
+// The change map's diverging ramp, f in [-1, 1]: a bill that fell (teal) through
+// no change (newsprint) to one that rose (rust). Rust and green are the house
+// colors for what taxpayers pay; the teal end keeps the two sides apart for
+// readers with red-green color blindness.
+export const CHANGE_RAMP = ["#1d6b66", "#7fb3a8", "#ece4cf", "#d9a07f", "#a8492f"];
+export const changeColor = (f) => mix(CHANGE_RAMP, (Math.max(-1, Math.min(1, f)) + 1) / 2);
 
 // Marathon County's municipalities as one SVG image (public/marathon-map.json):
 // each shape filled by fill(code), the county outline over them, then children.
@@ -777,7 +784,7 @@ export function MoneyInput({ value, onValue, ...rest }) {
 // Every calculator asks for the same number — the home's estimated FAIR MARKET
 // value — because every rate in the suite is per $1,000 of it (see billRates);
 // the hint names where it's printed on a Wisconsin tax bill.
-export function HomeValueCalc({ id, label, outLabel, outValue, value, onChange, step }) {
+export function HomeValueCalc({ id, label, outLabel, outValue, outSub, value, onChange, step }) {
   const t = useStrings();
   const counted = useRef(false); // count a reader's first edit per calculator, never the value
   return (
@@ -797,6 +804,7 @@ export function HomeValueCalc({ id, label, outLabel, outValue, value, onChange, 
       <div className="calc-out" aria-live="polite" aria-atomic="true">
         <span className="calc-out-label">{outLabel}</span>
         <span className="calc-out-val">{outValue}</span>
+        {outSub && <span className="calc-out-sub">{outSub}</span>}
       </div>
     </div>
   );

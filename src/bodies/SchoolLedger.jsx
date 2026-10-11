@@ -297,8 +297,8 @@ export default function SchoolLedger({ b, chrome }) {
                 <ResponsiveContainer width="100%" height={230}>
                   <BarChart data={enrSeries} margin={{ top: 22, right: 6, bottom: 4, left: 0 }}>
                     <CartesianGrid stroke="var(--rule)" vertical={false} />
-                    <XAxis dataKey="label" tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval={0} />
-                    <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={46} tickFormatter={panel.axis} />
+                    <XAxis dataKey="label" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval={0} />
+                    <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={46} tickFormatter={panel.axis} />
                     <Tooltip cursor={{ fill: "var(--paper-2)" }} content={({ active, payload, label }) => (active && payload && payload.length && payload[0].value != null ? (
                       <div className="tip"><div className="tip-year">{label}</div>{panel.fmt(payload[0].value)}</div>) : null)} />
                     <Bar dataKey={panel.key} fill={panel.color} radius={[4, 4, 0, 0]} maxBarSize={46}>
@@ -309,7 +309,7 @@ export default function SchoolLedger({ b, chrome }) {
                     </Bar>
                     {panel.notes.map((a) => (
                       <ReferenceLine key={a.x} x={a.x} stroke="var(--ink-soft)" strokeDasharray="3 3" strokeOpacity={0.75}
-                        label={{ value: a.tag, position: "top", fontSize: 10, fill: "var(--ink-soft)", fontFamily: "var(--sans)" }} />
+                        label={{ value: a.tag, position: "top", fontSize: 12, fill: "var(--ink-soft)", fontFamily: "var(--sans)" }} />
                     ))}
                   </BarChart>
                 </ResponsiveContainer>
@@ -337,14 +337,14 @@ export default function SchoolLedger({ b, chrome }) {
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={overTime} margin={{ top: 8, right: 10, bottom: 4, left: 0 }}>
                   <CartesianGrid stroke="var(--rule)" vertical={false} />
-                  <XAxis dataKey="year" ticks={otTicks} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
-                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={34} tickFormatter={(v) => "$" + v} />
+                  <XAxis dataKey="year" ticks={otTicks} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={34} tickFormatter={(v) => "$" + v} />
                   <Tooltip cursor={{ stroke: "var(--rule)" }} content={({ active, payload }) => (active && payload && payload.length ? (
                     <div className="tip"><div className="tip-year">{payload[0].payload.label}</div>{t("s.overtime.tipRate")} ${payload[0].value.toFixed(2)}</div>) : null)} />
                   <Line type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
                   {overNotes.map((a) => (
                     <ReferenceLine key={a.x} x={a.x} stroke="var(--ink-soft)" strokeDasharray="3 3" strokeOpacity={0.75}
-                      label={{ value: a.tag, position: "insideTopRight", fontSize: 10, fill: "var(--ink-soft)", fontFamily: "var(--sans)" }} />
+                      label={{ value: a.tag, position: "insideTopRight", fontSize: 12, fill: "var(--ink-soft)", fontFamily: "var(--sans)" }} />
                   ))}
                 </LineChart>
               </ResponsiveContainer>
@@ -354,8 +354,8 @@ export default function SchoolLedger({ b, chrome }) {
               <ResponsiveContainer width="100%" height={250}>
                 <AreaChart data={overTime.filter((d) => d.valuation != null)} margin={{ top: 8, right: 10, bottom: 4, left: 0 }}>
                   <CartesianGrid stroke="var(--rule)" vertical={false} />
-                  <XAxis dataKey="year" ticks={otTicks.filter((y) => overTime.some((d) => d.year === y && d.valuation != null))} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
-                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={40} tickFormatter={(v) => "$" + (v / 1e9).toFixed(0) + "B"} />
+                  <XAxis dataKey="year" ticks={otTicks.filter((y) => overTime.some((d) => d.year === y && d.valuation != null))} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={40} tickFormatter={(v) => "$" + (v / 1e9).toFixed(0) + "B"} />
                   <Tooltip cursor={{ stroke: "var(--rule)" }} content={({ active, payload }) => (active && payload && payload.length ? (
                     <div className="tip"><div className="tip-year">{payload[0].payload.label}</div>{t("s.overtime.tipVal")} {compact(payload[0].value)}</div>) : null)} />
                   <Area type="monotone" dataKey="valuation" stroke="var(--gold)" strokeWidth={2} fill="var(--gold)" fillOpacity={0.16} dot={false} activeDot={{ r: 4 }} />

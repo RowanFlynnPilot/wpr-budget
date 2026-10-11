@@ -150,6 +150,25 @@ for (const file of [countyEnt.data, ...(countyEnt.editions || []).map((ed) => ed
   if (new Set(slugs).size !== slugs.length) fail("marathon-tax-districts.json", "two municipalities share a page slug");
 }
 
+// ---- the year before: one year back, every municipality and school district on the bill ----
+{
+  const d = read("public/marathon-tax-districts.json");
+  const prior = read(`public/${entities.find((e) => e.kind === "taxbill").with.prior}`);
+  const where = "prior-year tax districts";
+  if (prior.meta.tax_year !== d.meta.tax_year - 1 || prior.meta.credits.payable !== d.meta.tax_year) {
+    fail(where, `tax year ${prior.meta.tax_year} isn't the year before ${d.meta.tax_year}`);
+  }
+  const pm = new Map(prior.municipalities.map((m) => [m.code, m]));
+  for (const m of d.municipalities) {
+    const p = pm.get(m.code);
+    if (!p) { fail(where, `${m.type} of ${m.name} has no prior-year line`); continue; }
+    for (const s of m.school_districts) {
+      const ps = p.school_districts.find((x) => x.code === s.code);
+      if (!ps || !(netBill(p, ps, prior.meta.credits, 200000) > 0)) fail(where, `${m.name} / ${s.name}: no prior-year bill`);
+    }
+  }
+}
+
 // ---- the neighboring counties: the same data, the same year and credits, real bills ----
 {
   const d = read("public/marathon-tax-districts.json");

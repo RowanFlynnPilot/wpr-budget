@@ -217,7 +217,7 @@ export default function CityLedger({ b, extra, chrome }) {
           {t("c.flow.dek")}
         </SectionHead>
         <MoneyFlowSankey data={sankey} height={440}
-          margin={{ top: 24, right: 162, bottom: 24, left: 178 }}
+          margin={{ top: 24, right: 162, bottom: 24, left: 186 }}
           ariaLabel={t("aria.flowCity", compact(b.meta.gf_expenditures), sankey.nodes.find((n) => n.col === 2).name)}
           note={t("c.flow.note")} />
       </section>

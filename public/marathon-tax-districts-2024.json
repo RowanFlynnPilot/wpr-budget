@@ -1,0 +1,2497 @@
+{
+  "meta": {
+    "source": "Wisconsin Department of Revenue, 2024 Town, Village and City Taxes",
+    "source_url": "https://www.revenue.wi.gov/Pages/Report/tvc-bulletin.aspx",
+    "tax_year": 2024,
+    "county": "Marathon",
+    "credits": {
+      "payable": 2025,
+      "lottery_max_value": 29300,
+      "first_dollar_max_value": 9100,
+      "source_url": "https://www.revenue.wi.gov/Pages/Report/lgc-mcv.aspx"
+    }
+  },
+  "municipalities": [
+    {
+      "code": "37201",
+      "type": "City",
+      "name": "Abbotsford",
+      "split_county": true,
+      "population": 621,
+      "full_value": 76839800,
+      "full_value_ex_tif": 49525100,
+      "assessment_level": 0.92,
+      "total_tax": 1522274,
+      "school_levy_credit": 101744,
+      "gross_rate": 0.01981,
+      "effective_rate": 0.01849,
+      "taxes": {
+        "county": 168913,
+        "local": 324510,
+        "school": 430313,
+        "technical_college": 53394,
+        "other": 545144
+      },
+      "school_districts": [
+        {
+          "code": "0007",
+          "name": "Abbotsford",
+          "full_value": 44922460,
+          "levy": 400559,
+          "credit_rate": 0.008916683
+        },
+        {
+          "code": "1162",
+          "name": "Colby",
+          "full_value": 4602640,
+          "levy": 29754,
+          "credit_rate": 0.006464643
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37211",
+      "type": "City",
+      "name": "Colby",
+      "split_county": true,
+      "population": 670,
+      "full_value": 45088600,
+      "full_value_ex_tif": 43994300,
+      "assessment_level": 1.01,
+      "total_tax": 776106,
+      "school_levy_credit": 63392,
+      "gross_rate": 0.01721,
+      "effective_rate": 0.01581,
+      "taxes": {
+        "county": 150049,
+        "local": 275382,
+        "school": 284407,
+        "technical_college": 47431,
+        "other": 18836
+      },
+      "school_districts": [
+        {
+          "code": "1162",
+          "name": "Colby",
+          "full_value": 43994300,
+          "levy": 284407,
+          "credit_rate": 0.006464643
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37250",
+      "type": "City",
+      "name": "Marshfield",
+      "split_county": true,
+      "population": 1167,
+      "full_value": 176264200,
+      "full_value_ex_tif": 172750800,
+      "assessment_level": 0.96,
+      "total_tax": 3247916,
+      "school_levy_credit": 269339,
+      "gross_rate": 0.01843,
+      "effective_rate": 0.0169,
+      "taxes": {
+        "county": 595172,
+        "local": 1342619,
+        "school": 1128707,
+        "technical_college": 116678,
+        "other": 64739
+      },
+      "school_districts": [
+        {
+          "code": "3339",
+          "name": "Marshfield",
+          "full_value": 172750800,
+          "levy": 1128707,
+          "credit_rate": 0.00653373
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1400",
+          "name": "Mid-State Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37251",
+      "type": "City",
+      "name": "Mosinee",
+      "split_county": false,
+      "population": 4578,
+      "full_value": 557730900,
+      "full_value_ex_tif": 512491800,
+      "assessment_level": 0.74,
+      "total_tax": 8626626,
+      "school_levy_credit": 605335,
+      "gross_rate": 0.01547,
+      "effective_rate": 0.01438,
+      "taxes": {
+        "county": 1889878,
+        "local": 2467334,
+        "school": 3017157,
+        "technical_college": 552528,
+        "other": 699729
+      },
+      "school_districts": [
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 512491800,
+          "levy": 3017157,
+          "credit_rate": 0.005887229
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37281",
+      "type": "City",
+      "name": "Schofield",
+      "split_county": false,
+      "population": 2279,
+      "full_value": 374673300,
+      "full_value_ex_tif": 318153200,
+      "assessment_level": 1.0,
+      "total_tax": 6383778,
+      "school_levy_credit": 487517,
+      "gross_rate": 0.01704,
+      "effective_rate": 0.01574,
+      "taxes": {
+        "county": 1173230,
+        "local": 1763909,
+        "school": 2140627,
+        "technical_college": 343008,
+        "other": 963004
+      },
+      "school_districts": [
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 318153200,
+          "levy": 2140627,
+          "credit_rate": 0.006728291
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37291",
+      "type": "City",
+      "name": "Wausau",
+      "split_county": false,
+      "population": 40415,
+      "full_value": 4387427300,
+      "full_value_ex_tif": 3785126200,
+      "assessment_level": 0.98,
+      "total_tax": 89715038,
+      "school_levy_credit": 6780642,
+      "gross_rate": 0.02045,
+      "effective_rate": 0.0189,
+      "taxes": {
+        "county": 13958126,
+        "local": 32277025,
+        "school": 27070587,
+        "technical_college": 4080826,
+        "other": 12328474
+      },
+      "school_districts": [
+        {
+          "code": "6223",
+          "name": "Wausau",
+          "full_value": 3581790140,
+          "levy": 25702483,
+          "credit_rate": 0.007175876
+        },
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 203336060,
+          "levy": 1368104,
+          "credit_rate": 0.006728291
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37102",
+      "type": "Village",
+      "name": "Athens",
+      "split_county": false,
+      "population": 1066,
+      "full_value": 99250800,
+      "full_value_ex_tif": 76995900,
+      "assessment_level": 0.65,
+      "total_tax": 1822954,
+      "school_levy_credit": 114205,
+      "gross_rate": 0.01837,
+      "effective_rate": 0.01722,
+      "taxes": {
+        "county": 283932,
+        "local": 383915,
+        "school": 663337,
+        "technical_college": 83011,
+        "other": 408759
+      },
+      "school_districts": [
+        {
+          "code": "0196",
+          "name": "Athens",
+          "full_value": 76995900,
+          "levy": 663337,
+          "credit_rate": 0.008615228
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37104",
+      "type": "Village",
+      "name": "Birnamwood",
+      "split_county": true,
+      "population": 16,
+      "full_value": 1899500,
+      "full_value_ex_tif": 1899500,
+      "assessment_level": 0.86,
+      "total_tax": 27490,
+      "school_levy_credit": 2363,
+      "gross_rate": 0.01447,
+      "effective_rate": 0.01323,
+      "taxes": {
+        "county": 6939,
+        "local": 6000,
+        "school": 12503,
+        "technical_college": 2048,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6692",
+          "name": "Wittenberg-Birnamwood",
+          "full_value": 1899500,
+          "levy": 12503,
+          "credit_rate": 0.006582194
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37116",
+      "type": "Village",
+      "name": "Dorchester",
+      "split_county": true,
+      "population": 3,
+      "full_value": 1303800,
+      "full_value_ex_tif": 1303800,
+      "assessment_level": 0.92,
+      "total_tax": 25108,
+      "school_levy_credit": 1621,
+      "gross_rate": 0.01926,
+      "effective_rate": 0.01801,
+      "taxes": {
+        "county": 4763,
+        "local": 10511,
+        "school": 8429,
+        "technical_college": 1406,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "1162",
+          "name": "Colby",
+          "full_value": 1303800,
+          "levy": 8429,
+          "credit_rate": 0.006464643
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37121",
+      "type": "Village",
+      "name": "Edgar",
+      "split_county": false,
+      "population": 1443,
+      "full_value": 113742400,
+      "full_value_ex_tif": 96967700,
+      "assessment_level": 0.7,
+      "total_tax": 1594377,
+      "school_levy_credit": 154187,
+      "gross_rate": 0.01402,
+      "effective_rate": 0.01266,
+      "taxes": {
+        "county": 357581,
+        "local": 404266,
+        "school": 492850,
+        "technical_college": 104543,
+        "other": 235138
+      },
+      "school_districts": [
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 96967700,
+          "levy": 492850,
+          "credit_rate": 0.005082618
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37122",
+      "type": "Village",
+      "name": "Elderon",
+      "split_county": false,
+      "population": 157,
+      "full_value": 13155600,
+      "full_value_ex_tif": 13155600,
+      "assessment_level": 0.93,
+      "total_tax": 164664,
+      "school_levy_credit": 17422,
+      "gross_rate": 0.01252,
+      "effective_rate": 0.01119,
+      "taxes": {
+        "county": 48058,
+        "local": 15830,
+        "school": 86593,
+        "technical_college": 14183,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6692",
+          "name": "Wittenberg-Birnamwood",
+          "full_value": 13155600,
+          "levy": 86593,
+          "credit_rate": 0.006582194
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37126",
+      "type": "Village",
+      "name": "Fenwood",
+      "split_county": false,
+      "population": 141,
+      "full_value": 9301500,
+      "full_value_ex_tif": 9301500,
+      "assessment_level": 1.07,
+      "total_tax": 99970,
+      "school_levy_credit": 16785,
+      "gross_rate": 0.01075,
+      "effective_rate": 0.00894,
+      "taxes": {
+        "county": 34300,
+        "local": 8365,
+        "school": 47276,
+        "technical_college": 10028,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 9301500,
+          "levy": 47276,
+          "credit_rate": 0.005082618
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37136",
+      "type": "Village",
+      "name": "Hatley",
+      "split_county": false,
+      "population": 680,
+      "full_value": 72596900,
+      "full_value_ex_tif": 50987200,
+      "assessment_level": 0.6,
+      "total_tax": 1018178,
+      "school_levy_credit": 77060,
+      "gross_rate": 0.01403,
+      "effective_rate": 0.01296,
+      "taxes": {
+        "county": 188022,
+        "local": 129051,
+        "school": 343057,
+        "technical_college": 54970,
+        "other": 303078
+      },
+      "school_districts": [
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 50987200,
+          "levy": 343057,
+          "credit_rate": 0.006728291
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37145",
+      "type": "Village",
+      "name": "Kronenwetter",
+      "split_county": false,
+      "population": 8551,
+      "full_value": 964532600,
+      "full_value_ex_tif": 869556200,
+      "assessment_level": 0.78,
+      "total_tax": 13707515,
+      "school_levy_credit": 1357709,
+      "gross_rate": 0.01421,
+      "effective_rate": 0.0128,
+      "taxes": {
+        "county": 3206597,
+        "local": 2602754,
+        "school": 5649483,
+        "technical_college": 937487,
+        "other": 1311194
+      },
+      "school_districts": [
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 630401062,
+          "levy": 4241522,
+          "credit_rate": 0.006728291
+        },
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 239155138,
+          "levy": 1407961,
+          "credit_rate": 0.005887229
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37146",
+      "type": "Village",
+      "name": "Maine",
+      "split_county": false,
+      "population": 2625,
+      "full_value": 392937200,
+      "full_value_ex_tif": 370024900,
+      "assessment_level": 0.92,
+      "total_tax": 6419087,
+      "school_levy_credit": 673880,
+      "gross_rate": 0.01634,
+      "effective_rate": 0.01462,
+      "taxes": {
+        "county": 1364513,
+        "local": 1626090,
+        "school": 2655253,
+        "technical_college": 398932,
+        "other": 374299
+      },
+      "school_districts": [
+        {
+          "code": "6223",
+          "name": "Wausau",
+          "full_value": 370024900,
+          "levy": 2655253,
+          "credit_rate": 0.007175876
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37151",
+      "type": "Village",
+      "name": "Marathon City",
+      "split_county": false,
+      "population": 1559,
+      "full_value": 228714800,
+      "full_value_ex_tif": 177751600,
+      "assessment_level": 0.68,
+      "total_tax": 4098873,
+      "school_levy_credit": 323486,
+      "gross_rate": 0.01792,
+      "effective_rate": 0.01651,
+      "taxes": {
+        "county": 655481,
+        "local": 930712,
+        "school": 1407714,
+        "technical_college": 191638,
+        "other": 913328
+      },
+      "school_districts": [
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 177751600,
+          "levy": 1407714,
+          "credit_rate": 0.007919555
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37168",
+      "type": "Village",
+      "name": "Rib Mountain",
+      "split_county": false,
+      "population": 7345,
+      "full_value": 1276953900,
+      "full_value_ex_tif": 1264540100,
+      "assessment_level": 0.7,
+      "total_tax": 18706912,
+      "school_levy_credit": 2300420,
+      "gross_rate": 0.01465,
+      "effective_rate": 0.01285,
+      "taxes": {
+        "county": 4663150,
+        "local": 3424393,
+        "school": 9074183,
+        "technical_college": 1363328,
+        "other": 181858
+      },
+      "school_districts": [
+        {
+          "code": "6223",
+          "name": "Wausau",
+          "full_value": 1264540100,
+          "levy": 9074183,
+          "credit_rate": 0.007175876
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37176",
+      "type": "Village",
+      "name": "Rothschild",
+      "split_county": false,
+      "population": 5688,
+      "full_value": 704810400,
+      "full_value_ex_tif": 673100100,
+      "assessment_level": 1.01,
+      "total_tax": 12083818,
+      "school_levy_credit": 1138131,
+      "gross_rate": 0.01714,
+      "effective_rate": 0.01553,
+      "taxes": {
+        "county": 2458844,
+        "local": 3826812,
+        "school": 4528813,
+        "technical_college": 725684,
+        "other": 543666
+      },
+      "school_districts": [
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 673100100,
+          "levy": 4528813,
+          "credit_rate": 0.006728291
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37181",
+      "type": "Village",
+      "name": "Spencer",
+      "split_county": false,
+      "population": 1812,
+      "full_value": 155582800,
+      "full_value_ex_tif": 146055500,
+      "assessment_level": 0.87,
+      "total_tax": 2912278,
+      "school_levy_credit": 241110,
+      "gross_rate": 0.01872,
+      "effective_rate": 0.01717,
+      "taxes": {
+        "county": 533543,
+        "local": 729201,
+        "school": 1313731,
+        "technical_college": 157466,
+        "other": 178337
+      },
+      "school_districts": [
+        {
+          "code": "5467",
+          "name": "Spencer",
+          "full_value": 146055500,
+          "levy": 1313731,
+          "credit_rate": 0.008994741
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37182",
+      "type": "Village",
+      "name": "Stratford",
+      "split_county": false,
+      "population": 1641,
+      "full_value": 163149300,
+      "full_value_ex_tif": 124148400,
+      "assessment_level": 0.74,
+      "total_tax": 2892667,
+      "school_levy_credit": 195310,
+      "gross_rate": 0.01773,
+      "effective_rate": 0.01653,
+      "taxes": {
+        "county": 457813,
+        "local": 699506,
+        "school": 910008,
+        "technical_college": 133847,
+        "other": 691493
+      },
+      "school_districts": [
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 124148400,
+          "levy": 910008,
+          "credit_rate": 0.007330003
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37186",
+      "type": "Village",
+      "name": "Unity",
+      "split_county": true,
+      "population": 230,
+      "full_value": 14223100,
+      "full_value_ex_tif": 13914500,
+      "assessment_level": 0.7,
+      "total_tax": 190926,
+      "school_levy_credit": 17699,
+      "gross_rate": 0.01342,
+      "effective_rate": 0.01218,
+      "taxes": {
+        "county": 50830,
+        "local": 31000,
+        "school": 89952,
+        "technical_college": 15002,
+        "other": 4143
+      },
+      "school_districts": [
+        {
+          "code": "1162",
+          "name": "Colby",
+          "full_value": 13914500,
+          "levy": 89952,
+          "credit_rate": 0.006464643
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37192",
+      "type": "Village",
+      "name": "Weston",
+      "split_county": false,
+      "population": 15868,
+      "full_value": 1751733000,
+      "full_value_ex_tif": 1320766200,
+      "assessment_level": 1.0,
+      "total_tax": 30419840,
+      "school_levy_credit": 2306812,
+      "gross_rate": 0.01737,
+      "effective_rate": 0.01605,
+      "taxes": {
+        "county": 4824777,
+        "local": 7800634,
+        "school": 8886499,
+        "technical_college": 1423947,
+        "other": 7483983
+      },
+      "school_districts": [
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 1320766200,
+          "levy": 8886499,
+          "credit_rate": 0.006728291
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37002",
+      "type": "Town",
+      "name": "Bergen",
+      "split_county": false,
+      "population": 738,
+      "full_value": 121808400,
+      "full_value_ex_tif": 121808400,
+      "assessment_level": 0.73,
+      "total_tax": 1397345,
+      "school_levy_credit": 144189,
+      "gross_rate": 0.01147,
+      "effective_rate": 0.01029,
+      "taxes": {
+        "county": 449184,
+        "local": 99723,
+        "school": 717114,
+        "technical_college": 131324,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 121808400,
+          "levy": 717114,
+          "credit_rate": 0.005887229
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37004",
+      "type": "Town",
+      "name": "Berlin",
+      "split_county": false,
+      "population": 954,
+      "full_value": 117280000,
+      "full_value_ex_tif": 117280000,
+      "assessment_level": 0.98,
+      "total_tax": 1576420,
+      "school_levy_credit": 214861,
+      "gross_rate": 0.01344,
+      "effective_rate": 0.01161,
+      "taxes": {
+        "county": 432485,
+        "local": 169917,
+        "school": 847576,
+        "technical_college": 126442,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6223",
+          "name": "Wausau",
+          "full_value": 109226261,
+          "levy": 783794,
+          "credit_rate": 0.007175876
+        },
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 8053739,
+          "levy": 63782,
+          "credit_rate": 0.007919555
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37006",
+      "type": "Town",
+      "name": "Bern",
+      "split_county": false,
+      "population": 623,
+      "full_value": 60448900,
+      "full_value_ex_tif": 60448900,
+      "assessment_level": 0.82,
+      "total_tax": 838735,
+      "school_levy_credit": 82182,
+      "gross_rate": 0.01388,
+      "effective_rate": 0.01252,
+      "taxes": {
+        "county": 222913,
+        "local": 48132,
+        "school": 502519,
+        "technical_college": 65171,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "0196",
+          "name": "Athens",
+          "full_value": 53490506,
+          "levy": 460833,
+          "credit_rate": 0.008615228
+        },
+        {
+          "code": "3409",
+          "name": "Medford Area",
+          "full_value": 6958394,
+          "levy": 41686,
+          "credit_rate": 0.005990718
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37008",
+      "type": "Town",
+      "name": "Bevent",
+      "split_county": false,
+      "population": 1048,
+      "full_value": 170156500,
+      "full_value_ex_tif": 170156500,
+      "assessment_level": 0.59,
+      "total_tax": 2237813,
+      "school_levy_credit": 235983,
+      "gross_rate": 0.01315,
+      "effective_rate": 0.01176,
+      "taxes": {
+        "county": 627473,
+        "local": 185533,
+        "school": 1236799,
+        "technical_college": 183449,
+        "other": 4558
+      },
+      "school_districts": [
+        {
+          "code": "4963",
+          "name": "Rosholt",
+          "full_value": 155540874,
+          "levy": 1140596,
+          "credit_rate": 0.007333092
+        },
+        {
+          "code": "6692",
+          "name": "Wittenberg-Birnamwood",
+          "full_value": 14615626,
+          "levy": 96203,
+          "credit_rate": 0.006582194
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37010",
+      "type": "Town",
+      "name": "Brighton",
+      "split_county": false,
+      "population": 614,
+      "full_value": 68180900,
+      "full_value_ex_tif": 68180900,
+      "assessment_level": 0.73,
+      "total_tax": 1040646,
+      "school_levy_credit": 98968,
+      "gross_rate": 0.01526,
+      "effective_rate": 0.01381,
+      "taxes": {
+        "county": 251426,
+        "local": 180917,
+        "school": 534797,
+        "technical_college": 73507,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "5467",
+          "name": "Spencer",
+          "full_value": 37165107,
+          "levy": 334291,
+          "credit_rate": 0.008994741
+        },
+        {
+          "code": "1162",
+          "name": "Colby",
+          "full_value": 31015793,
+          "levy": 200506,
+          "credit_rate": 0.006464643
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37012",
+      "type": "Town",
+      "name": "Cassel",
+      "split_county": false,
+      "population": 955,
+      "full_value": 119227400,
+      "full_value_ex_tif": 119227400,
+      "assessment_level": 0.74,
+      "total_tax": 1461253,
+      "school_levy_credit": 189733,
+      "gross_rate": 0.01226,
+      "effective_rate": 0.01066,
+      "taxes": {
+        "county": 439666,
+        "local": 89183,
+        "school": 803862,
+        "technical_college": 128542,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 69749558,
+          "levy": 552385,
+          "credit_rate": 0.007919555
+        },
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 49477842,
+          "levy": 251477,
+          "credit_rate": 0.005082618
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37014",
+      "type": "Town",
+      "name": "Cleveland",
+      "split_county": false,
+      "population": 1501,
+      "full_value": 189018800,
+      "full_value_ex_tif": 189018800,
+      "assessment_level": 1.03,
+      "total_tax": 2845195,
+      "school_levy_credit": 282288,
+      "gross_rate": 0.01505,
+      "effective_rate": 0.01356,
+      "taxes": {
+        "county": 697030,
+        "local": 565849,
+        "school": 1378530,
+        "technical_college": 203785,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 185913693,
+          "levy": 1362748,
+          "credit_rate": 0.007330003
+        },
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 3105107,
+          "levy": 15782,
+          "credit_rate": 0.005082618
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37016",
+      "type": "Town",
+      "name": "Day",
+      "split_county": false,
+      "population": 1053,
+      "full_value": 125593900,
+      "full_value_ex_tif": 125593900,
+      "assessment_level": 0.99,
+      "total_tax": 1817161,
+      "school_levy_credit": 181281,
+      "gross_rate": 0.01447,
+      "effective_rate": 0.01303,
+      "taxes": {
+        "county": 463143,
+        "local": 375462,
+        "school": 863462,
+        "technical_college": 107594,
+        "other": 7500
+      },
+      "school_districts": [
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 56531242,
+          "levy": 414374,
+          "credit_rate": 0.007330003
+        },
+        {
+          "code": "3339",
+          "name": "Marshfield",
+          "full_value": 54819108,
+          "levy": 358173,
+          "credit_rate": 0.00653373
+        },
+        {
+          "code": "0203",
+          "name": "Auburndale",
+          "full_value": 14243551,
+          "levy": 90915,
+          "credit_rate": 0.006382923
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        },
+        {
+          "code": "1400",
+          "name": "Mid-State Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37018",
+      "type": "Town",
+      "name": "Easton",
+      "split_county": false,
+      "population": 1185,
+      "full_value": 155052000,
+      "full_value_ex_tif": 155052000,
+      "assessment_level": 0.58,
+      "total_tax": 2284648,
+      "school_levy_credit": 226157,
+      "gross_rate": 0.01473,
+      "effective_rate": 0.01328,
+      "taxes": {
+        "county": 571774,
+        "local": 502474,
+        "school": 1043235,
+        "technical_college": 167165,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 155052000,
+          "levy": 1043235,
+          "credit_rate": 0.006728291
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37020",
+      "type": "Town",
+      "name": "Eau Pleine",
+      "split_county": false,
+      "population": 774,
+      "full_value": 92929200,
+      "full_value_ex_tif": 92929200,
+      "assessment_level": 0.75,
+      "total_tax": 1251939,
+      "school_levy_credit": 138262,
+      "gross_rate": 0.01347,
+      "effective_rate": 0.01198,
+      "taxes": {
+        "county": 342688,
+        "local": 127891,
+        "school": 681171,
+        "technical_college": 100189,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 92929200,
+          "levy": 681171,
+          "credit_rate": 0.007330003
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37022",
+      "type": "Town",
+      "name": "Elderon",
+      "split_county": false,
+      "population": 607,
+      "full_value": 108809200,
+      "full_value_ex_tif": 108809200,
+      "assessment_level": 0.54,
+      "total_tax": 1325366,
+      "school_levy_credit": 139159,
+      "gross_rate": 0.01218,
+      "effective_rate": 0.0109,
+      "taxes": {
+        "county": 401248,
+        "local": 90606,
+        "school": 716203,
+        "technical_college": 117310,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6692",
+          "name": "Wittenberg-Birnamwood",
+          "full_value": 108809200,
+          "levy": 716203,
+          "credit_rate": 0.006582194
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37024",
+      "type": "Town",
+      "name": "Emmet",
+      "split_county": false,
+      "population": 903,
+      "full_value": 119780800,
+      "full_value_ex_tif": 119780800,
+      "assessment_level": 0.88,
+      "total_tax": 1536450,
+      "school_levy_credit": 175897,
+      "gross_rate": 0.01283,
+      "effective_rate": 0.01136,
+      "taxes": {
+        "county": 441707,
+        "local": 201759,
+        "school": 763846,
+        "technical_college": 129138,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 53198044,
+          "levy": 313189,
+          "credit_rate": 0.005887229
+        },
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 22429011,
+          "levy": 113998,
+          "credit_rate": 0.005082618
+        },
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 22083046,
+          "levy": 161869,
+          "credit_rate": 0.007330003
+        },
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 22070700,
+          "levy": 174790,
+          "credit_rate": 0.007919555
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37026",
+      "type": "Town",
+      "name": "Frankfort",
+      "split_county": false,
+      "population": 643,
+      "full_value": 81575700,
+      "full_value_ex_tif": 81575700,
+      "assessment_level": 0.99,
+      "total_tax": 1026470,
+      "school_levy_credit": 104875,
+      "gross_rate": 0.01258,
+      "effective_rate": 0.0113,
+      "taxes": {
+        "county": 300821,
+        "local": 101334,
+        "school": 536367,
+        "technical_college": 87949,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "1162",
+          "name": "Colby",
+          "full_value": 31842506,
+          "levy": 205850,
+          "credit_rate": 0.006464643
+        },
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 26928071,
+          "levy": 197383,
+          "credit_rate": 0.007330003
+        },
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 18312766,
+          "levy": 93077,
+          "credit_rate": 0.005082618
+        },
+        {
+          "code": "0007",
+          "name": "Abbotsford",
+          "full_value": 4492356,
+          "levy": 40057,
+          "credit_rate": 0.008916683
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37028",
+      "type": "Town",
+      "name": "Franzen",
+      "split_county": false,
+      "population": 562,
+      "full_value": 83678700,
+      "full_value_ex_tif": 83678700,
+      "assessment_level": 1.03,
+      "total_tax": 1082044,
+      "school_levy_credit": 108818,
+      "gross_rate": 0.01293,
+      "effective_rate": 0.01163,
+      "taxes": {
+        "county": 308576,
+        "local": 132247,
+        "school": 551005,
+        "technical_college": 90216,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6692",
+          "name": "Wittenberg-Birnamwood",
+          "full_value": 83391232,
+          "levy": 548897,
+          "credit_rate": 0.006582194
+        },
+        {
+          "code": "4963",
+          "name": "Rosholt",
+          "full_value": 287468,
+          "levy": 2108,
+          "credit_rate": 0.007333092
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37030",
+      "type": "Town",
+      "name": "Green Valley",
+      "split_county": false,
+      "population": 518,
+      "full_value": 116708400,
+      "full_value_ex_tif": 116708400,
+      "assessment_level": 0.75,
+      "total_tax": 1496749,
+      "school_levy_credit": 133912,
+      "gross_rate": 0.01282,
+      "effective_rate": 0.01168,
+      "taxes": {
+        "county": 430377,
+        "local": 214765,
+        "school": 729978,
+        "technical_college": 121630,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 81163378,
+          "levy": 477827,
+          "credit_rate": 0.005887229
+        },
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 25123978,
+          "levy": 184159,
+          "credit_rate": 0.007330003
+        },
+        {
+          "code": "3339",
+          "name": "Marshfield",
+          "full_value": 9779229,
+          "levy": 63895,
+          "credit_rate": 0.00653373
+        },
+        {
+          "code": "0203",
+          "name": "Auburndale",
+          "full_value": 641815,
+          "levy": 4097,
+          "credit_rate": 0.006382923
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        },
+        {
+          "code": "1400",
+          "name": "Mid-State Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37032",
+      "type": "Town",
+      "name": "Guenther",
+      "split_county": false,
+      "population": 356,
+      "full_value": 57273000,
+      "full_value_ex_tif": 57273000,
+      "assessment_level": 0.63,
+      "total_tax": 817936,
+      "school_levy_credit": 68133,
+      "gross_rate": 0.01428,
+      "effective_rate": 0.01309,
+      "taxes": {
+        "county": 211201,
+        "local": 207808,
+        "school": 337179,
+        "technical_college": 61747,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 57273000,
+          "levy": 337179,
+          "credit_rate": 0.005887229
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37034",
+      "type": "Town",
+      "name": "Halsey",
+      "split_county": false,
+      "population": 651,
+      "full_value": 72943400,
+      "full_value_ex_tif": 72943400,
+      "assessment_level": 0.69,
+      "total_tax": 1061920,
+      "school_levy_credit": 93889,
+      "gross_rate": 0.01456,
+      "effective_rate": 0.01327,
+      "taxes": {
+        "county": 268988,
+        "local": 85866,
+        "school": 628424,
+        "technical_college": 78642,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "0196",
+          "name": "Athens",
+          "full_value": 72943400,
+          "levy": 628424,
+          "credit_rate": 0.008615228
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37036",
+      "type": "Town",
+      "name": "Hamburg",
+      "split_county": false,
+      "population": 828,
+      "full_value": 93271500,
+      "full_value_ex_tif": 93271500,
+      "assessment_level": 0.97,
+      "total_tax": 1417410,
+      "school_levy_credit": 136213,
+      "gross_rate": 0.0152,
+      "effective_rate": 0.01374,
+      "taxes": {
+        "county": 343950,
+        "local": 170801,
+        "school": 802101,
+        "technical_college": 100558,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "0196",
+          "name": "Athens",
+          "full_value": 91181132,
+          "levy": 785546,
+          "credit_rate": 0.008615228
+        },
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 2090368,
+          "levy": 16555,
+          "credit_rate": 0.007919555
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37038",
+      "type": "Town",
+      "name": "Harrison",
+      "split_county": false,
+      "population": 315,
+      "full_value": 42804700,
+      "full_value_ex_tif": 42804700,
+      "assessment_level": 0.65,
+      "total_tax": 538793,
+      "school_levy_credit": 47598,
+      "gross_rate": 0.01259,
+      "effective_rate": 0.01148,
+      "taxes": {
+        "county": 157848,
+        "local": 28383,
+        "school": 306413,
+        "technical_college": 46149,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "0140",
+          "name": "Antigo",
+          "full_value": 42804700,
+          "levy": 306413,
+          "credit_rate": 0.007158407
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37040",
+      "type": "Town",
+      "name": "Hewitt",
+      "split_county": false,
+      "population": 651,
+      "full_value": 84689900,
+      "full_value_ex_tif": 84689900,
+      "assessment_level": 0.62,
+      "total_tax": 1218590,
+      "school_levy_credit": 140064,
+      "gross_rate": 0.01439,
+      "effective_rate": 0.01274,
+      "taxes": {
+        "county": 312305,
+        "local": 207255,
+        "school": 607724,
+        "technical_college": 91306,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6223",
+          "name": "Wausau",
+          "full_value": 84689900,
+          "levy": 607724,
+          "credit_rate": 0.007175876
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37042",
+      "type": "Town",
+      "name": "Holton",
+      "split_county": false,
+      "population": 848,
+      "full_value": 85471900,
+      "full_value_ex_tif": 85471900,
+      "assessment_level": 0.75,
+      "total_tax": 1187341,
+      "school_levy_credit": 121552,
+      "gross_rate": 0.01389,
+      "effective_rate": 0.01247,
+      "taxes": {
+        "county": 315188,
+        "local": 143354,
+        "school": 636649,
+        "technical_college": 92149,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "1162",
+          "name": "Colby",
+          "full_value": 51172267,
+          "levy": 330810,
+          "credit_rate": 0.006464643
+        },
+        {
+          "code": "0007",
+          "name": "Abbotsford",
+          "full_value": 34299633,
+          "levy": 305839,
+          "credit_rate": 0.008916683
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37044",
+      "type": "Town",
+      "name": "Hull",
+      "split_county": false,
+      "population": 760,
+      "full_value": 92219300,
+      "full_value_ex_tif": 92219300,
+      "assessment_level": 0.92,
+      "total_tax": 1175199,
+      "school_levy_credit": 121964,
+      "gross_rate": 0.01274,
+      "effective_rate": 0.01142,
+      "taxes": {
+        "county": 340070,
+        "local": 137589,
+        "school": 598117,
+        "technical_college": 99424,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "1162",
+          "name": "Colby",
+          "full_value": 91423542,
+          "levy": 591021,
+          "credit_rate": 0.006464643
+        },
+        {
+          "code": "0007",
+          "name": "Abbotsford",
+          "full_value": 795758,
+          "levy": 7096,
+          "credit_rate": 0.008916683
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37046",
+      "type": "Town",
+      "name": "Johnson",
+      "split_county": false,
+      "population": 868,
+      "full_value": 77314500,
+      "full_value_ex_tif": 77314500,
+      "assessment_level": 1.02,
+      "total_tax": 1260376,
+      "school_levy_credit": 119687,
+      "gross_rate": 0.0163,
+      "effective_rate": 0.01475,
+      "taxes": {
+        "county": 285107,
+        "local": 219852,
+        "school": 672062,
+        "technical_college": 83354,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "0196",
+          "name": "Athens",
+          "full_value": 57476859,
+          "levy": 495176,
+          "credit_rate": 0.008615228
+        },
+        {
+          "code": "0007",
+          "name": "Abbotsford",
+          "full_value": 19837641,
+          "levy": 176886,
+          "credit_rate": 0.008916683
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37048",
+      "type": "Town",
+      "name": "Knowlton",
+      "split_county": false,
+      "population": 2015,
+      "full_value": 407057700,
+      "full_value_ex_tif": 407057700,
+      "assessment_level": 0.81,
+      "total_tax": 4825293,
+      "school_levy_credit": 505992,
+      "gross_rate": 0.01185,
+      "effective_rate": 0.01061,
+      "taxes": {
+        "county": 1501076,
+        "local": 488918,
+        "school": 2396442,
+        "technical_college": 438858,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 407057700,
+          "levy": 2396442,
+          "credit_rate": 0.005887229
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37054",
+      "type": "Town",
+      "name": "Marathon",
+      "split_county": false,
+      "population": 981,
+      "full_value": 155835200,
+      "full_value_ex_tif": 155835200,
+      "assessment_level": 0.89,
+      "total_tax": 2153021,
+      "school_levy_credit": 265572,
+      "gross_rate": 0.01382,
+      "effective_rate": 0.01211,
+      "taxes": {
+        "county": 574662,
+        "local": 176205,
+        "school": 1234145,
+        "technical_college": 168009,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 155835200,
+          "levy": 1234145,
+          "credit_rate": 0.007919555
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37056",
+      "type": "Town",
+      "name": "McMillan",
+      "split_county": false,
+      "population": 2089,
+      "full_value": 318823400,
+      "full_value_ex_tif": 318823400,
+      "assessment_level": 0.64,
+      "total_tax": 4106011,
+      "school_levy_credit": 429239,
+      "gross_rate": 0.01288,
+      "effective_rate": 0.01153,
+      "taxes": {
+        "county": 1098431,
+        "local": 659794,
+        "school": 2119653,
+        "technical_college": 228132,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3339",
+          "name": "Marshfield",
+          "full_value": 287051697,
+          "levy": 1875518,
+          "credit_rate": 0.00653373
+        },
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 25014783,
+          "levy": 183358,
+          "credit_rate": 0.007330003
+        },
+        {
+          "code": "5467",
+          "name": "Spencer",
+          "full_value": 6756920,
+          "levy": 60777,
+          "credit_rate": 0.008994741
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        },
+        {
+          "code": "1400",
+          "name": "Mid-State Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37058",
+      "type": "Town",
+      "name": "Mosinee",
+      "split_county": false,
+      "population": 2280,
+      "full_value": 279589700,
+      "full_value_ex_tif": 279589700,
+      "assessment_level": 0.96,
+      "total_tax": 3398649,
+      "school_levy_credit": 389308,
+      "gross_rate": 0.01216,
+      "effective_rate": 0.01076,
+      "taxes": {
+        "county": 1031022,
+        "local": 375942,
+        "school": 1690254,
+        "technical_college": 301432,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 257818996,
+          "levy": 1517840,
+          "credit_rate": 0.005887229
+        },
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 21770704,
+          "levy": 172414,
+          "credit_rate": 0.007919555
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37060",
+      "type": "Town",
+      "name": "Norrie",
+      "split_county": false,
+      "population": 1007,
+      "full_value": 145732400,
+      "full_value_ex_tif": 145732400,
+      "assessment_level": 0.99,
+      "total_tax": 1863565,
+      "school_levy_credit": 190531,
+      "gross_rate": 0.01279,
+      "effective_rate": 0.01148,
+      "taxes": {
+        "county": 537406,
+        "local": 207261,
+        "school": 961780,
+        "technical_college": 157117,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6692",
+          "name": "Wittenberg-Birnamwood",
+          "full_value": 128337183,
+          "levy": 844740,
+          "credit_rate": 0.006582194
+        },
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 17395217,
+          "levy": 117040,
+          "credit_rate": 0.006728291
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37062",
+      "type": "Town",
+      "name": "Plover",
+      "split_county": false,
+      "population": 677,
+      "full_value": 84995200,
+      "full_value_ex_tif": 84995200,
+      "assessment_level": 0.99,
+      "total_tax": 1285135,
+      "school_levy_credit": 100593,
+      "gross_rate": 0.01512,
+      "effective_rate": 0.01394,
+      "taxes": {
+        "county": 313430,
+        "local": 300279,
+        "school": 579790,
+        "technical_college": 91635,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6692",
+          "name": "Wittenberg-Birnamwood",
+          "full_value": 49703847,
+          "levy": 327160,
+          "credit_rate": 0.006582194
+        },
+        {
+          "code": "0140",
+          "name": "Antigo",
+          "full_value": 35291353,
+          "levy": 252630,
+          "credit_rate": 0.007158407
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37064",
+      "type": "Town",
+      "name": "Reid",
+      "split_county": false,
+      "population": 1182,
+      "full_value": 155175100,
+      "full_value_ex_tif": 155175100,
+      "assessment_level": 0.93,
+      "total_tax": 1925868,
+      "school_levy_credit": 218047,
+      "gross_rate": 0.01241,
+      "effective_rate": 0.01101,
+      "taxes": {
+        "county": 572228,
+        "local": 197850,
+        "school": 988493,
+        "technical_college": 167298,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6692",
+          "name": "Wittenberg-Birnamwood",
+          "full_value": 76727657,
+          "levy": 505036,
+          "credit_rate": 0.006582194
+        },
+        {
+          "code": "3787",
+          "name": "Mosinee",
+          "full_value": 52743260,
+          "levy": 310512,
+          "credit_rate": 0.005887229
+        },
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 25704183,
+          "levy": 172945,
+          "credit_rate": 0.006728291
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37066",
+      "type": "Town",
+      "name": "Rib Falls",
+      "split_county": false,
+      "population": 935,
+      "full_value": 116318900,
+      "full_value_ex_tif": 116318900,
+      "assessment_level": 0.96,
+      "total_tax": 1557481,
+      "school_levy_credit": 207625,
+      "gross_rate": 0.01339,
+      "effective_rate": 0.0116,
+      "taxes": {
+        "county": 428940,
+        "local": 158953,
+        "school": 844182,
+        "technical_college": 125406,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 82047991,
+          "levy": 649784,
+          "credit_rate": 0.007919555
+        },
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 28549386,
+          "levy": 145106,
+          "credit_rate": 0.005082618
+        },
+        {
+          "code": "0196",
+          "name": "Athens",
+          "full_value": 5721524,
+          "levy": 49292,
+          "credit_rate": 0.008615228
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37070",
+      "type": "Town",
+      "name": "Rietbrock",
+      "split_county": false,
+      "population": 867,
+      "full_value": 82530000,
+      "full_value_ex_tif": 82530000,
+      "assessment_level": 0.68,
+      "total_tax": 1118881,
+      "school_levy_credit": 118875,
+      "gross_rate": 0.01356,
+      "effective_rate": 0.01212,
+      "taxes": {
+        "county": 304340,
+        "local": 90420,
+        "school": 635144,
+        "technical_college": 88977,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "0196",
+          "name": "Athens",
+          "full_value": 61052706,
+          "levy": 525983,
+          "credit_rate": 0.008615228
+        },
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 21477294,
+          "levy": 109161,
+          "credit_rate": 0.005082618
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37072",
+      "type": "Town",
+      "name": "Ringle",
+      "split_county": false,
+      "population": 1767,
+      "full_value": 282724400,
+      "full_value_ex_tif": 282724400,
+      "assessment_level": 0.69,
+      "total_tax": 3405756,
+      "school_levy_credit": 428133,
+      "gross_rate": 0.01205,
+      "effective_rate": 0.01053,
+      "taxes": {
+        "county": 1042582,
+        "local": 156111,
+        "school": 1902252,
+        "technical_college": 304811,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 282724400,
+          "levy": 1902252,
+          "credit_rate": 0.006728291
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37074",
+      "type": "Town",
+      "name": "Spencer",
+      "split_county": false,
+      "population": 1593,
+      "full_value": 190440300,
+      "full_value_ex_tif": 190440300,
+      "assessment_level": 1.0,
+      "total_tax": 2860366,
+      "school_levy_credit": 316160,
+      "gross_rate": 0.01502,
+      "effective_rate": 0.01336,
+      "taxes": {
+        "county": 702272,
+        "local": 239815,
+        "school": 1712961,
+        "technical_college": 205318,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "5467",
+          "name": "Spencer",
+          "full_value": 190440300,
+          "levy": 1712961,
+          "credit_rate": 0.008994741
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37076",
+      "type": "Town",
+      "name": "Stettin",
+      "split_county": false,
+      "population": 2587,
+      "full_value": 434200500,
+      "full_value_ex_tif": 434200500,
+      "assessment_level": 0.78,
+      "total_tax": 6159843,
+      "school_levy_credit": 763843,
+      "gross_rate": 0.01419,
+      "effective_rate": 0.01243,
+      "taxes": {
+        "county": 1601169,
+        "local": 918643,
+        "school": 3171911,
+        "technical_college": 468121,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6223",
+          "name": "Wausau",
+          "full_value": 358708175,
+          "levy": 2574045,
+          "credit_rate": 0.007175876
+        },
+        {
+          "code": "3304",
+          "name": "Marathon City",
+          "full_value": 75492325,
+          "levy": 597866,
+          "credit_rate": 0.007919555
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37078",
+      "type": "Town",
+      "name": "Texas",
+      "split_county": false,
+      "population": 1625,
+      "full_value": 208103600,
+      "full_value_ex_tif": 208103600,
+      "assessment_level": 0.58,
+      "total_tax": 2929398,
+      "school_levy_credit": 331230,
+      "gross_rate": 0.01408,
+      "effective_rate": 0.01248,
+      "taxes": {
+        "county": 767408,
+        "local": 444303,
+        "school": 1493326,
+        "technical_college": 224361,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6223",
+          "name": "Wausau",
+          "full_value": 208103600,
+          "levy": 1493326,
+          "credit_rate": 0.007175876
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37080",
+      "type": "Town",
+      "name": "Wausau",
+      "split_county": false,
+      "population": 2200,
+      "full_value": 290328300,
+      "full_value_ex_tif": 290328300,
+      "assessment_level": 1.0,
+      "total_tax": 4148736,
+      "school_levy_credit": 499131,
+      "gross_rate": 0.01429,
+      "effective_rate": 0.01257,
+      "taxes": {
+        "county": 1070622,
+        "local": 718477,
+        "school": 2046628,
+        "technical_college": 313009,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "6223",
+          "name": "Wausau",
+          "full_value": 208262080,
+          "levy": 1494463,
+          "credit_rate": 0.007175876
+        },
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 82066220,
+          "levy": 552165,
+          "credit_rate": 0.006728291
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37082",
+      "type": "Town",
+      "name": "Weston",
+      "split_county": false,
+      "population": 675,
+      "full_value": 95014200,
+      "full_value_ex_tif": 95014200,
+      "assessment_level": 0.93,
+      "total_tax": 1359467,
+      "school_levy_credit": 156002,
+      "gross_rate": 0.01431,
+      "effective_rate": 0.01267,
+      "taxes": {
+        "county": 350377,
+        "local": 267370,
+        "school": 639283,
+        "technical_college": 102437,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "4970",
+          "name": "D.C. Everest Area",
+          "full_value": 95014200,
+          "levy": 639283,
+          "credit_rate": 0.006728291
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    },
+    {
+      "code": "37084",
+      "type": "Town",
+      "name": "Wien",
+      "split_county": false,
+      "population": 884,
+      "full_value": 99918800,
+      "full_value_ex_tif": 99918800,
+      "assessment_level": 0.78,
+      "total_tax": 1090664,
+      "school_levy_credit": 149862,
+      "gross_rate": 0.01092,
+      "effective_rate": 0.00942,
+      "taxes": {
+        "county": 368463,
+        "local": 77495,
+        "school": 536981,
+        "technical_college": 107725,
+        "other": 0
+      },
+      "school_districts": [
+        {
+          "code": "1561",
+          "name": "Edgar",
+          "full_value": 87011597,
+          "levy": 442247,
+          "credit_rate": 0.005082618
+        },
+        {
+          "code": "5628",
+          "name": "Stratford",
+          "full_value": 12810276,
+          "levy": 93899,
+          "credit_rate": 0.007330003
+        },
+        {
+          "code": "0196",
+          "name": "Athens",
+          "full_value": 96927,
+          "levy": 835,
+          "credit_rate": 0.008615228
+        }
+      ],
+      "technical_colleges": [
+        {
+          "code": "1500",
+          "name": "Northcentral Technical College"
+        }
+      ]
+    }
+  ]
+}

@@ -362,8 +362,8 @@ export default function Ledger({ b, extra, chrome }) {
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={levyTrend} margin={{ top: 8, right: 6, bottom: 4, left: 0 }}>
                   <CartesianGrid stroke="var(--rule)" vertical={false} />
-                  <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
-                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={44} />
+                  <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
+                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={44} />
                   <Tooltip content={<LevyTip />} cursor={{ fill: "var(--paper-2)" }} />
                   <Bar dataKey="levy" fill="var(--gold)" radius={[4, 4, 0, 0]} maxBarSize={30}>
                     {/* A proposed year's bar is drawn faint: not yet a levy anyone owes. */}
@@ -380,8 +380,8 @@ export default function Ledger({ b, extra, chrome }) {
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={levyTrend} margin={{ top: 8, right: 10, bottom: 4, left: 0 }}>
                   <CartesianGrid stroke="var(--rule)" vertical={false} />
-                  <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
-                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(0)} width={34} />
+                  <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
+                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(0)} width={34} />
                   <Tooltip content={<LevyTip />} cursor={{ stroke: "var(--rule)" }} />
                   <Line type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
                 </LineChart>
@@ -468,8 +468,8 @@ export default function Ledger({ b, extra, chrome }) {
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={trend} margin={{ top: 8, right: 10, bottom: 4, left: 0 }}>
                   <CartesianGrid stroke="var(--rule)" vertical={false} />
-                  <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
-                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(0)} width={34} />
+                  <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
+                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(0)} width={34} />
                   <Tooltip content={<BillTip />} cursor={{ stroke: "var(--rule)" }} />
                   <Line type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
                 </LineChart>
@@ -480,8 +480,8 @@ export default function Ledger({ b, extra, chrome }) {
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={trend} margin={{ top: 8, right: 6, bottom: 4, left: 0 }}>
                   <CartesianGrid stroke="var(--rule)" vertical={false} />
-                  <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
-                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + Math.round(v)} width={44} />
+                  <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
+                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + Math.round(v)} width={44} />
                   <Tooltip content={<BillTip />} cursor={{ fill: "var(--paper-2)" }} />
                   <Bar dataKey="bill" fill="var(--gold)" radius={[4, 4, 0, 0]} maxBarSize={26}>
                     {trend.map((p) => (

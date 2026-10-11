@@ -24,6 +24,21 @@ PUBLIC = ROOT / "public"
 ROUTES = ["home", "marathon-county", "marathon-county~2027-proposed", "wausau-city", "wausau-school",
           "your-tax-bill", "about", "card"]
 results = []
+# Visible text under 12 px (SVG labels and screen-reader-only text aside).
+TINY_TEXT = """() => [...document.querySelectorAll("body *")].filter((el) => {
+  if (el.closest("svg, .sr-only") || ![...el.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim())) return false;
+  const r = el.getBoundingClientRect(), s = getComputedStyle(el);
+  return r.width > 1 && r.height > 1 && s.visibility !== "hidden" && parseFloat(s.fontSize) < 12;
+}).map((el) => `${el.className || el.tagName} ${getComputedStyle(el).fontSize} "${el.textContent.trim().slice(0, 24)}"`)"""
+# Buttons, inputs and block links under 24 x 24 px (WCAG 2.2 target size; links
+# inside running text are exempt, and a checkbox inside its label is the label).
+SMALL_TARGETS = """() => [...document.querySelectorAll("a, button, input, select")].filter((el) => {
+  const r = el.getBoundingClientRect(), s = getComputedStyle(el);
+  if (!(r.width > 0 && r.height > 0) || s.visibility === "hidden") return false;
+  if (el.tagName === "A" && s.display === "inline") return false;
+  if (el.tagName === "INPUT" && el.closest("label")) return false;
+  return r.width < 24 || r.height < 24;
+}).map((el) => `${el.tagName.toLowerCase()}.${el.className} ${Math.round(el.getBoundingClientRect().width)}x${Math.round(el.getBoundingClientRect().height)}`)"""
 
 
 def check(name, ok, detail=""):
@@ -97,8 +112,15 @@ def main():
         lines = [n(t) for t in page.locator("#bill .jrow:not(.total):not(.credit) .jrow-amt").all_inner_texts()]
         totals = [n(t) for t in page.locator("#bill .jrow.total .jrow-amt").all_inner_texts()]
         check("bill: the lines add up to the taxes levied", sum(lines) == totals[0], f"{lines} vs {totals}")
-        receipt = [n(t) for t in page.locator("#receipt .rc-gov td").all_inner_texts()]
+        receipt = [n(t) for t in page.evaluate("[...document.querySelectorAll('#receipt .rc-gov td')].map((td) => td.firstChild.textContent)")]
         check("receipt: the governments add up to the bill", sum(receipt) == totals[0], f"{receipt} vs {totals[0]}")
+        check("menu: the Tax Bill view's six sections", page.locator(".subnav a").count() == 6)
+
+        # the year before, on the same value: the bill's line and the receipt agree
+        sub = page.locator(".calc-out-sub").inner_text()
+        check("bill: the change from last year, on the same value", re.search(r"\d{4}", sub) is not None, sub)
+        pay = page.locator("#receipt .rc-total .rc-chg").inner_text()
+        check("receipt: 'You pay' changes by the bill's change", n(pay) == n(sub.split("(")[0]), f"{pay} vs {sub}")
 
         # next door
         rows = page.locator("#neighbors .nb-row")
@@ -139,6 +161,14 @@ def main():
         check("dates: the calendar file holds every dated item",
               ics.startswith("BEGIN:VCALENDAR") and ics.rstrip().endswith("END:VCALENDAR") and ics.count("BEGIN:VEVENT") == len(dated))
 
+        # the map's other view: the change since last year
+        page.locator(".cmap-mode button").nth(1).click()
+        page.wait_for_timeout(150)
+        legend = page.locator(".cmap-legend").inner_text()
+        shades = page.evaluate("new Set([...document.querySelectorAll('.cmap .cmap-shape')].map((p) => p.getAttribute('fill'))).size")
+        check("map: the change view shades every place by its change", shades > 10 and "0" in legend, legend)
+        page.locator(".cmap-mode button").nth(0).click()
+
         # the map zooms to the Wausau area and back
         page.locator(".cmap-zoom").click()
         page.wait_for_timeout(700)
@@ -170,6 +200,22 @@ def main():
             out.mkdir(parents=True, exist_ok=True)
             for sec in ("bill", "receipt", "compare", "neighbors", "assessment", "dates"):
                 page.locator("#" + sec).screenshot(path=str(out / f"phone-{sec}.png"))
+        ctx.close()
+
+        # ---- type and targets on a phone: nothing under 12 px, no tap target under 24 px ----
+        ctx = browser.new_context(viewport={"width": 390, "height": 844})
+        page = ctx.new_page()
+        for v in ("", "#your-tax-bill", "#marathon-county", "#card"):
+            page.goto(base + v)
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(300)
+            tiny = page.evaluate(TINY_TEXT)
+            check(f"type {v or '#home'}: no visible text under 12 px", not tiny, " | ".join(tiny[:3]))
+            small = page.evaluate(SMALL_TARGETS)
+            check(f"targets {v or '#home'}: none under 24 px", not small, " | ".join(small[:3]))
+        fonts = page.evaluate("performance.getEntriesByType('resource').map((e) => e.name).filter((n) => n.endsWith('.woff2'))")
+        check("fonts: the trimmed Fraunces, no Playfair", any("fraunces-opsz" in f for f in fonts)
+              and not any("playfair" in f.lower() for f in fonts), str(fonts))
         ctx.close()
 
         # ---- every view, in every language ----

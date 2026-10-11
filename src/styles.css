@@ -1,6 +1,9 @@
+/* Fraunces, trimmed by scripts/fonts.py: the site's characters, the whole
+   optical-size axis, weights 400-700 (the range the serif is set in). */
+@font-face{font-family:'Fraunces Variable'; font-style:normal; font-display:swap; font-weight:400 700;
+  src:url('./assets/fonts/fraunces-opsz.woff2') format('woff2-variations');}
 /* Follow the Money — suite stylesheet (editorial / public-ledger aesthetic).
-   Fonts are loaded from index.html (preconnect + link) so the browser starts
-   fetching them before the JS bundle arrives. */
+   Fonts are self-hosted: Fraunces above, Public Sans from Fontsource (main.jsx). */
 
 html{scroll-behavior:smooth; scroll-padding-top:64px;}
 body{margin:0; background:#f5f1e8;}
@@ -26,21 +29,20 @@ body{margin:0; background:#f5f1e8;}
 .chrome-bar__brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:#fff;}
 .chrome-bar__logo-img{height:30px; width:30px; border-radius:50%; object-fit:cover;
   border:1.5px solid rgba(255,255,255,.5); flex-shrink:0;}
-.chrome-bar__wordmark{font-family:'Playfair Display',Georgia,serif; font-weight:900;
-  font-size:14px; letter-spacing:.03em; text-transform:uppercase; white-space:nowrap;}
+.chrome-bar__wordmark{display:block; flex-shrink:0; width:auto; font-size:14px; fill:currentColor;}
 .chrome-bar__left{display:flex; align-items:center; gap:12px; min-width:0; flex:1 1 auto;}
 .chrome-bar__divider{width:1px; height:18px; background:rgba(255,255,255,.35);}
 .chrome-bar__section{font-weight:600; font-size:12px; letter-spacing:.04em;
   text-transform:uppercase; opacity:.9; white-space:nowrap;}
 .chrome-bar__right{display:flex; align-items:center; gap:12px; flex:0 0 auto;}
-.chrome-bar__meta{font-size:11px; letter-spacing:.04em; white-space:nowrap;}
+.chrome-bar__meta{font-size:12px; letter-spacing:.04em; white-space:nowrap;}
 .chrome-bar__share{display:inline-flex; align-items:center; gap:6px; cursor:pointer;
   background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.32); color:#fff;
   font-family:var(--sans); font-weight:600; font-size:12px; letter-spacing:.02em; line-height:1;
   padding:6px 12px; border-radius:18px; white-space:nowrap;
   transition:background .15s ease, border-color .15s ease;}
 .chrome-bar__share:hover{background:rgba(255,255,255,.2);}
-.chrome-bar__home{display:inline-flex; align-items:center; gap:6px; cursor:pointer; color:#fff;
+.chrome-bar__home{display:inline-flex; align-items:center; min-height:28px; gap:6px; cursor:pointer; color:#fff;
   background:transparent; border:none; font-family:var(--sans); font-weight:600; font-size:12.5px;
   letter-spacing:.02em; padding:4px 4px; opacity:.9;}
 .chrome-bar__home:hover{opacity:1; text-decoration:underline; text-underline-offset:3px;}
@@ -100,7 +102,7 @@ body{margin:0; background:#f5f1e8;}
 /* sponsor surface — tasteful "Presented by" line, right-aligned in the kicker row
    (hidden unless src/sponsors.json is enabled) */
 .sponsor-slot{display:inline-flex; align-items:center; gap:8px; margin-left:auto; text-decoration:none;}
-.sponsor-slot__label{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); opacity:.8;}
+.sponsor-slot__label{font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); opacity:.8;}
 .sponsor-slot__name{font-family:var(--serif); font-size:15px; font-weight:600; color:var(--ink); letter-spacing:0; text-transform:none;}
 .sponsor-slot__logo{height:24px; width:auto; max-width:160px; object-fit:contain;}
 @media (max-width:560px){ .sponsor-slot{margin-left:0; flex-basis:100%; padding-top:4px;} }
@@ -166,9 +168,9 @@ body{margin:0; background:#f5f1e8;}
 .chart-table{width:100%; border-collapse:collapse; font-size:13.5px; font-variant-numeric:tabular-nums;}
 .chart-table th, .chart-table td{padding:6px 10px; text-align:right; border-bottom:1px solid var(--rule);}
 .chart-table th:first-child{text-align:left;}
-.chart-table thead th{position:sticky; top:0; background:var(--paper-2); font-size:11px; letter-spacing:.06em;
+.chart-table thead th{position:sticky; top:0; background:var(--paper-2); font-size:12px; letter-spacing:.06em;
   text-transform:uppercase; color:var(--ink-soft);}
-.stat-unit{font-family:var(--sans); font-size:.32em; font-weight:600; color:var(--ink-soft); letter-spacing:0;}
+.stat-unit{font-family:var(--sans); font-size:max(12px, .32em); font-weight:600; color:var(--ink-soft); letter-spacing:0;}
 /* Glossary (Methodology): plain-language definitions, collapsed by default. */
 .glossary{margin:22px 0 0; border-top:1px solid var(--rule); padding-top:14px;}
 .glossary summary{cursor:pointer; font-weight:700; font-size:14px; color:var(--accent);}
@@ -222,14 +224,14 @@ body{margin:0; background:#f5f1e8;}
 .jrow.credit{color:var(--pos); border-bottom:1px dotted var(--rule);}
 .jrow.total.net{border-top:2px solid var(--ink); font-size:1.06em;}
 .primary-home{display:flex; align-items:flex-start; gap:8px; margin:10px 0 0; font-size:14.5px; line-height:1.4; cursor:pointer; max-width:60ch;}
-.primary-home input{width:18px; height:18px; margin:1px 0 0; accent-color:var(--accent); flex-shrink:0;}
+.primary-home input{width:20px; height:20px; margin:0; accent-color:var(--accent); flex-shrink:0;}
 .card-credit{color:var(--pos);}
 /* Clickable jurisdiction rows in the complete-bill overview drill through to that
    government's page. */
 .jrow.go{cursor:pointer; transition:background .12s ease;}
 .jrow.go:hover{background:var(--paper-2);}
 .jrow.go:focus-visible{outline:2px solid var(--accent); outline-offset:-2px;}
-.jrow-go{display:inline-flex; align-items:center; gap:2px; margin-left:9px; font-size:11px; font-weight:700;
+.jrow-go{display:inline-flex; align-items:center; gap:2px; margin-left:9px; font-size:12px; font-weight:700;
   letter-spacing:.04em; text-transform:uppercase; color:var(--accent); opacity:0; transition:opacity .12s ease;}
 .jrow.go:hover .jrow-go, .jrow.go:focus-visible .jrow-go{opacity:1;}
 @media (hover:none){ .jrow-go{opacity:.85;} }
@@ -314,7 +316,7 @@ body{margin:0; background:#f5f1e8;}
 /* Tax-bill flow: numbered steps, right under the masthead. */
 .tb-steps{padding-top:28px;}
 .step-num{display:inline-grid; place-items:center; width:20px; height:20px; margin-right:8px;
-  border-radius:50%; background:var(--accent); color:#fff; font-size:11px; font-weight:700;
+  border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700;
   letter-spacing:0; vertical-align:1px;}
 /* "Which school district is your home in?" — the tax-bill views' school choice. */
 .school-pick{margin:0 0 22px;}
@@ -334,7 +336,7 @@ body{margin:0; background:#f5f1e8;}
   text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
 .wc-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
 .wc-item{display:flex; flex-direction:column; gap:4px; min-width:0;}
-.wc-label{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); font-weight:700;}
+.wc-label{font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); font-weight:700;}
 .wc-value{font-family:var(--serif); font-size:clamp(19px,2.3vw,25px); font-weight:600; line-height:1.12;
   color:var(--ink); letter-spacing:-0.01em;}
 .wc-meta{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:13px; margin-top:1px;}
@@ -358,7 +360,7 @@ body{margin:0; background:#f5f1e8;}
 .support h2{font-size:clamp(24px,3.4vw,32px); line-height:1.15; color:#fff;}
 .support p{margin:10px 0 0; max-width:62ch; font-size:16px; line-height:1.55; color:#e3eeea;}
 .support-actions{display:flex; flex-wrap:wrap; align-items:center; gap:12px 22px; margin-top:20px;}
-.support-actions a{color:#fff; font-weight:600; font-size:15px; text-underline-offset:3px;}
+.support-actions a{display:inline-flex; align-items:center; min-height:32px; color:#fff; font-weight:600; font-size:15px; text-underline-offset:3px;}
 .support-actions .support-btn{background:#fff; color:var(--accent); text-decoration:none; padding:10px 18px;
   font-weight:700; letter-spacing:.01em;}
 .support-actions .support-btn:hover{background:var(--paper);}
@@ -385,12 +387,12 @@ body{margin:0; background:#f5f1e8;}
 /* Story card (#card): a fixed-height WordPress embed, centered in its frame. */
 .ftm.ftm-card{max-width:none; padding:0; min-height:100vh; display:flex; align-items:center; justify-content:center;}
 .card-inner{width:100%; max-width:760px; padding:16px 18px;}
-.card-kicker{font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--accent);}
+.card-kicker{font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--accent);}
 .card-kicker span{color:var(--ink-soft);}
 .ftm .card-title{font-size:clamp(24px,5vw,34px); line-height:1.1; margin:6px 0 14px;}
 .card-controls{display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:10px 12px;}
 .card-controls label{display:flex; flex-direction:column; gap:5px; min-width:0;}
-.card-controls label > span:first-child{font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+.card-controls label > span:first-child{font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
   color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .card-controls .muni-select{width:100%; min-width:0; height:40px; padding:0 8px;}
 .card-controls .muni-select:disabled{opacity:1; color:var(--ink); background:var(--paper-2); border-color:var(--rule);}
@@ -405,7 +407,7 @@ body{margin:0; background:#f5f1e8;}
 .card-legend li{display:flex; align-items:center; gap:6px; white-space:nowrap;}
 .card-legend i{width:10px; height:10px; display:inline-block;}
 .card-cta{display:inline-block; margin-top:14px; font-weight:700; color:var(--accent); font-size:14.5px; line-height:1.35;}
-.card-source{margin-top:6px; font-size:11.5px; color:var(--ink-soft);}
+.card-source{margin-top:6px; font-size:12px; color:var(--ink-soft);}
 @media (max-width:620px){
   .card-controls{grid-template-columns:1fr 1fr;}
   .card-controls label:first-child{grid-column:1 / 3;}
@@ -467,7 +469,7 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
 .rank-row button:hover{background:var(--paper-2);}
 .rank-n{font-size:12px; color:var(--ink-soft); text-align:right;}
 .rank-name{font-size:14px; line-height:1.3;}
-.rank-yours{font-style:normal; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+.rank-yours{font-style:normal; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
   color:var(--gold-ink); margin-left:8px;}
 .rank-bar{position:relative; height:16px;}
 .rank-bar i{position:absolute; left:0; top:2px; height:8px; background:var(--accent); border-radius:0 4px 4px 0;}
@@ -506,11 +508,11 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
 .cmap-label{position:absolute; transform:translateY(calc(-100% - 10px)); pointer-events:none; white-space:nowrap;
   background:rgba(245,241,232,.94); border:1px solid var(--ink); padding:4px 8px 5px; font-size:13px; line-height:1.25;
   font-variant-numeric:tabular-nums; box-shadow:0 2px 6px rgba(28,26,22,.14);}
-.cmap-label em{display:block; font-style:normal; font-size:10px; font-weight:700; letter-spacing:.08em;
+.cmap-label em{display:block; font-style:normal; font-size:12px; font-weight:700; letter-spacing:.08em;
   text-transform:uppercase; color:var(--gold-ink);}
 .cmap-label b{font-weight:700;}
 .cmap-label.below{transform:translateY(10px);}
-.cmap-anchor{position:absolute; transform:translate(-50%, -50%); pointer-events:none; font-size:11px; font-weight:700;
+.cmap-anchor{position:absolute; transform:translate(-50%, -50%); pointer-events:none; font-size:12px; font-weight:700;
   letter-spacing:.1em; text-transform:uppercase; color:var(--ink);
   text-shadow:0 0 3px var(--paper), 0 0 3px var(--paper), 0 0 2px var(--paper);}
 .cmap-tip{position:absolute; transform:translate(-50%, calc(-100% - 14px)); z-index:10; pointer-events:none; white-space:nowrap;
@@ -527,10 +529,18 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
 .cmap-ramp-ends{display:flex; justify-content:space-between; margin-top:4px; font-size:12px; font-weight:600;
   font-variant-numeric:tabular-nums;}
 .cmap-scale{position:absolute; right:0; top:calc(100% + 14px); display:flex; flex-direction:column; align-items:flex-end;
-  font-size:11px; color:var(--ink-soft); pointer-events:none;}
+  font-size:12px; color:var(--ink-soft); pointer-events:none;}
 .cmap-scale i{align-self:stretch; height:6px; border:1.5px solid var(--ink-soft); border-top:0; margin-bottom:3px;}
 .cmap-scale span{white-space:nowrap;}
 .cmap figcaption{margin-top:14px;}
+
+/* the year before: under the calculator's figure, on the receipt, the map's mode toggle */
+.calc-out-sub{display:block; margin-top:6px; font-size:13px; color:var(--ink-soft); font-variant-numeric:tabular-nums;}
+.rc-vs{display:block; margin-top:4px; font-size:12px; color:var(--ink-soft);}
+.rc-chg{display:block; font-size:12px; font-weight:400;}
+.rc-total .rc-chg{font-family:var(--sans); font-size:13px;}
+.cmap-tools{justify-content:space-between; flex-wrap:wrap; gap:8px;}
+.cmap-ramp-ends span:nth-child(2):not(:last-child){color:var(--ink-soft);}
 
 /* "The same home, across the county line" (Tax Bill view) */
 .nb-list{list-style:none; margin:20px 0 0; padding:0; border-top:1px solid var(--rule);}
@@ -548,7 +558,7 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
 .nb-ends span + span{text-align:right;}
 .nb-big-label{grid-column:2; font-size:13px; font-variant-numeric:tabular-nums;}
 .nb-big-label > i{display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--accent); margin-right:6px;}
-.nb-big-label em{font-style:normal; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--gold-ink);}
+.nb-big-label em{font-style:normal; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--gold-ink);}
 @media (max-width:560px){
   .nb-row{grid-template-columns:1fr;}
   .nb-head{grid-row:auto; flex-direction:row; justify-content:space-between; align-items:baseline; gap:10px;}
@@ -638,7 +648,7 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
 @media (max-width:640px){ .lp-map{grid-template-columns:1fr; gap:14px;} }
 /* Budget season: next year's proposals, one grouped box. */
 .lp-seasons{margin:14px 0 0; background:var(--paper); border:1px solid var(--rule); border-top:3px solid var(--gold);}
-.ftm .lp-seasons h2{font-family:var(--sans); font-size:11px; font-weight:700; letter-spacing:.14em;
+.ftm .lp-seasons h2{font-family:var(--sans); font-size:12px; font-weight:700; letter-spacing:.14em;
   text-transform:uppercase; color:var(--gold-ink); margin:0; padding:12px 20px 2px;}
 .lp-seasons ul{list-style:none; margin:0; padding:0 0 4px;}
 .lp-seasons a{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:10px 20px;
@@ -668,7 +678,7 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
   .lp-card-mark, .lp-card-mark img{width:34px; height:34px;}
   .lp-card-name{font-size:17px;}
   .lp-card-stat b{font-size:20px;}
-  .lp-card-stat span{display:block; font-size:10px;}
+  .lp-card-stat span{display:block; font-size:12px;}
   .lp-card-desc, .lp-card-cta{display:none;}
 }
 /* Placeholders for the landing's figures while the data files load: same size
@@ -695,7 +705,7 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
 .ledger{border-top:2px solid var(--ink);}
 .ledger-head{display:grid; grid-template-columns:2.4fr 1.1fr 1fr 1.1fr .8fr 24px; gap:12px;
   padding:10px 8px; border-bottom:1px solid var(--rule);}
-.ledger-head button{font-family:var(--sans); font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+.ledger-head button{font-family:var(--sans); font-size:12px; letter-spacing:.06em; text-transform:uppercase;
   font-weight:700; color:var(--ink-soft); background:none; border:none; cursor:pointer; text-align:right; padding:0;}
 .ledger-head button:first-child{text-align:left;}
 .ledger-head button.sorted{color:var(--accent);}
@@ -719,7 +729,7 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
 .detail{padding:6px 8px 22px; animation:rise .35s both ease-out;}
 .detail-grid{display:grid; grid-template-columns:1fr 1fr; gap:30px; max-width:680px;}
 .balance{border-top:1px solid var(--ink);}
-.balance-title{font-size:11px; letter-spacing:.08em; text-transform:uppercase; font-weight:700;
+.balance-title{font-size:12px; letter-spacing:.08em; text-transform:uppercase; font-weight:700;
   color:var(--accent); padding:8px 0;}
 .balance-row{display:flex; justify-content:space-between; padding:7px 0; font-size:14px;
   border-bottom:1px solid var(--rule); font-variant-numeric:tabular-nums;}
@@ -751,9 +761,9 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
 .cmp-head{display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:8px;}
 .cmp-name{font-size:14px; font-weight:600;}
 .cmp-delta{display:inline-flex; align-items:baseline; gap:8px; font-size:12px; white-space:nowrap;}
-.cmp-pct{font-size:11px; color:var(--ink-soft); font-variant-numeric:tabular-nums;}
+.cmp-pct{font-size:12px; color:var(--ink-soft); font-variant-numeric:tabular-nums;}
 .cmp-bar{display:grid; grid-template-columns:24px 1fr 108px; align-items:center; gap:10px; margin-top:4px;}
-.cmp-yr{font-size:11px; color:var(--ink-soft); font-variant-numeric:tabular-nums; text-align:right;}
+.cmp-yr{font-size:12px; color:var(--ink-soft); font-variant-numeric:tabular-nums; text-align:right;}
 .cmp-track{height:13px; background:var(--paper-2);}
 .cmp-fill{display:block; height:100%; transform-origin:left; animation:grow .6s both ease-out;}
 .cmp-fill.old{background:var(--gold); opacity:.7;}
@@ -778,7 +788,7 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
 /* funds */
 .fund-table{border-top:2px solid var(--ink);}
 .fund-head{display:grid; grid-template-columns:2.4fr 1fr 1fr 1fr; gap:12px; padding:10px 8px;
-  border-bottom:1px solid var(--rule); font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+  border-bottom:1px solid var(--rule); font-size:12px; letter-spacing:.06em; text-transform:uppercase;
   font-weight:700; color:var(--ink-soft); text-align:right;}
 .fund-head span:first-child{text-align:left;}
 .fund-row{display:grid; grid-template-columns:2.4fr 1fr 1fr 1fr; gap:12px; padding:12px 8px;
@@ -786,7 +796,7 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
 .fund-row:hover{background:var(--paper-2);}
 .f-name{text-align:left; display:flex; flex-direction:column;}
 .f-name b{font-weight:600;}
-.f-name em{font-style:normal; font-size:11px; color:var(--ink-soft);}
+.f-name em{font-style:normal; font-size:12px; color:var(--ink-soft);}
 
 /* debt */
 .debt-list{display:flex; flex-direction:column; gap:3px; border-top:2px solid var(--ink); padding-top:10px;}
@@ -827,7 +837,7 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
   /* Phones: get the first numbers onto the first screen — a tighter masthead
      and the three stat tiles side by side (they stacked to ~550px). */
   .masthead{padding:26px 0 22px;}
-  .kicker-row{font-size:10.5px; letter-spacing:.1em; gap:6px; flex-wrap:wrap;}
+  .kicker-row{font-size:12px; letter-spacing:.1em; gap:6px; flex-wrap:wrap;}
   .kicker-row > span{white-space:nowrap;}
   .masthead-logo{width:56px; height:56px; border-radius:10px; padding:5px;}
   .masthead h1{font-size:40px; margin-top:10px;}
@@ -835,7 +845,7 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
   .stat-strip{grid-template-columns:repeat(3,1fr); margin-top:22px;}
   .stat{padding:14px 8px 12px;}
   .stat-icon{display:none;}
-  .stat-label{font-size:10px; letter-spacing:.06em; line-height:1.3; min-height:2.6em;}
+  .stat-label{font-size:12px; letter-spacing:.06em; line-height:1.3; min-height:2.6em;}
   .stat-value{font-size:23px; margin:6px 0 4px;}
   .stat-sub{font-size:12px; line-height:1.3;}
   .bar-row, .bar-row.no-spark{grid-template-columns:1.4fr 2fr auto 56px; }

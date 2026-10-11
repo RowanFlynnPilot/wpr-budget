@@ -36,6 +36,10 @@ BUILDS = [
     ("public/marathon-tax-districts.json",
      lambda: extract_dor.extract("sources/dor-tvc25.xlsx", "sources/dor-2025lotcr.pdf",
                                  "sources/dor-2025fdcred.pdf", cache=True)),
+    # The year before, on the same basis (the Tax Bill view's "vs. last year").
+    ("public/marathon-tax-districts-2024.json",
+     lambda: extract_dor.extract("sources/dor-2024/tvc24.xlsx", "sources/dor-2024/2024lotcr.pdf",
+                                 "sources/dor-2024/2024fdcred.pdf", cache=True)),
     # The eight counties around Marathon, on the same basis (the Tax Bill view's "next door").
     ("public/neighbor-tax-districts.json",
      lambda: extract_dor.extract_neighbors("sources/dor-tvc25.xlsx", "sources/dor-2025lotcr.pdf",

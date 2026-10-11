@@ -59,7 +59,7 @@ export function billDollars(rates, value, credits) {
   return { lines, levied, lottery: levied - net - firstDollar, firstDollar, net };
 }
 
-// Every municipality's bill on one home, dearest first: [{ m, bill, min, max }].
+// Every municipality's bill on one home, dearest first: [{ m, sd, bill, min, max }].
 // A municipality spanning several school districts shows its largest one (`bill`)
 // and the range across them (`min`/`max`) — except the reader's own (`own` =
 // { code, school }), which shows the district they chose. The Tax Bill view's
@@ -68,8 +68,17 @@ export function muniBills(municipalities, credits, value, primaryHome = true, ow
   return municipalities.map((m) => {
     const bills = m.school_districts.map((sd) => netBill(m, sd, credits, value, primaryHome));
     const sd = (own && m.code === own.code && m.school_districts.find((x) => x.code === own.school)) || m.school_districts[0];
-    return { m, bill: netBill(m, sd, credits, value, primaryHome), min: Math.min(...bills), max: Math.max(...bills) };
+    return { m, sd, bill: netBill(m, sd, credits, value, primaryHome), min: Math.min(...bills), max: Math.max(...bills) };
   }).sort((a, c) => c.bill - a.bill);
+}
+
+// The same municipality and school district a year earlier, in the prior year's
+// DOR file: { m, sd }. check-data proves every pair on the bill has one.
+export function priorOf(prior, muni, sd) {
+  const m = prior.municipalities.find((x) => x.code === muni.code);
+  const s = m && m.school_districts.find((x) => x.code === sd.code);
+  if (!s) throw new Error(`no ${prior.meta.tax_year} line for ${muni.name} / ${sd.name}`);
+  return { m, sd: s };
 }
 
 // Where the Tax Bill view keeps the reader's municipality (localStorage only);

@@ -183,6 +183,29 @@ grid's once-used edges encloses the county (neighbors share borders exactly).
 A new DOR year that adds/renames a municipality fails check-data until the map
 is re-extracted (use the next GENZ vintage).
 
+**Vs. last year** (with.prior = `public/marathon-tax-districts-2024.json`, the
+same extractor on DOR's 2024 workbook + credit reports; `priorOf` in taxmath.js
+finds the same municipality/district, failing loud). Shown on the SAME VALUE —
+in effect the tax rate's change — under the calculator ("−$137 (−3.9%) from 2024
+taxes"), per government on the receipt (billDollars of the prior parts + prior
+credits), and as the map's "Change since 2024" mode (diverging CHANGE_RAMP in
+ui.jsx: teal fell → newsprint → rust rose, symmetric around 0; teal not pure
+green so red-green colorblind readers can tell the sides apart). Because values
+rose almost everywhere (median +11.4%; Wausau +4.1%), the bill's note gives the
+municipality's own value change and what a home that kept pace paid (Wausau:
+~$1 different, not −$137) — never drop that context.
+
+**Front-end floor (2026-10-10 polish):** no visible text under 12 px and no
+non-inline tap target under 24 px — scripts/e2e.py enforces both on a phone
+(home, Tax Bill, County, #card); chart ticks and Sankey labels are 12 too (the
+City Sankey's left margin is 186 to fit "General Property Taxes $24M"). Fonts:
+`scripts/fonts.py` builds `src/assets/fonts/fraunces-opsz.woff2` (Fraunces
+subset to the site's characters, weights 400–700, opsz kept — 67 → 58 kB, an
+@font-face at the top of styles.css) and `src/wordmark.json` (the WPR wordmark
+as an SVG path, HarfBuzz-shaped; ChromeBar draws it) — Playfair (22 kB) is no
+longer loaded; the Fontsource packages are devDependencies (the script's
+source). The Tax Bill view has a SubNav like the other bodies (TB_SECTIONS).
+
 **Three reader-service sections after the map** (Tax Bill view):
 `Neighbors` (#neighbors, "The same home, across the county line": the nine
 counties sorted by typical/median bill, each a strip from cheapest to dearest
@@ -328,6 +351,13 @@ python scripts/extract_wausau.py "2026-Wausau-Budget.pdf" public/wausau-city.jso
 python scripts/extract_dor.py sources/dor-tvc25.xlsx sources/dor-2025lotcr.pdf \
        sources/dor-2025fdcred.pdf public/marathon-tax-districts.json \
        --neighbors public/neighbor-tax-districts.json --cache
+# The year before, same extractor, same checks (the Tax Bill view's "vs. last
+# year"): DOR's tvc24 workbook + the 2024 credit reports, in sources/dor-2024/.
+python scripts/extract_dor.py sources/dor-2024/tvc24.xlsx sources/dor-2024/2024lotcr.pdf \
+       sources/dor-2024/2024fdcred.pdf public/marathon-tax-districts-2024.json --cache
+# EACH JUNE (new TVC): the current file becomes the prior one — rename/re-extract
+# so with.prior in src/entities.json names the year before the current file
+# (check-data fails if prior.tax_year != current - 1), and update verify.py.
 # then redraw the share cards (CI fails while their figures are stale):
 python scripts/og_cards.py
 # and the map's boundaries (Census cartographic boundary file, same Jan 1 as DOR):

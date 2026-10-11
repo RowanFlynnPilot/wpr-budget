@@ -62,7 +62,7 @@ export function SankeyNode({ x, y, width, height, payload }) {
     <Layer>
       <rect x={x} y={y} width={width} height={barH} fill={fill} fillOpacity={0.9} />
       <text x={left ? x - 8 : x + width + 8} y={y + barH / 2} textAnchor={left ? "end" : "start"}
-        dominantBaseline="middle" fontSize={11.5} fontWeight={600}
+        dominantBaseline="middle" fontSize={12} fontWeight={600}
         fontFamily="Public Sans Variable, system-ui, sans-serif" fill="#1c1a16">
         {payload.name} <tspan fill="#6b6555" fontWeight={400}>{amt}</tspan>
       </text>
@@ -124,7 +124,7 @@ export function DebtChart({ retirement, summary }) {
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={retirement} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
           <CartesianGrid stroke="var(--rule)" vertical={false} />
-          <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 11, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+          <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
           <YAxis tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
           <Tooltip content={<BarTip />} cursor={{ fill: "var(--paper-2)" }} />
           <Bar dataKey="principal" stackId="d" fill="var(--accent)" name={t("lbl.principal")} maxBarSize={26} />
