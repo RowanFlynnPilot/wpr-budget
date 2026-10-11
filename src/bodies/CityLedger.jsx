@@ -283,7 +283,7 @@ export default function CityLedger({ b, extra, chrome }) {
           <ChartFrame summary={wfNote} table={{ columns: [{ key: "year", label: t("col.year") }, { key: "fte", label: t("col.fte", wfDept) }], rows: wfSeries }}>
           <WithCharts height={320}>{(R) => (
             <R.ResponsiveContainer width="100%" height={320}>
-              <R.ComposedChart data={wfSeries} margin={{ top: 8, right: 12, bottom: 4, left: 6 }}>
+              <R.ComposedChart data={wfSeries} margin={{ top: 8, right: 20, bottom: 4, left: 6 }}>
                 <R.CartesianGrid stroke="var(--rule)" vertical={false} />
                 <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
                 <R.YAxis tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={34} />

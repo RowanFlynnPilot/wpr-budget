@@ -198,7 +198,11 @@ municipality's own value change and what a home that kept pace paid (Wausau:
 **Front-end floor (2026-10-10 polish):** no visible text under 12 px and no
 non-inline tap target under 24 px — scripts/e2e.py enforces both on a phone
 (home, Tax Bill, County, #card); chart ticks and Sankey labels are 12 too (the
-City Sankey's left margin is 186 to fit "General Property Taxes $24M"). Fonts:
+City Sankey's left margin is 186 to fit "General Property Taxes $24M"). A line or
+area chart's year axis needs a right margin of 20 (the last year's label is
+centered on the edge point; at 10-12 it lost 5 px: "202"); e2e fails on any
+chart text cut off at its chart's edge (County, the edition, City, School at
+1100/720/360 px). Fonts:
 `scripts/fonts.py` builds `src/assets/fonts/fraunces-opsz.woff2` (Fraunces
 subset to the site's characters, weights 400–700, opsz kept — 67 → 58 kB, an
 @font-face at the top of styles.css) and `src/wordmark.json` (the WPR wordmark

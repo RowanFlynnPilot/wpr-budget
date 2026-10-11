@@ -40,6 +40,17 @@ SMALL_TARGETS = """() => [...document.querySelectorAll("a, button, input, select
   return r.width < 24 || r.height < 24;
 }).map((el) => `${el.tagName.toLowerCase()}.${el.className} ${Math.round(el.getBoundingClientRect().width)}x${Math.round(el.getBoundingClientRect().height)}`)"""
 
+# Chart text (axis ticks, labels) that runs past its chart's SVG box, where the
+# SVG clips it (a last year cut to "202", a "$1000" axis label losing its "$").
+CLIPPED_TEXT = """() => [...document.querySelectorAll("svg.recharts-surface")].flatMap((svg) => {
+  const box = svg.getBoundingClientRect(), sec = svg.closest("section")?.id || "?";
+  return [...svg.querySelectorAll("text")].filter((t) => t.getClientRects().length && t.textContent.trim()).flatMap((t) => {
+    const r = t.getBoundingClientRect();
+    const over = Math.max(box.left - r.left, r.right - box.right, box.top - r.top, r.bottom - box.bottom);
+    return over > 0.5 ? [`${sec} "${t.textContent.trim().slice(0, 24)}" ${over.toFixed(1)} px`] : [];
+  });
+})"""
+
 
 def check(name, ok, detail=""):
     results.append(ok)
@@ -188,15 +199,24 @@ def main():
         check("Tax Bill view: no console errors", not errors, "; ".join(errors[:3]))
         ctx.close()
 
-        # ---- the charts arrive on their own: every chart box filled, none left waiting ----
+        # ---- the charts arrive on their own: every chart box filled, none left waiting,
+        # and no chart text clipped at the chart's edge, on a desktop or a phone ----
         ctx = browser.new_context(viewport={"width": 1100, "height": 900})
         page = ctx.new_page()
-        for v in ("#marathon-county", "#wausau-city", "#wausau-school"):
+        for v in ("#marathon-county", "#marathon-county~2027-proposed", "#wausau-city", "#wausau-school"):
+            page.set_viewport_size({"width": 1100, "height": 900})
             page.goto(base + v)
+            page.reload()
             page.wait_for_load_state("networkidle")
             page.wait_for_timeout(500)
             charts, waiting = page.locator(".recharts-surface").count(), page.locator(".chart-wait").count()
             check(f"charts {v}: drawn once the library lands", charts >= 3 and waiting == 0, f"{charts} drawn, {waiting} waiting")
+            clipped = []
+            for w in (1100, 720, 360):
+                page.set_viewport_size({"width": w, "height": 900})
+                page.wait_for_timeout(1500)  # the charts resize and re-animate
+                clipped += [f"{w}px {c}" for c in page.evaluate(CLIPPED_TEXT)]
+            check(f"charts {v}: no label cut off at a chart's edge", not clipped, " | ".join(clipped[:4]))
         ctx.close()
 
         # ---- "Use my location" on a phone, with real (granted) geolocation ----

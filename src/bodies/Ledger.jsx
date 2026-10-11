@@ -378,7 +378,7 @@ export default function Ledger({ b, extra, chrome }) {
               <h3 className="twin-title">{t("co.trends.legendRate")}</h3>
               <WithCharts height={250}>{(R) => (
                 <R.ResponsiveContainer width="100%" height={250}>
-                  <R.LineChart data={levyTrend} margin={{ top: 8, right: 10, bottom: 4, left: 0 }}>
+                  <R.LineChart data={levyTrend} margin={{ top: 8, right: 20, bottom: 4, left: 0 }}>
                     <R.CartesianGrid stroke="var(--rule)" vertical={false} />
                     <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
                     <R.YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(0)} width={34} />
@@ -468,7 +468,7 @@ export default function Ledger({ b, extra, chrome }) {
               <h3 className="twin-title">{t("co.bill.legendRate")}</h3>
               <WithCharts height={250}>{(R) => (
                 <R.ResponsiveContainer width="100%" height={250}>
-                  <R.LineChart data={trend} margin={{ top: 8, right: 10, bottom: 4, left: 0 }}>
+                  <R.LineChart data={trend} margin={{ top: 8, right: 20, bottom: 4, left: 0 }}>
                     <R.CartesianGrid stroke="var(--rule)" vertical={false} />
                     <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
                     <R.YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(0)} width={34} />
@@ -482,10 +482,10 @@ export default function Ledger({ b, extra, chrome }) {
               <h3 className="twin-title">{t("co.bill.legendBill")}</h3>
               <WithCharts height={250}>{(R) => (
                 <R.ResponsiveContainer width="100%" height={250}>
-                  <R.BarChart data={trend} margin={{ top: 8, right: 6, bottom: 4, left: 0 }}>
+                  <R.BarChart data={trend} margin={{ top: 8, right: 16, bottom: 4, left: 0 }}>
                     <R.CartesianGrid stroke="var(--rule)" vertical={false} />
                     <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
-                    <R.YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + Math.round(v)} width={44} />
+                    <R.YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => usd(Math.round(v))} width={56} />
                     <R.Tooltip content={<BillTip />} cursor={{ fill: "var(--paper-2)" }} />
                     <R.Bar dataKey="bill" fill="var(--gold)" radius={[4, 4, 0, 0]} maxBarSize={26}>
                       {trend.map((p) => (

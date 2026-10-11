@@ -336,7 +336,7 @@ export default function SchoolLedger({ b, chrome }) {
               <h3 className="twin-title">{t("s.overtime.legendRate")}</h3>
               <WithCharts height={250}>{(R) => (
                 <R.ResponsiveContainer width="100%" height={250}>
-                  <R.LineChart data={overTime} margin={{ top: 8, right: 10, bottom: 4, left: 0 }}>
+                  <R.LineChart data={overTime} margin={{ top: 8, right: 20, bottom: 4, left: 0 }}>
                     <R.CartesianGrid stroke="var(--rule)" vertical={false} />
                     <R.XAxis dataKey="year" ticks={otTicks} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
                     <R.YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={34} tickFormatter={(v) => "$" + v} />
@@ -355,7 +355,7 @@ export default function SchoolLedger({ b, chrome }) {
               <h3 className="twin-title">{t("s.overtime.legendVal")}</h3>
               <WithCharts height={250}>{(R) => (
                 <R.ResponsiveContainer width="100%" height={250}>
-                  <R.AreaChart data={overTime.filter((d) => d.valuation != null)} margin={{ top: 8, right: 10, bottom: 4, left: 0 }}>
+                  <R.AreaChart data={overTime.filter((d) => d.valuation != null)} margin={{ top: 8, right: 20, bottom: 4, left: 0 }}>
                     <R.CartesianGrid stroke="var(--rule)" vertical={false} />
                     <R.XAxis dataKey="year" ticks={otTicks.filter((y) => overTime.some((d) => d.year === y && d.valuation != null))} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
                     <R.YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={40} tickFormatter={(v) => "$" + (v / 1e9).toFixed(0) + "B"} />
