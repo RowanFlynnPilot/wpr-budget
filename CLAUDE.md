@@ -296,6 +296,16 @@ python scripts/verify.py
 # district bill finite, manifest files/sources. Proven to catch the June Capital
 # Projects column shift. Add a check here whenever the UI starts assuming something.
 npm run check
+# Then a real browser (CI runs it on the BUILT site, after the build; a failure
+# stops the deploy): bills and receipts add up, next-door counties, the
+# assessment check, key dates + the .ics, the map zoom, "Use my location" with
+# real geolocation, and every view x language with no console errors. Every
+# expectation is derived from public/*.json or the page, so a new year's data
+# doesn't break it. Needs Playwright (pip install playwright; python -m
+# playwright install chromium). The webapp-testing skill's with_server.py runs
+# it locally against the production build:
+python scripts/e2e.py                        # against npm run dev (:5180)
+python ~/.claude/skills/webapp-testing/scripts/with_server.py        --server "npx vite preview --port 4173 --strictPort" --port 4173        -- python scripts/e2e.py --base http://localhost:4173/wpr-budget/
 
 # Multi-year: pass prior-year "Adopted Budget" PDFs as trailing args. The FIRST
 # PDF drives every detailed section; each prior PDF contributes only the slice

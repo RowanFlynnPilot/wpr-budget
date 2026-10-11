@@ -128,6 +128,7 @@ python scripts/extract_map.py sources/census-cousub-2025/cb_2025_55_cousub_500k.
 python scripts/og_cards.py # the share cards carry figures; CI fails while they're stale
 
 python scripts/verify.py   # proves every data file reproduces the committed JSON byte-for-byte
+python scripts/e2e.py      # a real browser drives the site (needs Playwright; CI runs it before every deploy)
 ```
 
 Every extractor reconciles every table against the budget's own printed totals
