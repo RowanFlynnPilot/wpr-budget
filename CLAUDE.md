@@ -693,8 +693,10 @@ npm run build    # vite build + scripts/entity-pages.mjs (per-entity share stubs
   in a WPR post. Snippets (README "Embedding on WordPress") are bare iframes:
   the **story card** `…/wpr-budget/#card` ("What does your home pay?" —
   `src/Card.jsx`, no chrome, no recharts) sized by a width formula fitted to its
-  measured height (EN + ES, 288–1100px; **re-measure `.card-inner` and refit if
-  the card's content changes**), and the **full tool** at `height:90vh` scrolling
+  measured height (EN/ES/HMN, every municipality type, values up to $99,999,999,
+  24px spare from a 260px column up; e2e fails if the card outgrows the README's
+  formula — **re-measure `.card-inner` and refit if the card's content
+  changes**), and the **full tool** at `height:90vh` scrolling
   inside its frame. Both carry `allow="web-share; clipboard-write"`; the full
   tool also `geolocation` (the Tax Bill view's "Use my location"). The app still
   posts `{type:"wpr-budget:height"}` for hosts that can run a script.

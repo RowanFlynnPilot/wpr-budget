@@ -236,6 +236,35 @@ def main():
               and not any("playfair" in f.lower() for f in fonts), str(fonts))
         ctx.close()
 
+        # ---- the story card fits the frame the README's WordPress snippet gives it ----
+        # (no script in a WPR post, so the frame's height is a formula of the
+        # column's width: every language, the widest amounts, every column width)
+        formula = re.search(r'padding-top:(max\(.*?\));"><iframe src="[^"]*#card"',
+                            (ROOT / "README.md").read_text(encoding="utf-8")).group(1)
+        ctx = browser.new_context(viewport={"width": 1300, "height": 2400})
+        page = ctx.new_page()
+        page.goto(base + "#card")
+        least = (1e9, "")
+        for lang in ("en", "es", "hmn"):
+            page.evaluate("(l) => { localStorage.setItem('wpr-budget-lang', l); localStorage.setItem('wpr-budget-homeval', '99999999'); }", lang)
+            page.reload()
+            page.wait_for_selector(".card-result b")
+            page.evaluate("document.fonts.ready")
+            for w in range(260, 1301, 4):
+                page.set_viewport_size({"width": w, "height": 2400})
+                spare = page.evaluate("""(f) => {
+                  const o = document.createElement("div"), i = document.createElement("div");
+                  o.style.cssText = `position:absolute;left:0;top:0;visibility:hidden;width:${document.documentElement.clientWidth}px`;
+                  i.style.paddingTop = f;
+                  o.append(i); document.body.append(o);
+                  const h = i.getBoundingClientRect().height; o.remove();
+                  return h - document.querySelector(".card-inner").getBoundingClientRect().height;
+                }""", formula)
+                least = min(least, (spare, f"{lang} at {w}px"))
+        check(f"card: fits the README's WordPress frame, 260-1300 px, 3 languages (least spare {least[0]:.0f} px, {least[1]})",
+              least[0] >= 0, f"overflows by {-least[0]:.0f} px")
+        ctx.close()
+
         # ---- every view, in every language ----
         ctx = browser.new_context(viewport={"width": 1100, "height": 900})
         page = ctx.new_page()

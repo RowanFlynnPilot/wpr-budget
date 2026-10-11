@@ -36,6 +36,15 @@ So both snippets are bare iframes. Paste one into a **Custom HTML** block; savin
 needs an Editor or Administrator account (WordPress strips iframes from Author
 and Contributor posts).
 
+Both were checked on Oct. 10, 2026 in WordPress 7.1.2 (WordPress Playground,
+default theme): published with the block editor's Publish button (the save came
+back as JSON, status 200, no error notice, and the block reopened valid), every
+attribute kept exactly as pasted, the card fitting its frame on desktop and on
+phones, and the full tool scrolling inside its frame with its menu and "Use my
+location" working there. If the editor ever says "not a valid JSON response",
+look for a `<script` in the post: the listener at the end of this section is
+for pages that aren't WPR posts.
+
 ### In a story: the tax-bill card
 
 "What does your home pay?" — municipality, school district and home value, the
@@ -43,19 +52,23 @@ year's bill and its split, and a link to the full tool. It fits its frame at
 every width, so readers scroll past it like an image:
 
 ```html
-<div><div style="position:relative;padding-top:max(425px, min(calc(820px - 52.9%), calc(2569px - 335%)));"><iframe src="https://rowanflynnpilot.github.io/wpr-budget/#card" title="Follow the Money: what does your home pay?" loading="lazy" allow="web-share; clipboard-write" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"></iframe></div></div>
+<div><div style="position:relative;padding-top:max(427px, min(calc(903px - 62%), calc(3396px - 464%)));"><iframe src="https://rowanflynnpilot.github.io/wpr-budget/#card" title="Follow the Money: what does your home pay?" loading="lazy" allow="web-share; clipboard-write" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"></iframe></div></div>
 ```
 
 Without a script the frame can't measure the card, so its height is a formula of
 the column's width (`padding-top` percentages are shares of the outer `<div>`'s
-width; keep that `<div>`, block themes need it). Refitted on Oct. 10, 2026, after
-the card started showing the state's credits, to its measured height in English
-and Spanish (the taller): 637px at a 288px column (WPR's on a 320px phone),
-577px at 320, 534px at 375, 491px at 480, 462px just under 620px, where the
-controls go three across and the card drops to ~395px. The frame has at least
-24px to spare at every width from 288px up, and the card centers itself in it.
-**If the card's content changes, re-measure** `.card-inner`'s height at frame
-widths 288–1100 in both languages and refit.
+width; keep that `<div>`, block themes need it). Refitted on Oct. 10, 2026 (the
+Hmong card and very large home values had outgrown the earlier fit by up to 22px
+on phones) to the card's tallest measured height in all three languages, every
+municipality type and home values from empty to $99,999,999, at column widths
+240–1300px: 693px at a 260px column, 673px from 288 (WPR's on a 320px phone) to
+330, 611px at 360, 541px at 414, ~529px just under 560 and ~493px just under
+620px, where the controls go three across and the card drops to ~403px. The
+frame has at least 24px to spare at every column width from 260px up, and the
+card centers itself in it. The browser tests (CI) stop the deploy if the card
+ever outgrows this frame; **if the card's content changes, re-measure**
+`.card-inner`'s height (every language, a $99,999,999 value, widths 260–1300)
+and refit.
 
 ### On its own page: the full tool
 
