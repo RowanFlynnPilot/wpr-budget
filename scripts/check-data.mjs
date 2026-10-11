@@ -234,6 +234,18 @@ for (const file of [countyEnt.data, ...(countyEnt.editions || []).map((ed) => ed
   for (const k of ["suite", taxbillId]) {
     if (JSON.stringify(cards[k]) !== JSON.stringify(want)) stale(k, `card says ${JSON.stringify(cards[k])}, data says ${JSON.stringify(want)}`);
   }
+  // one card per municipality (/tax/<slug>/): the amount its page states (one bill,
+  // or the range across its school districts) and its rank, dearest first
+  const ranked = muniBills(d.municipalities, d.meta.credits, 200000);
+  const usd$ = (n) => "$" + Math.round(n).toLocaleString("en-US");
+  for (const m of d.municipalities) {
+    const slug = muniSlug(m);
+    const b = m.school_districts.map((sd) => netBill(m, sd, d.meta.credits, 200000));
+    const amount = b.length > 1 ? `${usd$(Math.min(...b))}–${usd$(Math.max(...b))}` : usd$(b[0]);
+    const want = { amount, rank: ranked.findIndex((r) => r.m.code === m.code) + 1 };
+    if (JSON.stringify((cards.towns || {})[slug]) !== JSON.stringify(want)) stale(`towns.${slug}`, `card says ${JSON.stringify((cards.towns || {})[slug])}, data says ${JSON.stringify(want)}`);
+    if (!existsSync(`public/og-tax-${slug}.png`)) stale(`towns.${slug}`, "no card image");
+  }
   // the Tax Bill card's map: every municipality shaded by its bill (muniBills), on these boundaries
   const geo = read(`public/${entities.find((e) => e.kind === "taxbill").with.map}`);
   const bills = Object.fromEntries(muniBills(d.municipalities, d.meta.credits, 200000).map((r) => [r.m.code, Math.round(r.bill)]));

@@ -15,6 +15,9 @@ export default defineConfig({
         manualChunks(id) {
           if (/node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return "react";
           if (/node_modules[\\/](recharts|d3-[^\\/]+|victory-vendor|react-smooth)[\\/]/.test(id)) return "recharts";
+          // The on-demand facade (withCharts.jsx imports it dynamically) belongs in the
+          // recharts chunk; left alone, Rollup folds it into index and every page loads charts.
+          if (/[\\/]src[\\/]rechartsParts\.js$/.test(id)) return "recharts";
         },
       },
     },

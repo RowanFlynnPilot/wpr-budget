@@ -1,7 +1,4 @@
 import React, { useState, useMemo } from "react";
-import {
-  ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, ComposedChart, Bar, Area,
-} from "recharts";
 import { useStrings } from "../i18n";
 import { usd, compact } from "../format";
 import {
@@ -11,6 +8,7 @@ import {
 } from "../ui";
 import { BarTip, MoneyFlowSankey, DebtChart } from "../charts";
 import ChromeBar from "../ChromeBar";
+import { WithCharts } from "../withCharts";
 import { netBill, stateCredits } from "../taxmath";
 import demographics from "../demographics.json";
 
@@ -248,15 +246,17 @@ export default function CityLedger({ b, extra, chrome }) {
         </SectionHead>
         <div className="chart-wrap">
           <ChartFrame summary={levyNote} table={{ columns: [{ key: "year", label: t("col.year") }, { key: "levy", label: t("tip.levy"), fmt: usd }], rows: levy }}>
-          <ResponsiveContainer width="100%" height={300}>
-            <ComposedChart data={levy} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
-              <CartesianGrid stroke="var(--rule)" vertical={false} />
-              <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
-              <YAxis tick={{ fill: "var(--gold-ink)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
-              <Tooltip content={<BarTip seriesName={t("tip.levy")} />} cursor={{ fill: "var(--paper-2)" }} />
-              <Bar dataKey="levy" fill="var(--gold)" fillOpacity={0.82} radius={[2, 2, 0, 0]} maxBarSize={38} />
-            </ComposedChart>
-          </ResponsiveContainer>
+          <WithCharts height={300}>{(R) => (
+            <R.ResponsiveContainer width="100%" height={300}>
+              <R.ComposedChart data={levy} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
+                <R.CartesianGrid stroke="var(--rule)" vertical={false} />
+                <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+                <R.YAxis tick={{ fill: "var(--gold-ink)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={46} />
+                <R.Tooltip content={<BarTip seriesName={t("tip.levy")} />} cursor={{ fill: "var(--paper-2)" }} />
+                <R.Bar dataKey="levy" fill="var(--gold)" fillOpacity={0.82} radius={[2, 2, 0, 0]} maxBarSize={38} />
+              </R.ComposedChart>
+            </R.ResponsiveContainer>
+          )}</WithCharts>
           </ChartFrame>
           <p className="note">{levyNote}</p>
         </div>
@@ -281,16 +281,18 @@ export default function CityLedger({ b, extra, chrome }) {
         </div>
         <div className="chart-wrap">
           <ChartFrame summary={wfNote} table={{ columns: [{ key: "year", label: t("col.year") }, { key: "fte", label: t("col.fte", wfDept) }], rows: wfSeries }}>
-          <ResponsiveContainer width="100%" height={320}>
-            <ComposedChart data={wfSeries} margin={{ top: 8, right: 12, bottom: 4, left: 6 }}>
-              <CartesianGrid stroke="var(--rule)" vertical={false} />
-              <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
-              <YAxis tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={34} />
-              <Tooltip content={<WorkforceTip />} cursor={{ stroke: "var(--rule)" }} />
-              <Area type="monotone" dataKey="fte" name={wfDept} stroke="var(--accent)" strokeWidth={2.5}
-                fill="var(--accent)" fillOpacity={0.12} dot={{ r: 2.5, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
-            </ComposedChart>
-          </ResponsiveContainer>
+          <WithCharts height={320}>{(R) => (
+            <R.ResponsiveContainer width="100%" height={320}>
+              <R.ComposedChart data={wfSeries} margin={{ top: 8, right: 12, bottom: 4, left: 6 }}>
+                <R.CartesianGrid stroke="var(--rule)" vertical={false} />
+                <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} />
+                <R.YAxis tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} width={34} />
+                <R.Tooltip content={<WorkforceTip />} cursor={{ stroke: "var(--rule)" }} />
+                <R.Area type="monotone" dataKey="fte" name={wfDept} stroke="var(--accent)" strokeWidth={2.5}
+                  fill="var(--accent)" fillOpacity={0.12} dot={{ r: 2.5, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
+              </R.ComposedChart>
+            </R.ResponsiveContainer>
+          )}</WithCharts>
           </ChartFrame>
           <p className="note">{wfNote}</p>
         </div>

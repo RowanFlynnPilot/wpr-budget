@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { CalendarPlus, LocateFixed, ZoomIn, ZoomOut } from "lucide-react";
+import { CalendarPlus, LocateFixed, Printer, ZoomIn, ZoomOut } from "lucide-react";
 import { useLang, useStrings } from "../i18n";
 import { usd, fmtDate } from "../format";
 import entities from "../entities.json";
@@ -487,7 +487,7 @@ function AssessmentCheck({ muni, where, homeValue, year }) {
   const mine = assessed / homeValue;
   const verdict = !ok ? null : mine > ratio * 1.1 ? "as.high" : mine < ratio * 0.9 ? "as.low" : "as.fair";
   return (
-    <section id="assessment" className="block">
+    <section id="assessment" className={"block" + (assessed ? "" : " as-empty")}>
       <SectionHead kicker={t("as.kick")} title={t("as.title")}>{t("as.dek")}</SectionHead>
       <div className="as-inputs">
         <label className="as-field">
@@ -607,6 +607,7 @@ const TB_SECTIONS = ["bill", "receipt", "compare", "neighbors", "assessment", "d
 
 export default function TaxBillOverview({ b, extra, chrome }) {
   const t = useStrings();
+  const { lang } = useLang();
   const active = useScrollSpy(TB_SECTIONS, chrome.routeId);
   const [homeValue, setHomeValue] = useHomeValue();
   const [muniCode, setMuniCode] = useMuniChoice();
@@ -639,7 +640,7 @@ export default function TaxBillOverview({ b, extra, chrome }) {
   const keptPace = netBill(was.m, was.sd, prior.meta.credits, homeValue / (1 + growth), primary);
 
   return (
-    <div className="ftm">
+    <div className="ftm tb-view">
       <ChromeBar {...chrome} />
 
       <header className="masthead">
@@ -659,6 +660,10 @@ export default function TaxBillOverview({ b, extra, chrome }) {
 
       {/* The tool first: where -> (school) -> value -> the bill, split. */}
       <section id="bill" className="block tb-steps">
+        {/* print only: the choices the controls hold, as one line */}
+        <p className="print-only print-summary">
+          {t("tb.printSummary", bill.where, bill.school.name, usd(homeValue), primary)}
+        </p>
         <MuniPicker municipalities={b.municipalities} value={muni.code} onChange={setMuniCode} step={1} />
         <UseLocation map={extra.map} municipalities={b.municipalities} onPick={setMuniCode} />
         <SchoolPicker options={bill.schoolOptions} value={bill.school.code} onChange={setSchool} where={bill.where} step={2} />
@@ -680,7 +685,14 @@ export default function TaxBillOverview({ b, extra, chrome }) {
           <summary>{t("tb.businessQ")}</summary>
           <p>{t("tb.businessA")}</p>
         </details>
-        <ShareTown muni={muni} where={bill.where} />
+        <div className="tb-actions">
+          <ShareTown muni={muni} where={bill.where} />
+          <button type="button" className="table-toggle tb-print" onClick={() => {
+            track("Download", { view: "your-tax-bill", format: "print" });
+            window.print();
+          }}><Printer size={15} strokeWidth={2.25} aria-hidden="true" />{t("tb.print")}</button>
+        </div>
+
       </section>
 
       <Receipt rows={splitRows} homeValue={homeValue} credits={credits} primary={primary}
@@ -700,6 +712,8 @@ export default function TaxBillOverview({ b, extra, chrome }) {
       <AssessmentCheck muni={muni} where={bill.where} homeValue={homeValue} year={year} />
 
       <KeyDates muni={muni} where={bill.where} />
+
+      <p className="print-only print-foot">{t("tb.printFoot", fmtDate(new Date().toISOString().slice(0, 10), lang))}</p>
 
       <footer className="foot">
         <p><b>{t("foot.sourceLabel")}</b> <SourceLink source={chrome.source}>{t("tb.foot.source", year)}</SourceLink></p>

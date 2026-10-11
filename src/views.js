@@ -1,4 +1,5 @@
 import { fetchData } from "./data";
+import { loadCharts } from "./withCharts";
 
 // The four entity bodies, as lazy-load functions: App wraps them in
 // React.lazy, and prefetchEntity warms the same chunks.
@@ -18,6 +19,7 @@ export function prefetchEntity(ent) {
   if (warmed.has(ent.id)) return;
   warmed.add(ent.id);
   BODY_LOADERS[ent.kind]().catch(() => {});
+  if (ent.kind !== "taxbill") loadCharts().catch(() => {}); // the Tax Bill view draws no recharts
   for (const f of [ent.data, ...Object.values(ent.with || {})]) fetchData(f).catch(() => {});
 }
 

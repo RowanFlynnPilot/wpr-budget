@@ -79,6 +79,252 @@
       "37084": 1828
     }
   },
+  "towns": {
+    "city-of-abbotsford": {
+      "amount": "$2,886\u2013$3,363",
+      "rank": 2
+    },
+    "city-of-colby": {
+      "amount": "$2,793",
+      "rank": 10
+    },
+    "city-of-marshfield": {
+      "amount": "$3,071",
+      "rank": 5
+    },
+    "city-of-mosinee": {
+      "amount": "$2,617",
+      "rank": 13
+    },
+    "city-of-schofield": {
+      "amount": "$2,829",
+      "rank": 7
+    },
+    "city-of-wausau": {
+      "amount": "$3,255\u2013$3,372",
+      "rank": 1
+    },
+    "village-of-athens": {
+      "amount": "$2,881",
+      "rank": 6
+    },
+    "village-of-birnamwood": {
+      "amount": "$2,242",
+      "rank": 21
+    },
+    "village-of-dorchester": {
+      "amount": "$3,131",
+      "rank": 3
+    },
+    "village-of-edgar": {
+      "amount": "$2,466",
+      "rank": 15
+    },
+    "village-of-elderon": {
+      "amount": "$1,894",
+      "rank": 51
+    },
+    "village-of-fenwood": {
+      "amount": "$1,829",
+      "rank": 58
+    },
+    "village-of-hatley": {
+      "amount": "$2,174",
+      "rank": 28
+    },
+    "village-of-kronenwetter": {
+      "amount": "$2,183\u2013$2,191",
+      "rank": 26
+    },
+    "village-of-maine": {
+      "amount": "$2,449",
+      "rank": 16
+    },
+    "village-of-marathon-city": {
+      "amount": "$2,822",
+      "rank": 8
+    },
+    "village-of-rib-mountain": {
+      "amount": "$2,205",
+      "rank": 25
+    },
+    "village-of-rothschild": {
+      "amount": "$2,668",
+      "rank": 12
+    },
+    "village-of-spencer": {
+      "amount": "$3,073",
+      "rank": 4
+    },
+    "village-of-stratford": {
+      "amount": "$2,815",
+      "rank": 9
+    },
+    "village-of-unity": {
+      "amount": "$2,002",
+      "rank": 41
+    },
+    "village-of-weston": {
+      "amount": "$2,683",
+      "rank": 11
+    },
+    "town-of-bergen": {
+      "amount": "$1,847",
+      "rank": 57
+    },
+    "town-of-berlin": {
+      "amount": "$1,940\u2013$2,102",
+      "rank": 45
+    },
+    "town-of-bern": {
+      "amount": "$1,764\u2013$2,071",
+      "rank": 36
+    },
+    "town-of-bevent": {
+      "amount": "$1,863\u2013$2,012",
+      "rank": 40
+    },
+    "town-of-brighton": {
+      "amount": "$2,084\u2013$2,497",
+      "rank": 14
+    },
+    "town-of-cassel": {
+      "amount": "$1,793\u2013$2,017",
+      "rank": 39
+    },
+    "town-of-cleveland": {
+      "amount": "$2,194\u2013$2,284",
+      "rank": 19
+    },
+    "town-of-day": {
+      "amount": "$2,055\u2013$2,207",
+      "rank": 24
+    },
+    "town-of-easton": {
+      "amount": "$2,265",
+      "rank": 20
+    },
+    "town-of-eau-pleine": {
+      "amount": "$1,886",
+      "rank": 52
+    },
+    "town-of-elderon": {
+      "amount": "$1,829",
+      "rank": 59
+    },
+    "town-of-emmet": {
+      "amount": "$1,862\u2013$2,149",
+      "rank": 55
+    },
+    "town-of-frankfort": {
+      "amount": "$1,868\u2013$2,345",
+      "rank": 54
+    },
+    "town-of-franzen": {
+      "amount": "$1,966\u2013$2,115",
+      "rank": 44
+    },
+    "town-of-green-valley": {
+      "amount": "$1,981\u2013$2,134",
+      "rank": 43
+    },
+    "town-of-guenther": {
+      "amount": "$2,176",
+      "rank": 27
+    },
+    "town-of-halsey": {
+      "amount": "$2,140",
+      "rank": 30
+    },
+    "town-of-hamburg": {
+      "amount": "$2,193\u2013$2,242",
+      "rank": 22
+    },
+    "town-of-harrison": {
+      "amount": "$1,924",
+      "rank": 48
+    },
+    "town-of-hewitt": {
+      "amount": "$2,151",
+      "rank": 29
+    },
+    "town-of-holton": {
+      "amount": "$1,927\u2013$2,404",
+      "rank": 46
+    },
+    "town-of-hull": {
+      "amount": "$1,918\u2013$2,396",
+      "rank": 49
+    },
+    "town-of-johnson": {
+      "amount": "$2,291\u2013$2,457",
+      "rank": 18
+    },
+    "town-of-knowlton": {
+      "amount": "$1,853",
+      "rank": 56
+    },
+    "town-of-marathon": {
+      "amount": "$2,049",
+      "rank": 38
+    },
+    "town-of-mcmillan": {
+      "amount": "$1,926\u2013$2,317",
+      "rank": 47
+    },
+    "town-of-mosinee": {
+      "amount": "$1,877\u2013$2,164",
+      "rank": 53
+    },
+    "town-of-norrie": {
+      "amount": "$1,941\u2013$1,997",
+      "rank": 42
+    },
+    "town-of-plover": {
+      "amount": "$2,324\u2013$2,416",
+      "rank": 17
+    },
+    "town-of-reid": {
+      "amount": "$1,841\u2013$1,905",
+      "rank": 50
+    },
+    "town-of-rib-falls": {
+      "amount": "$1,874\u2013$2,146",
+      "rank": 33
+    },
+    "town-of-rietbrock": {
+      "amount": "$1,852\u2013$2,125",
+      "rank": 32
+    },
+    "town-of-ringle": {
+      "amount": "$1,693",
+      "rank": 61
+    },
+    "town-of-spencer": {
+      "amount": "$2,208",
+      "rank": 23
+    },
+    "town-of-stettin": {
+      "amount": "$2,057\u2013$2,218",
+      "rank": 37
+    },
+    "town-of-texas": {
+      "amount": "$2,095",
+      "rank": 34
+    },
+    "town-of-wausau": {
+      "amount": "$2,019\u2013$2,136",
+      "rank": 31
+    },
+    "town-of-weston": {
+      "amount": "$2,087",
+      "rank": 35
+    },
+    "town-of-wien": {
+      "amount": "$1,828\u2013$2,101",
+      "rank": 60
+    }
+  },
   "marathon-county-2027-proposed": {
     "levy_pct": 8.2,
     "levy_rank": "the largest rise in records back to 2018",

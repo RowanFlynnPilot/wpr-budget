@@ -1,7 +1,4 @@
 import React, { useState, useMemo } from "react";
-import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Cell,
-} from "recharts";
 import { ChevronDown } from "lucide-react";
 import { useLang, useStrings } from "../i18n";
 import { usd, compact, pct, deptSpend, fmtDate } from "../format";
@@ -10,7 +7,7 @@ import {
   Methodology, HomeValueCalc, DivisorToggle, useScrollSpy, useAnchorOnMount, useHomeValue,
 } from "../ui";
 import ChromeBar from "../ChromeBar";
-import "../charts"; // applies the reduced-motion default to recharts
+import { WithCharts } from "../withCharts";
 import demographics from "../demographics.json";
 
 const SECTIONS = ["where", "departments", "trends", "bill", "funds", "debt", "methodology"];
@@ -359,33 +356,37 @@ export default function Ledger({ b, extra, chrome }) {
           <div className="twin-charts">
             <div>
               <h3 className="twin-title">{t("co.trends.legendLevy")}</h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={levyTrend} margin={{ top: 8, right: 6, bottom: 4, left: 0 }}>
-                  <CartesianGrid stroke="var(--rule)" vertical={false} />
-                  <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
-                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={44} />
-                  <Tooltip content={<LevyTip />} cursor={{ fill: "var(--paper-2)" }} />
-                  <Bar dataKey="levy" fill="var(--gold)" radius={[4, 4, 0, 0]} maxBarSize={30}>
-                    {/* A proposed year's bar is drawn faint: not yet a levy anyone owes. */}
-                    {levyTrend.map((l) => (
-                      <Cell key={l.year} fillOpacity={proposed && l.year === b.meta.budget_year ? 0.35 : 0.9} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <WithCharts height={250}>{(R) => (
+                <R.ResponsiveContainer width="100%" height={250}>
+                  <R.BarChart data={levyTrend} margin={{ top: 8, right: 6, bottom: 4, left: 0 }}>
+                    <R.CartesianGrid stroke="var(--rule)" vertical={false} />
+                    <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
+                    <R.YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + (v / 1e6).toFixed(0) + "M"} width={44} />
+                    <R.Tooltip content={<LevyTip />} cursor={{ fill: "var(--paper-2)" }} />
+                    <R.Bar dataKey="levy" fill="var(--gold)" radius={[4, 4, 0, 0]} maxBarSize={30}>
+                      {/* A proposed year's bar is drawn faint: not yet a levy anyone owes. */}
+                      {levyTrend.map((l) => (
+                        <R.Cell key={l.year} fillOpacity={proposed && l.year === b.meta.budget_year ? 0.35 : 0.9} />
+                      ))}
+                    </R.Bar>
+                  </R.BarChart>
+                </R.ResponsiveContainer>
+              )}</WithCharts>
               {proposed && <div className="chart-legend twin-legend"><span><i className="sw sw-levy sw--proposed" /> {t("co.trends.legendProposed", b.meta.budget_year)}</span></div>}
             </div>
             <div>
               <h3 className="twin-title">{t("co.trends.legendRate")}</h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={levyTrend} margin={{ top: 8, right: 10, bottom: 4, left: 0 }}>
-                  <CartesianGrid stroke="var(--rule)" vertical={false} />
-                  <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
-                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(0)} width={34} />
-                  <Tooltip content={<LevyTip />} cursor={{ stroke: "var(--rule)" }} />
-                  <Line type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
-                </LineChart>
-              </ResponsiveContainer>
+              <WithCharts height={250}>{(R) => (
+                <R.ResponsiveContainer width="100%" height={250}>
+                  <R.LineChart data={levyTrend} margin={{ top: 8, right: 10, bottom: 4, left: 0 }}>
+                    <R.CartesianGrid stroke="var(--rule)" vertical={false} />
+                    <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
+                    <R.YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(0)} width={34} />
+                    <R.Tooltip content={<LevyTip />} cursor={{ stroke: "var(--rule)" }} />
+                    <R.Line type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                  </R.LineChart>
+                </R.ResponsiveContainer>
+              )}</WithCharts>
             </div>
           </div>
           </ChartFrame>
@@ -465,31 +466,35 @@ export default function Ledger({ b, extra, chrome }) {
           <div className="twin-charts">
             <div>
               <h3 className="twin-title">{t("co.bill.legendRate")}</h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={trend} margin={{ top: 8, right: 10, bottom: 4, left: 0 }}>
-                  <CartesianGrid stroke="var(--rule)" vertical={false} />
-                  <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
-                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(0)} width={34} />
-                  <Tooltip content={<BillTip />} cursor={{ stroke: "var(--rule)" }} />
-                  <Line type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
-                </LineChart>
-              </ResponsiveContainer>
+              <WithCharts height={250}>{(R) => (
+                <R.ResponsiveContainer width="100%" height={250}>
+                  <R.LineChart data={trend} margin={{ top: 8, right: 10, bottom: 4, left: 0 }}>
+                    <R.CartesianGrid stroke="var(--rule)" vertical={false} />
+                    <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
+                    <R.YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + v.toFixed(0)} width={34} />
+                    <R.Tooltip content={<BillTip />} cursor={{ stroke: "var(--rule)" }} />
+                    <R.Line type="monotone" dataKey="rate" stroke="var(--accent)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--accent)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                  </R.LineChart>
+                </R.ResponsiveContainer>
+              )}</WithCharts>
             </div>
             <div>
               <h3 className="twin-title">{t("co.bill.legendBill")}</h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={trend} margin={{ top: 8, right: 6, bottom: 4, left: 0 }}>
-                  <CartesianGrid stroke="var(--rule)" vertical={false} />
-                  <XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
-                  <YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + Math.round(v)} width={44} />
-                  <Tooltip content={<BillTip />} cursor={{ fill: "var(--paper-2)" }} />
-                  <Bar dataKey="bill" fill="var(--gold)" radius={[4, 4, 0, 0]} maxBarSize={26}>
-                    {trend.map((p) => (
-                      <Cell key={p.year} fillOpacity={proposed && p.year === b.meta.budget_year ? 0.35 : 0.9} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <WithCharts height={250}>{(R) => (
+                <R.ResponsiveContainer width="100%" height={250}>
+                  <R.BarChart data={trend} margin={{ top: 8, right: 6, bottom: 4, left: 0 }}>
+                    <R.CartesianGrid stroke="var(--rule)" vertical={false} />
+                    <R.XAxis dataKey="year" tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={{ stroke: "var(--rule)" }} tickLine={false} interval="preserveStartEnd" minTickGap={14} />
+                    <R.YAxis domain={[0, "auto"]} tick={{ fill: "var(--ink-soft)", fontSize: 12, fontFamily: "var(--sans)" }} axisLine={false} tickLine={false} tickFormatter={(v) => "$" + Math.round(v)} width={44} />
+                    <R.Tooltip content={<BillTip />} cursor={{ fill: "var(--paper-2)" }} />
+                    <R.Bar dataKey="bill" fill="var(--gold)" radius={[4, 4, 0, 0]} maxBarSize={26}>
+                      {trend.map((p) => (
+                        <R.Cell key={p.year} fillOpacity={proposed && p.year === b.meta.budget_year ? 0.35 : 0.9} />
+                      ))}
+                    </R.Bar>
+                  </R.BarChart>
+                </R.ResponsiveContainer>
+              )}</WithCharts>
             </div>
           </div>
           </ChartFrame>

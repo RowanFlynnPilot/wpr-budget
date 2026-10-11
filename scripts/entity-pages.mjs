@@ -63,7 +63,7 @@ const townPages = dor.municipalities.map((m) => {
     title: `${where}: ${amount} a year on a $200,000 home — Follow the Money · Wausau Pilot & Review`,
     desc: `What a $200,000 home in the ${where} pays in local property taxes at ${dor.meta.tax_year} rates${bills.length > 1 ? ", depending on its school district" : ""}, after the state's credits for a primary home — where every dollar goes, and how it compares with Marathon County's other ${munis - 1} cities, villages and towns.`,
     route: "your-tax-bill",
-    image: "og-your-tax-bill.png",
+    image: `og-tax-${muniSlug(m)}.png`, // the place on the county map (scripts/og_cards.py)
     remember: m.code,
   };
 });

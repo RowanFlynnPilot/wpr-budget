@@ -138,6 +138,9 @@ export default function App() {
     let stale = false;
     setErr(null); // a failed view must not strand every later view on its error
     const { ent, edition, dataFile } = resolveRoute(route);
+    // The view's code downloads alongside its data, not after it (React.lazy
+    // shares the same import, so the body mounts as soon as both are in).
+    BODY_LOADERS[ent.kind]().catch(() => {});
     // An edition's change log (amendments since the proposal) rides along as `updates`.
     const extras = Object.entries({ ...(ent.with || {}), ...(edition && edition.updates ? { updates: edition.updates } : {}) });
     Promise.all([fetchData(dataFile), ...extras.map(([, file]) => fetchData(file))])

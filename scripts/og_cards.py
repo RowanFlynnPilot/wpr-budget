@@ -6,7 +6,10 @@ Writes public/og-image.png (the suite), public/og-your-tax-bill.png (the Tax Bil
 view and every /tax/<town>/ page - with the county map, every municipality
 shaded by its bill as on the page) and public/og-<entity>-<edition>.png for each
 budget-season edition, plus public/og-cards.json with every figure drawn (the
-map's: each municipality's bill and the boundaries' date).
+map's: each municipality's bill and the boundaries' date), and one card per
+municipality, public/og-tax-<slug>.png, for its /tax/<slug>/ share page: the
+place, what the same home pays there (the page's own figure), its rank, and the
+county map with the place outlined (og-cards.json `towns`).
 scripts/check-data.mjs recomputes those figures from the data with the app's own
 formula (src/taxmath.js) and fails the deploy when a card is stale, so: rerun this
 after any data change that moves them, and commit the PNGs with the JSON.
@@ -86,13 +89,14 @@ def frame(kicker, kicker_fill=GOLD_INK):
     return im, d
 
 
-def pills(d, y=500):
+def pills(d, y=500, size=26):
     x = 72
+    h = size * 2
     for label, color in PILLS:
-        f = SANS_B(26)
-        w = d.textlength(label, font=f) + 38
-        d.rounded_rectangle([x, y, x + w, y + 52], radius=26, fill=color)
-        d.text((x + 19, y + 11), label, font=f, fill=(255, 255, 255))
+        f = SANS_B(size)
+        w = d.textlength(label, font=f) + size * 1.46
+        d.rounded_rectangle([x, y, x + w, y + h], radius=h // 2, fill=color)
+        d.text((x + size * 0.73, y + size * 0.42), label, font=f, fill=(255, 255, 255))
         x += w + 16
 
 
@@ -171,14 +175,16 @@ def rings(d):
     return out
 
 
-def county_map(geo, fill_of, width, pins=()):
-    """The map, `width` px wide (drawn at 3x and scaled down for smooth edges):
-    each municipality filled even-odd (an enclave is its neighbor's own shape),
-    paper borders, the county outline; pins = [(code, label, solid)] on top."""
-    k = 3
+K = 3  # the map is drawn at 3x and scaled down, for smooth edges
+
+
+def map_base(geo, fill_of, width):
+    """The map at 3x: each municipality filled even-odd (an enclave is its
+    neighbor's own shape), paper borders, the county outline. Drawn once, then
+    finished per card (map_finish)."""
     W, H = geo["meta"]["width"], geo["meta"]["height"]
-    s = width * k / W
-    size = (width * k, round(H * s))
+    s = width * K / W
+    size = (width * K, round(H * s))
     art = Image.new("RGBA", size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(art)
     pt = lambda p: (p[0] * s, p[1] * s)  # noqa: E731
@@ -194,12 +200,31 @@ def county_map(geo, fill_of, width, pins=()):
             draw.line([pt(p) for p in r + r[:1]], fill=PAPER_MAP, width=2, joint="curve")
     for r in rings(geo["outline"]):
         draw.line([pt(p) for p in r + r[:1]], fill=SOFT, width=4, joint="curve")
+    return art
+
+
+def county_map(geo, fill_of, width, pins=(), outline=None, base=None):
+    """The finished map, `width` px wide: the base (drawn here unless given),
+    one municipality outlined in ink if `outline` (its code), then
+    pins = [(code, label, solid)] on top (label None: the pin alone)."""
+    W, H = geo["meta"]["width"], geo["meta"]["height"]
+    art = (base or map_base(geo, fill_of, width)).copy()
+    if outline:
+        s = width * K / W
+        draw = ImageDraw.Draw(art)
+        shape = next(sh for sh in geo["shapes"] if sh["code"] == outline)
+        for r in rings(shape["d"]):
+            draw.line([(x * s, y * s) for x, y in r + r[:1]], fill=INK, width=8, joint="curve")
     art = art.resize((width, round(H * width / W)), Image.LANCZOS)
     d = ImageDraw.Draw(art)
     for code, label, solid in pins:
         x, y = next(sh["label"] for sh in geo["shapes"] if sh["code"] == code)
-        x, y = x * width / W, y * width / W
+        # kept inside the map: a place on the county's edge (Abbotsford, Colby)
+        x = min(max(x * width / W, 8), width - 8)
+        y = min(max(y * width / W, 8), art.height - 8)
         d.ellipse([x - 6, y - 6, x + 6, y + 6], fill=INK if solid else PAPER_MAP, outline=INK, width=3)
+        if label is None:
+            continue
         f = SANS_B(20)
         tw = d.textlength(label, font=f)
         lx = x + 12 if x + 12 + tw + 12 <= art.width else x - 12 - tw - 12
@@ -233,16 +258,70 @@ def day(iso):
     return dt.strftime("%B ") + str(dt.day)
 
 
-def suite_card(x):
+def suite_card(x, geo, bills):
     im, d = frame("THE PUBLIC LEDGER")
-    d.text((70, 186), "Follow the Money", font=SERIF(104), fill=INK)
+    d.text((70, 172), "Follow the Money", font=SERIF(96), fill=INK)
     line = (f"The same $200,000 home pays {usd(x['lo'])} a year in the {x['lo_place']} and {usd(x['hi'])} "
             f"in the {x['hi_place']}, after state credits.")
-    y = 330
-    for ln in wrap(d, line, SERIF(36), W - 144):
-        d.text((72, y), ln, font=SERIF(36), fill=INK)
-        y += 48
-    pills(d, 512)
+    y = 300
+    for ln in wrap(d, line, SERIF(32), 520):
+        d.text((72, y), ln, font=SERIF(32), fill=INK)
+        y += 44
+    lo, hi = min(bills.values()), max(bills.values())
+    lo_code = next(c for c, b in bills.items() if b == lo)
+    hi_code = next(c for c, b in bills.items() if b == hi)
+    art = county_map(geo, lambda c: ramp_color((bills[c] - lo) / (hi - lo)), 456,
+                     pins=[(lo_code, usd(lo), False), (hi_code, usd(hi), True)])
+    im.paste(art, (W - 72 - 456, 290), art)
+    pills(d, 562, size=21)
+    return im
+
+
+def ordinal(n):
+    return f"{n}{'th' if 10 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
+
+
+def slug_of(m):
+    # muniSlug in src/taxmath.js
+    return re.sub(r"[^a-z0-9]+", "-", f"{m['type']} of {m['name']}".lower()).strip("-")
+
+
+def town_figures(dor):
+    """Each municipality's card figures: the amount its /tax/<slug>/ page states
+    (scripts/entity-pages.mjs: one bill, or the range across its school
+    districts) and its rank among the county's municipalities, dearest first,
+    by its largest district's bill (muniBills). og-cards.json `towns`."""
+    credits = dor["meta"]["credits"]
+    largest = sorted(dor["municipalities"], key=lambda m: -net_bill(m, m["school_districts"][0], credits))
+    rank = {m["code"]: i + 1 for i, m in enumerate(largest)}
+    out = {}
+    for m in dor["municipalities"]:
+        b = [js_round(net_bill(m, sd, credits)) for sd in m["school_districts"]]
+        amount = f"${min(b):,}\u2013${max(b):,}" if len(b) > 1 else f"${b[0]:,}"
+        out[slug_of(m)] = {"amount": amount, "rank": rank[m["code"]]}
+    return out
+
+
+def town_card(m, f, n, geo, base):
+    im, d = frame("FOLLOW THE MONEY  ·  YOUR TAX BILL")
+    name = f"{m['type']} of {m['name']}"
+    d.text((70, 176), name, font=fit(d, name, SERIF, 62, 548), fill=INK)
+    d.text((72, 262), f["amount"], font=fit(d, f["amount"], SERIF, 96, 548), fill=ACCENT)
+    y = 378
+    sub = "a year on a $200,000 home" + (" in its Marathon County part" if m["split_county"] else "") + ", after the state's credits"
+    if "–" in f["amount"]:
+        sub += ", depending on its school district"
+    for ln in wrap(d, sub, SANS(27), 540):
+        d.text((72, y), ln, font=SANS(27), fill=SOFT)
+        y += 36
+    r = f["rank"]
+    where = "the highest" if r == 1 else "the lowest" if r == n else f"the {ordinal(r)}-highest"
+    y += 16
+    for ln in wrap(d, f"{where[0].upper() + where[1:]} of Marathon County's {n} cities, villages and towns.", SANS_B(26), 540):
+        d.text((72, y), ln, font=SANS_B(26), fill=INK)
+        y += 34
+    art = county_map(geo, None, 480, pins=[(m["code"], m["name"], True)], outline=m["code"], base=base)
+    im.paste(art, (W - 72 - 480, 300), art)
     return im
 
 
@@ -306,8 +385,17 @@ def main():
     figures = {"suite": x, taxbill["id"]: x,
                "map": {"boundaries_as_of": geo["meta"]["boundaries_as_of"],
                        "bills": {c: js_round(b) for c, b in bills.items()}}}
-    suite_card(x).save(PUBLIC / "og-image.png", optimize=True)
+    suite_card(x, geo, bills).save(PUBLIC / "og-image.png", optimize=True)
     taxbill_card(x, geo, bills).save(PUBLIC / f"og-{taxbill['id']}.png", optimize=True)
+    # one card per municipality, on one base map (drawn once)
+    towns = town_figures(dor)
+    figures["towns"] = towns
+    lo, hi = min(bills.values()), max(bills.values())
+    base = map_base(geo, lambda c: ramp_color((bills[c] - lo) / (hi - lo)), 480)
+    for m in dor["municipalities"]:
+        card = town_card(m, towns[slug_of(m)], len(dor["municipalities"]), geo, base)
+        card.quantize(colors=192, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).save(
+            PUBLIC / f"og-tax-{slug_of(m)}.png", optimize=True)
     for e in entities:
         for ed in e.get("editions", []):
             b = json.loads((PUBLIC / ed["data"]).read_text(encoding="utf-8"))
@@ -317,7 +405,8 @@ def main():
             edition_card(e["name"], f).save(PUBLIC / f"og-{slug}.png", optimize=True)
     (PUBLIC / "og-cards.json").write_text(json.dumps(figures, indent=2) + "\n", encoding="utf-8")
     print("wrote", ", ".join(["og-image.png", f"og-{taxbill['id']}.png"]
-                             + [f"og-{k}.png" for k in figures if k not in ("suite", taxbill["id"], "map")]))
+                             + [f"og-{k}.png" for k in figures if k not in ("suite", taxbill["id"], "map", "towns")])
+          + f", and {len(towns)} og-tax-<town>.png")
 
 
 if __name__ == "__main__":

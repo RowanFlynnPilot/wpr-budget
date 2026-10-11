@@ -681,6 +681,9 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
   .lp-card-stat span{display:block; font-size:12px;}
   .lp-card-desc, .lp-card-cta{display:none;}
 }
+/* A chart's box while the chart library loads (withCharts.jsx): its exact
+   height, a still tint, so the page around it never moves. */
+.chart-wait{background:rgba(28,26,22,.04); border-radius:2px;}
 /* Placeholders for the landing's figures while the data files load: same size
    as what replaces them, so nothing moves; a still tint, no shimmer. */
 .skel{display:inline-block; vertical-align:middle; background:rgba(28,26,22,.08); border-radius:3px;}
@@ -818,6 +821,11 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
 
 /* print: drop the chrome/nav/controls, keep the ledger — this is journalism,
    people print these pages. */
+.print-only{display:none;}
+.tb-actions{display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; margin-top:16px;}
+.tb-actions .share-town{margin-top:0;}
+.tb-print{display:inline-flex; align-items:center; gap:6px;}
+
 @media print {
   .chrome-bar, .beta-banner, .subnav, .downloads, .suite-link,
   .lp-card-cta, .wf-pick, .edition--pointer, .edition__link { display: none !important; }
@@ -825,6 +833,31 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
   .masthead { padding-top: 12px; }
   .bar-row, .jrow, .ledger-item, .fund-row, .debt-row, .cmp-row, .chg-row,
   .stat, .callout, .balance { break-inside: avoid; }
+  .print-only { display: block; }
+  .sponsor-slot, .support-band { display: none !important; }
+
+  /* "Print my bill" (Tax Bill view): the bill, the receipt, the assessment check
+     when filled in, and the key dates — on paper, for Open Book or a meeting.
+     The controls print as one summary line; the map, the ranking and the
+     neighbors (the whole county, not the reader's bill) stay on screen. */
+  @page { margin: 0.5in; }
+  .tb-view { zoom: 0.82; }
+  .tb-view .masthead .dek, .tb-view .kicker-row, .tb-view #compare, .tb-view #neighbors,
+  .tb-view .school-pick, .tb-view .loc, .tb-view .calc-input, .tb-view .primary-home,
+  .tb-view .tb-more, .tb-view .tb-actions, .tb-view .kd-actions, .tb-view .kd-alerts,
+  .tb-view .as-empty, .tb-view .as-links, .tb-view .foot .muted, .tb-view #receipt > .note { display: none !important; }
+  .tb-view .masthead h1 { font-size: 26pt; }
+  .tb-view .masthead { padding: 0 0 6pt; border: 0; }
+  .tb-view .calc { display: block; background: none; border: 0; padding: 0; }
+  .tb-view .calc-out { text-align: left; align-items: flex-start; }
+  .tb-view .block { padding-top: 14pt; margin-top: 0; }
+  .tb-view .taxbar, .tb-view .jrow-sw, .tb-view .rc-total, .tb-view .kd-list { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .tb-view .receipt tbody, .tb-view .kd-list li, .tb-view .as-out, .tb-view .as-steps li { break-inside: avoid; }
+  body, .tb-view, .tb-view .receipt, .tb-view .as-out { background: #fff !important; }
+  /* each printed section fits a page: keep it whole, heading and all */
+  .tb-view #receipt, .tb-view #assessment, .tb-view #dates { break-inside: avoid; }
+  .print-summary { margin: 0 0 8pt; padding: 6pt 0; border-top: 2px solid #000; border-bottom: 1px solid #999; font-weight: 700; font-size: 13pt; }
+  .print-foot { margin-top: 18pt; padding-top: 8pt; border-top: 1px solid #999; font-size: 9.5pt; color: #444; }
 }
 
 @media(max-width:680px){

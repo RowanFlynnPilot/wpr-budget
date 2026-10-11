@@ -24,9 +24,9 @@ PUBLIC = ROOT / "public"
 ROUTES = ["home", "marathon-county", "marathon-county~2027-proposed", "wausau-city", "wausau-school",
           "your-tax-bill", "about", "card"]
 results = []
-# Visible text under 12 px (SVG labels and screen-reader-only text aside).
+# Visible text under 12 px, chart labels included (screen-reader-only text aside).
 TINY_TEXT = """() => [...document.querySelectorAll("body *")].filter((el) => {
-  if (el.closest("svg, .sr-only") || ![...el.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim())) return false;
+  if (el.closest(".sr-only, .chrome-bar__wordmark") || ![...el.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim())) return false;
   const r = el.getBoundingClientRect(), s = getComputedStyle(el);
   return r.width > 1 && r.height > 1 && s.visibility !== "hidden" && parseFloat(s.fontSize) < 12;
 }).map((el) => `${el.className || el.tagName} ${getComputedStyle(el).fontSize} "${el.textContent.trim().slice(0, 24)}"`)"""
@@ -178,7 +178,25 @@ def main():
         page.wait_for_timeout(700)
         vb = page.locator(".cmap-wrap svg").get_attribute("viewBox")
         check("map: and back out", vb == f"0 0 {geo['meta']['width']} {geo['meta']['height']}", vb)
+        # "Print my bill": on paper, the reader's bill and none of the county-wide sections
+        page.emulate_media(media="print")
+        shown = {sel: page.locator(sel).first.is_visible() for sel in ("#receipt", "#dates", ".print-summary", ".print-foot")}
+        hidden = {sel: page.locator(sel).first.is_visible() for sel in ("#compare", "#neighbors", ".tb-actions", ".loc")}
+        check("print: the bill prints, the county-wide sections and controls don't",
+              all(shown.values()) and not any(hidden.values()), f"shown {shown} hidden {hidden}")
+        page.emulate_media(media="screen")
         check("Tax Bill view: no console errors", not errors, "; ".join(errors[:3]))
+        ctx.close()
+
+        # ---- the charts arrive on their own: every chart box filled, none left waiting ----
+        ctx = browser.new_context(viewport={"width": 1100, "height": 900})
+        page = ctx.new_page()
+        for v in ("#marathon-county", "#wausau-city", "#wausau-school"):
+            page.goto(base + v)
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(500)
+            charts, waiting = page.locator(".recharts-surface").count(), page.locator(".chart-wait").count()
+            check(f"charts {v}: drawn once the library lands", charts >= 3 and waiting == 0, f"{charts} drawn, {waiting} waiting")
         ctx.close()
 
         # ---- "Use my location" on a phone, with real (granted) geolocation ----
@@ -205,7 +223,7 @@ def main():
         # ---- type and targets on a phone: nothing under 12 px, no tap target under 24 px ----
         ctx = browser.new_context(viewport={"width": 390, "height": 844})
         page = ctx.new_page()
-        for v in ("", "#your-tax-bill", "#marathon-county", "#card"):
+        for v in ("", "#your-tax-bill", "#marathon-county", "#wausau-city", "#wausau-school", "#card"):
             page.goto(base + v)
             page.wait_for_load_state("networkidle")
             page.wait_for_timeout(300)

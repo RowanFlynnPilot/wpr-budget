@@ -576,8 +576,18 @@ for 2025-26) for a per-student denominator.
     DivisorToggle, and the hooks `useScrollSpy`, `useAnchorOnMount`,
     `useHomeValue`. **MUST stay free of recharts imports** — it's in the eager
     bundle; anything chart-flavored goes in…
-  - `src/charts.jsx` — recharts-dependent shared pieces (BarTip, SankeyNode,
-    MoneyFlowSankey, DebtChart). Imported ONLY by lazy bodies.
+  - `src/charts.jsx` — shared chart pieces (BarTip, SankeyNode,
+    MoneyFlowSankey, DebtChart); their recharts parts render through WithCharts.
+  - `src/withCharts.jsx` + `src/rechartsParts.js` — CHARTS LOAD ON DEMAND (since
+    2026-10-10): `<WithCharts height={H}>{(R) => <R.ResponsiveContainer …>…}</WithCharts>`
+    loads recharts (only the components re-exported by rechartsParts.js, so it
+    stays tree-shaken, ~113 kB gzip) on first use and holds an empty box of the
+    chart's height meanwhile. The County/City/School pages paint their text,
+    figures and tables without waiting for it (slow-phone LCP ~2.7 s → ~1.8 s).
+    App also starts a body's code download alongside its data (no waterfall),
+    and prefetchEntity warms recharts on hover. vite.config.js pins
+    rechartsParts.js into the recharts chunk — left alone, Rollup folded it into
+    index and EVERY page (landing included) loaded the charts.
   - `src/ChromeBar.jsx`, `src/Landing.jsx`, `src/format.js` (usd/compact/pct/
     downloadCSV), `src/data.js` (fetchData promise cache), `src/nav.js`
     (pending-section handoff between App and body mounts).
@@ -695,11 +705,17 @@ npm run build    # vite build + scripts/entity-pages.mjs (per-entity share stubs
   Each uses its own card image when `scripts/og_cards.py` made one.
 - **Share cards with numbers:** `python scripts/og_cards.py` (Pillow; Georgia +
   Arial from the Windows font folder) draws og-image.png (suite: "the same
-  $200,000 home pays $1,693 … $3,372", after credits), og-your-tax-bill.png (the
-  range + the county map, shaded like the page; also every town page) and
-  og-<entity>-<edition>.png, and writes every figure to
-  public/og-cards.json. check-data recomputes them with src/taxmath.js and
-  **fails the deploy when a card is stale** — rerun after data changes.
+  $200,000 home pays $1,693 … $3,372", after credits, beside the county map with
+  both ends pinned), og-your-tax-bill.png (the range + the map),
+  og-<entity>-<edition>.png, and one card per municipality,
+  og-tax-<slug>.png (61, ~26 kB each, quantized): the place, the amount its
+  /tax/<slug>/ page states (a range where it spans school districts), its rank
+  ("the 26th-highest of … 61"), and the map with the place outlined and its pin
+  labeled (kept inside the map for edge places like Abbotsford). The map base
+  is drawn once and finished per card (~4 s for all). Every figure goes to
+  public/og-cards.json (`towns` too); check-data recomputes them with
+  src/taxmath.js and **fails the deploy when a card is stale or missing** —
+  rerun after data changes.
 - **Analytics (Plausible, off until configured):** `src/analytics.js`, copied
   from prep-sports (WPR's suite-wide account). Set repo variable
   `PLAUSIBLE_SCRIPT_ID` (the `pa-…` id from the site's install snippet — sites
@@ -910,11 +926,19 @@ Done and shipped:
   `sources/_pages_*.json` (keyed on PDF size+mtime) and re-runs take seconds.
   Run `python scripts/verify.py` after ANY extractor/lib change — byte-identical
   output is the regression contract.
-- **`src/ui.jsx` must never import recharts** (directly or transitively): it's
-  in the eager bundle, and one import drags the ~560 kB recharts chunk into the
-  landing page's first load (vite emits a `modulepreload` for it — check
-  `dist/index.html` if unsure). Chart-flavored shared components go in
-  `src/charts.jsx`, which only lazy bodies import.
+- **NOTHING imports recharts statically any more** — not ui.jsx (eager), and
+  not the bodies either: a static import in a body makes its whole first paint
+  wait for the chart chunk again. New charts go inside `<WithCharts height={H}>`
+  with `R.` components; a new recharts component goes in src/rechartsParts.js.
+  Check `dist/index.html` has no recharts `modulepreload` and a body chunk has
+  no `from"./recharts-…"` import after any chart change (e2e also asserts every
+  chart box fills).
+- **"Print my bill"** (Tax Bill view, `.tb-view` print rules in styles.css): the
+  bill, receipt, assessment check (only when filled in) and key dates print;
+  the map, ranking, neighbors and controls don't; a print-only summary line
+  stands in for the controls, a dated footer names the source. Each printed
+  section is kept whole (Chromium ignores break-after:avoid next to an
+  unbreakable block); 3–4 Letter pages. e2e checks what prints.
 - **Programmatic scrolls are `behavior:"instant"` on purpose.** Smooth
   programmatic scrolling gets canceled by chart reflows/re-renders (observed
   not moving at all); same-entity section scrolls also deliberately bypass
