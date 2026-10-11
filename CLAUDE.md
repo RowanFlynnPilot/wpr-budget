@@ -170,6 +170,24 @@ grid's once-used edges encloses the county (neighbors share borders exactly).
 A new DOR year that adds/renames a municipality fails check-data until the map
 is re-extracted (use the next GENZ vintage).
 
+**Zoom and location (src/mapgeo.js).** "Zoom to the Wausau area" animates the
+map's viewBox (420 ms; instant under reduced motion) to `WAUSAU_AREA` — the
+urban core (Wausau, Schofield, Rothschild, Weston), padded and given the map's
+proportions so the figure never resizes; zoomed, every city/village in view is
+named (towns share names with them — tooltip only), most populous first, and a
+layout effect hides any name that would overlap one already placed (the pick's
+label always wins); the scale bar picks 10/5/2/1 miles. NOTE the browser pane
+throttles requestAnimationFrame (~1–3 fps) when not being painted, so the zoom
+can look stuck there — it isn't; a visible browser runs it at full rate.
+**"Use my location"** (`UseLocation`, under step 1): `navigator.geolocation` →
+`locate(map, lon, lat, max(accuracy, 300 m))` in the browser (meta.geo is the
+projection) → sets the municipality, offers the neighbors whose line is within
+that distance as one-tap switches, and says when the fix is only approximate
+(> 2 km) or outside the county. Nothing is sent or stored; the About privacy
+paragraph says so. check-data proves every municipality's own label point
+(as lon/lat) locates to it and a point outside the county to none. A WordPress
+embed of the full tool needs `geolocation` in its iframe `allow` (README).
+
 The same map appears in two more places, all from ONE set of pieces:
 `muniBills` (src/taxmath.js — each municipality's bill, largest district unless
 it's the reader's own), `rampColor`/`RAMP` + `CountyShapes` (ui.jsx — chart-free,
@@ -590,7 +608,8 @@ npm run build    # vite build + scripts/entity-pages.mjs (per-entity share stubs
   `src/Card.jsx`, no chrome, no recharts) sized by a width formula fitted to its
   measured height (EN + ES, 288–1100px; **re-measure `.card-inner` and refit if
   the card's content changes**), and the **full tool** at `height:90vh` scrolling
-  inside its frame. Both carry `allow="web-share; clipboard-write"`. The app still
+  inside its frame. Both carry `allow="web-share; clipboard-write"`; the full
+  tool also `geolocation` (the Tax Bill view's "Use my location"). The app still
   posts `{type:"wpr-budget:height"}` for hosts that can run a script.
 - **Share pages** (`scripts/entity-pages.mjs`, in `npm run build`): `/<entity>/`,
   `/<entity>-<edition>/`, `/about/`, and one per municipality `/tax/<slug>/`

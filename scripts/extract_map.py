@@ -182,6 +182,10 @@ def extract(shp_zip, dor_json):
             "width": WIDTH,
             "height": height,
             "units_per_mile": round(scale / mi_per_deg, 3),
+            # the projection, for placing a longitude/latitude on the grid (the
+            # Tax Bill view's "Use my location"): x = (lon - lon0) * x_per_deg,
+            # y = (lat0 - lat) * y_per_deg
+            "geo": {"lon0": min(lons), "lat0": max(lats), "x_per_deg": k * scale, "y_per_deg": scale},
         },
         "outline": path(loops),
         "shapes": shapes,

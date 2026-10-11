@@ -1,9 +1,11 @@
-import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { LocateFixed, ZoomIn, ZoomOut } from "lucide-react";
 import { useStrings } from "../i18n";
 import { usd } from "../format";
 import { track } from "../analytics";
 import { billDollars, billParts, muniBills, muniSlug, netBill, stateCredits } from "../taxmath";
 import { countyShares, cityShares, schoolShares, itemize } from "../receipt";
+import { locate, ringsOf, WAUSAU_AREA } from "../mapgeo";
 import {
   SponsorSlot, SourceLink, SectionHead, HomeValueCalc, TaxSplit, MuniPicker, SchoolPicker, billRates, billExtremes, placeLabel,
   PrimaryHomeToggle, useAnchorOnMount, useHomeValue, useMuniChoice, useSchoolChoice, usePrimaryHome, WAUSAU_CITY_DOR,
@@ -72,14 +74,14 @@ function Receipt({ rows, homeValue, credits, where, school, year, budgets }) {
             const detail = r.drillId && DETAIL[r.drillId];
             return (
               <tbody key={r.key}>
-                <tr className="rc-gov"><th scope="row">{r.label}</th><td>{usd(amount)}</td></tr>
+                <tr className="rc-gov"><th scope="row">{r.label}{r.suffix && " " + t(r.suffix)}</th><td>{usd(amount)}</td></tr>
                 {detail
                   ? itemize(detail(budgets), amount).map((it) => (
                     <tr className="rc-item" key={it.key || it.label}>
                       <th scope="row">{it.key ? t(it.key) : it.label}</th><td>{usd(it.amount)}</td>
                     </tr>))
                   : r.key !== "college" && <tr className="rc-note"><td colSpan={2}>
-                    {t("rc.noDetail", r.key === "school" ? `${school.name} School District` : r.label)}
+                    {t("rc.noDetail", r.label)}
                   </td></tr>}
               </tbody>
             );
@@ -94,6 +96,51 @@ function Receipt({ rows, homeValue, credits, where, school, year, budgets }) {
       </div>
       <p className="note">{t("rc.note")}</p>
     </section>
+  );
+}
+
+// "Use my location": the phone's (or browser's) position, matched to a
+// municipality HERE, against the map's boundaries (src/mapgeo.js) — never sent
+// or stored. The boundaries are generalized and positions have an uncertainty,
+// so the neighbors whose line runs within that distance (300 m at least) are
+// offered as one-tap switches; the bill names the municipality for certain.
+function UseLocation({ map, municipalities, onPick }) {
+  const t = useStrings();
+  const [st, setSt] = useState(null); // null | { busy } | { code, near, rough } | { error }
+  const name = (code) => { const m = municipalities.find((x) => x.code === code); return `${m.type} of ${m.name}`; };
+  if (!("geolocation" in navigator)) return null;
+  const find = () => {
+    setSt({ busy: true });
+    navigator.geolocation.getCurrentPosition(({ coords }) => {
+      const r = locate(map, coords.longitude, coords.latitude, Math.max(coords.accuracy, 300));
+      if (!r.code) { setSt({ error: "tb.loc.outside" }); return; }
+      track("Municipality", { name: name(r.code), via: "location" });
+      onPick(r.code);
+      setSt({ code: r.code, near: r.near.slice(0, 3), rough: coords.accuracy > 2000 });
+    }, (e) => setSt({ error: e.code === 1 ? "tb.loc.denied" : "tb.loc.failed" }),
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 600000 });
+  };
+  const switchTo = (code) => {
+    track("Municipality", { name: name(code), via: "location-near" });
+    onPick(code);
+    setSt({ ...st, code, near: [st.code, ...st.near.filter((c) => c !== code)] });
+  };
+  return (
+    <div className="loc">
+      <button type="button" className="table-toggle loc-btn" onClick={find} disabled={Boolean(st && st.busy)}>
+        <LocateFixed size={15} strokeWidth={2.25} aria-hidden="true" />{st && st.busy ? t("tb.loc.finding") : t("tb.loc.use")}
+      </button>
+      <p className="loc-status" role="status">
+        {!st || st.busy ? t("tb.loc.privacy")
+          : st.error ? t(st.error)
+          : <>
+            {t("tb.loc.found", name(st.code))}{st.rough && " " + t("tb.loc.rough")}
+            {st.near.length > 0 && <> {t("tb.loc.near")}{" "}
+              {st.near.map((c) => <button key={c} type="button" className="loc-alt" onClick={() => switchTo(c)}>{name(c)}</button>)}
+            </>}
+          </>}
+      </p>
+    </div>
   );
 }
 
@@ -117,27 +164,80 @@ function CountyMap({ map, rows, mine, homeValue, onPick }) {
   const [lo, hi] = [Math.min(...bills), Math.max(...bills)];
   const shade = (bill) => rampColor((bill - lo) / (hi - lo || 1));
   const dollars = (n) => usd(Math.round(n));
-  const { width: W, height: H } = map.meta;
-  const pos = ([x, y]) => ({ left: (x / W) * 100 + "%", top: (y / H) * 100 + "%" });
+  const { width: W, height: H, units_per_mile: upm } = map.meta;
   const name = (m) => `${m.type} of ${m.name}`;
+
+  // The view: the whole county, or the Wausau area (its core's box, padded and
+  // given the map's proportions, so the figure never changes size). The change
+  // animates unless the reader has asked for less motion.
+  const area = useMemo(() => {
+    const pts = map.shapes.filter((s) => WAUSAU_AREA.includes(s.code)).flatMap((s) => ringsOf(s.d).flat());
+    const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
+    let w = (Math.max(...xs) - Math.min(...xs)) * 1.15, h = (Math.max(...ys) - Math.min(...ys)) * 1.15;
+    if (w / h < W / H) w = (h * W) / H; else h = (w * H) / W;
+    const cx = (Math.max(...xs) + Math.min(...xs)) / 2, cy = (Math.max(...ys) + Math.min(...ys)) / 2;
+    return [Math.min(Math.max(0, cx - w / 2), W - w), Math.min(Math.max(0, cy - h / 2), H - h), w, h];
+  }, [map, W, H]);
+  const [zoom, setZoom] = useState(false);
+  const [view, setView] = useState([0, 0, W, H]);
+  const shown = useRef(view);
+  shown.current = view;
+  useEffect(() => {
+    const from = shown.current, to = zoom ? area : [0, 0, W, H];
+    if (from.every((v, i) => v === to[i])) return undefined;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setView(to); return undefined; }
+    let raf, t0;
+    const step = (now) => {
+      t0 = t0 ?? now;
+      const f = Math.min(1, (now - t0) / 420);
+      const e = f < 0.5 ? 4 * f * f * f : 1 - Math.pow(2 - 2 * f, 3) / 2;
+      setView(from.map((v, i) => v + (to[i] - v) * e));
+      if (f < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [zoom, area, W, H]);
+  const [vx, vy, vw, vh] = view;
+  const frac = ([x, y]) => [(x - vx) / vw, (y - vy) / vh];
+  const inView = (q, margin = 0) => frac(q).every((f) => f >= margin && f <= 1 - margin);
+  const pos = (q) => ({ left: frac(q)[0] * 100 + "%", top: frac(q)[1] * 100 + "%" });
+  // a scale bar that fits the view: the longest of 10, 5, 2, 1 miles under ~a fifth of it
+  const miles = [10, 5, 2, 1].find((n) => n * upm <= vw * 0.22) || 1;
+
   const sel = map.shapes.find((s) => s.code === mine.m.code);
-  // "Wausau", for bearings — unless the pick is Wausau or its label would cover it
-  const anchor = map.shapes.find((s) => s.code === WAUSAU_CITY_DOR);
-  const nearAnchor = Math.abs(sel.label[0] - anchor.label[0]) < W * 0.15 && Math.abs(sel.label[1] - anchor.label[1]) < H * 0.2;
+  // Place names for bearings: "Wausau" on the whole county; zoomed in, every
+  // city and village in view (towns share their names with them, so they're
+  // left to the tooltip) — most populous first, as that's the order the layout
+  // effect below keeps them in when two would collide.
+  const named = map.shapes
+    .filter((s) => s !== sel && (zoom ? s.type !== "Town" : s.code === WAUSAU_CITY_DOR))
+    .sort((a, c) => byCode.get(c.code).m.population - byCode.get(a.code).m.population);
   const hover = tip && map.shapes.find((s) => s.code === tip.r.m.code);
   const loRow = rows.find((r) => r.bill === lo), hiRow = rows.find((r) => r.bill === hi);
   // what differs: the municipality's own levy (the county's share is the same
   // everywhere, the school share similar) — medians by type, on this home
   const local = (type) => dollars(median(rows.filter((r) => r.m.type === type)
     .map((r) => (homeValue / 1000) * billParts(r.m, r.m.school_districts[0]).municipality)));
-  const [sx, sy] = sel.label;
-  const below = sy < H * 0.28;
-  // the pick's label: centered over its pin, but kept inside the map
+  const selShown = inView(sel.label);
+  const below = frac(sel.label)[1] < 0.28;
+  // After layout: the pick's label centered over its pin but kept inside the
+  // map; then each place name, in order, hidden if it would overlap a label
+  // already placed (the pick's always wins).
   const label = useRef(null);
   useLayoutEffect(() => {
     const place = () => {
-      const w = wrap.current.clientWidth, lw = label.current.offsetWidth;
-      label.current.style.left = Math.max(0, Math.min(w - lw, (sx / W) * w - lw / 2)) + "px";
+      const taken = [];
+      if (label.current) {
+        const w = wrap.current.clientWidth, lw = label.current.offsetWidth;
+        label.current.style.left = Math.max(0, Math.min(w - lw, frac(sel.label)[0] * w - lw / 2)) + "px";
+        taken.push(label.current.getBoundingClientRect());
+      }
+      for (const el of wrap.current.querySelectorAll(".cmap-anchor")) {
+        const r = el.getBoundingClientRect();
+        const hit = taken.some((q) => r.left < q.right + 4 && q.left < r.right + 4 && r.top < q.bottom + 2 && q.top < r.bottom + 2);
+        el.style.visibility = hit ? "hidden" : "";
+        if (!hit) taken.push(r);
+      }
     };
     place();
     window.addEventListener("resize", place);
@@ -145,8 +245,14 @@ function CountyMap({ map, rows, mine, homeValue, onPick }) {
   });
   return (
     <figure className="cmap">
+      <div className="cmap-tools">
+        <button type="button" className="table-toggle cmap-zoom" aria-pressed={zoom} onClick={() => { setTip(null); setZoom(!zoom); }}>
+          {zoom ? <ZoomOut size={15} strokeWidth={2.25} aria-hidden="true" /> : <ZoomIn size={15} strokeWidth={2.25} aria-hidden="true" />}
+          {zoom ? t("tb.map.zoomOut") : t("tb.map.zoomIn")}
+        </button>
+      </div>
       <div className="cmap-wrap" ref={wrap} onMouseLeave={() => setTip(null)}>
-        <CountyShapes map={map} fill={(code) => shade(byCode.get(code).bill)}
+        <CountyShapes map={map} view={view} fill={(code) => shade(byCode.get(code).bill)}
           label={t("tb.map.alt", rows.length, usd(homeValue), dollars(lo), name(loRow.m), dollars(hi), name(hiRow.m))}
           shapeProps={(s) => ({
             onMouseMove: (e) => {
@@ -158,13 +264,17 @@ function CountyMap({ map, rows, mine, homeValue, onPick }) {
           {hover && hover !== sel && <path className="cmap-hover" d={hover.d} />}
           <path className="cmap-sel" d={sel.d} />
         </CountyShapes>
-        {!nearAnchor && <span className="cmap-anchor" style={pos(anchor.label)} aria-hidden="true">Wausau</span>}
-        <span className="cmap-pin" style={pos(sel.label)} aria-hidden="true" />
-        <span ref={label} className={"cmap-label" + (below ? " below" : "")} style={{ top: pos(sel.label).top }} aria-hidden="true">
-          <em>{t("tb.cmp.yours")}</em>{name(mine.m)} <b>{dollars(mine.bill)}</b>
-        </span>
-        <div className="cmap-scale" style={{ width: `${((10 * map.meta.units_per_mile) / W) * 100}%` }} aria-hidden="true">
-          <i />{t("tb.map.miles", 10)}
+        {named.filter((s) => inView(s.label, 0.07)).map((s) => (
+          <span key={s.code} className="cmap-anchor" style={pos(s.label)} aria-hidden="true">{s.name}</span>
+        ))}
+        {selShown && <>
+          <span className="cmap-pin" style={pos(sel.label)} aria-hidden="true" />
+          <span ref={label} className={"cmap-label" + (below ? " below" : "")} style={{ top: pos(sel.label).top }} aria-hidden="true">
+            <em>{t("tb.cmp.yours")}</em>{name(mine.m)} <b>{dollars(mine.bill)}</b>
+          </span>
+        </>}
+        <div className="cmap-scale" style={{ width: `${((miles * upm) / vw) * 100}%` }} aria-hidden="true">
+          <i /><span>{t("tb.map.miles", miles)}</span>
         </div>
         {tip && (
           <div className="cmap-tip" style={{ left: Math.max(100, Math.min(tip.x, tip.w - 100)), top: tip.y }}>
@@ -300,6 +410,7 @@ export default function TaxBillOverview({ b, extra, chrome }) {
       {/* The tool first: where -> (school) -> value -> the bill, split. */}
       <section id="bill" className="block tb-steps">
         <MuniPicker municipalities={b.municipalities} value={muni.code} onChange={setMuniCode} step={1} />
+        <UseLocation map={extra.map} municipalities={b.municipalities} onPick={setMuniCode} />
         <SchoolPicker options={bill.schoolOptions} value={bill.school.code} onChange={setSchool} where={bill.where} step={2} />
 
         <HomeValueCalc id="homeval-all" label={t("tb.homeLabel")} outLabel={t("tb.estOut")} step={bill.schoolOptions ? 3 : 2}

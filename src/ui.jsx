@@ -27,7 +27,7 @@ export const JURIS_COLORS = ["#16584a", "#7a5f1f", "#a8492f", "#3d5a80"]; // whi
 
 // Companion civic-transparency tool — the budgets adopted here are debated and
 // voted in the meetings the tracker covers.
-export const MEETING_TRACKER_URL = "https://rowanflynnpilot.github.io/marathon-meetings/";
+export const MEETING_TRACKER_URL = "https://wausaupilotandreview.com/central-wisconsin-meeting-tracker/";
 // Where readers report an error (WPR's contact page) — the Methodology section and the Hmong beta banner link it.
 export const CORRECTIONS_URL = "https://wausaupilotandreview.com/contact/";
 // WPR's donate, newsletter and sponsorship pages, tagged so WPR's own site
@@ -621,7 +621,7 @@ export function billRates(muni, code) {
   const rows = [
     { key: "county", label: "Marathon County", rate: part.county, drillId: "marathon-county" },
     { key: "municipality", label: where, rate: part.municipality, drillId: SUITE_IDS.municipality[muni.code] || null },
-    { key: "school", label: `${sd.name} School District (net)`, rate: part.school, drillId: SUITE_IDS.school[sd.code] || null },
+    { key: "school", label: `${sd.name} School District`, suffix: "tb.net", rate: part.school, drillId: SUITE_IDS.school[sd.code] || null },
     { key: "college", label: muni.technical_colleges.map((c) => c.name).join(" / "), rate: part.college, drillId: null },
   ];
   return {
@@ -657,10 +657,11 @@ export function rampColor(f) {
 
 // Marathon County's municipalities as one SVG image (public/marathon-map.json):
 // each shape filled by fill(code), the county outline over them, then children.
-// shapeProps(shape) adds a shape's handlers where the map is interactive.
-export function CountyShapes({ map, fill, label, shapeProps, children }) {
+// shapeProps(shape) adds a shape's handlers where the map is interactive; view
+// ([x, y, w, h] in map units) zooms it — the whole county when absent.
+export function CountyShapes({ map, fill, label, shapeProps, view, children }) {
   return (
-    <svg viewBox={`0 0 ${map.meta.width} ${map.meta.height}`} role="img" aria-label={label}>
+    <svg viewBox={(view || [0, 0, map.meta.width, map.meta.height]).join(" ")} role="img" aria-label={label}>
       {map.shapes.map((s) => <path key={s.code} className="cmap-shape" d={s.d} fill={fill(s.code)} {...(shapeProps && shapeProps(s))} />)}
       <path className="cmap-outline" d={map.outline} />
       {children}
@@ -799,7 +800,8 @@ export function HomeValueCalc({ id, label, outLabel, outValue, value, onChange, 
   );
 }
 
-// Stacked tax-split bar + per-row table. rows: [{ key, label, rate, drillId? }]
+// Stacked tax-split bar + per-row table. rows: [{ key, label, suffix?, rate, drillId? }]
+// (suffix: a string key, translated after the label — the school row's "(net)")
 // with rate per $1,000 of home value; rows with a drillId become clickable
 // when onDrill is provided (the complete-bill overview). Hover state is local,
 // so mousemove re-renders only this component — not the chart-heavy body.
@@ -831,7 +833,7 @@ export function TaxSplit({ rows, total, homeValue, totalLabel, exploreLabel, onD
           const share = (r.rate / total) * 100;
           return (
             <div className="taxbar-tip" style={{ left: Math.max(90, Math.min(tip.x, tip.w - 90)) }}>
-              <div className="tip-year">{r.label}</div>
+              <div className="tip-year">{r.label}{r.suffix && " " + t(r.suffix)}</div>
               <div>{usd(bill.lines[tip.i])} &middot; {share.toFixed(1)}% &middot; ${r.rate.toFixed(2)}/$1k</div>
             </div>
           );
@@ -848,7 +850,7 @@ export function TaxSplit({ rows, total, homeValue, totalLabel, exploreLabel, onD
               } : {})}>
               <span className="jrow-sw" style={{ background: JURIS_COLORS[i % JURIS_COLORS.length] }} />
               <span className="jrow-name">
-                {r.label}
+                {r.label}{r.suffix && " " + t(r.suffix)}
                 {go && <span className="jrow-go">{exploreLabel} <ArrowUpRight size={12} strokeWidth={2.5} /></span>}
               </span>
               <span className="jrow-amt">{usd(bill.lines[i])}</span>

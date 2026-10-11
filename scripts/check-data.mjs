@@ -7,6 +7,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { billDollars, billParts, billTotal, muniBills, muniSlug, netBill, stateCredits } from "../src/taxmath.js";
 import { countyShares, cityShares, schoolShares } from "../src/receipt.js";
+import { locate, toLonLat, WAUSAU_AREA } from "../src/mapgeo.js";
 
 const failures = [];
 const fail = (where, msg) => failures.push(`${where}: ${msg}`);
@@ -166,6 +167,15 @@ for (const file of [countyEnt.data, ...(countyEnt.editions || []).map((ed) => ed
     if (!(x >= 0 && x <= W && y >= 0 && y <= H) || !/^M\d/.test(s.d)) fail(where, `${s.name}: bad path or label point`);
   }
   if (!(map.meta.units_per_mile > 0) || !/^https:\/\//.test(map.meta.source_url)) fail(where, "meta needs units_per_mile and an https source_url");
+  // "Use my location": each municipality's own label point, as a longitude and
+  // latitude, is found in that municipality — and a point outside the county in none
+  for (const s of map.shapes) {
+    const [lon, lat] = toLonLat(map, ...s.label);
+    const got = locate(map, lon, lat, 0).code;
+    if (got !== s.code) fail(where, `${s.name}: its own label point locates to ${got}`);
+  }
+  if (locate(map, -89.4012, 43.0731, 0).code !== null) fail(where, "Madison locates inside Marathon County");
+  for (const c of WAUSAU_AREA) if (!codes.includes(c)) fail(where, `the Wausau area (mapgeo.js) names ${c}, which isn't on the map`);
 }
 
 // ---- share cards: the figures drawn on public/og-*.png (scripts/og_cards.py) still match the data ----

@@ -482,10 +482,20 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
   .rank-bar{grid-column:2 / 4; grid-row:2;}
 }
 
+/* "Use my location" (Tax Bill view, under step 1) */
+.loc{display:flex; flex-wrap:wrap; align-items:center; gap:6px 14px; margin:-4px 0 18px;}
+.loc-btn:disabled{opacity:.6; cursor:progress;}
+.loc-status{flex:1 1 260px; margin:0; font-size:13px; line-height:1.45; color:var(--ink-soft);}
+.loc-alt{margin:2px 6px 2px 0; padding:2px 8px; font:inherit; font-weight:600; color:var(--accent); cursor:pointer;
+  background:var(--paper); border:1px solid var(--accent); border-radius:3px;}
+.loc-alt:hover{background:var(--paper-2);}
+
 /* the same ranking, mapped (Tax Bill view) */
 .cmap{margin:22px 0 0;}
+.cmap-tools{display:flex; justify-content:flex-end; margin-bottom:8px;}
+.cmap-zoom, .loc-btn{display:inline-flex; align-items:center; gap:6px;}
 .cmap-wrap{position:relative;}
-.cmap svg{display:block; width:100%; height:auto; overflow:visible;}
+.cmap-wrap svg{display:block; width:100%; height:auto; overflow:hidden;}
 .cmap-shape{stroke:var(--paper); stroke-width:.8; stroke-linejoin:round; vector-effect:non-scaling-stroke; cursor:pointer;}
 .cmap-outline, .cmap-sel, .cmap-hover{fill:none; stroke-linejoin:round; vector-effect:non-scaling-stroke; pointer-events:none;}
 .cmap-outline{stroke:var(--ink-soft); stroke-width:1.2;}
@@ -516,8 +526,10 @@ tbody + tbody .rc-gov th, tbody + tbody .rc-gov td{border-top:1px dashed var(--r
   box-shadow:0 0 0 1.5px var(--gold);}
 .cmap-ramp-ends{display:flex; justify-content:space-between; margin-top:4px; font-size:12px; font-weight:600;
   font-variant-numeric:tabular-nums;}
-.cmap-scale{position:absolute; right:0; top:calc(100% + 14px); text-align:center; font-size:11px; color:var(--ink-soft); pointer-events:none;}
-.cmap-scale i{display:block; height:6px; border:1.5px solid var(--ink-soft); border-top:0; margin-bottom:3px;}
+.cmap-scale{position:absolute; right:0; top:calc(100% + 14px); display:flex; flex-direction:column; align-items:flex-end;
+  font-size:11px; color:var(--ink-soft); pointer-events:none;}
+.cmap-scale i{align-self:stretch; height:6px; border:1.5px solid var(--ink-soft); border-top:0; margin-bottom:3px;}
+.cmap-scale span{white-space:nowrap;}
 .cmap figcaption{margin-top:14px;}
 
 /* ---------- suite landing page ---------- */

@@ -60,9 +60,11 @@ widths 288–1100 in both languages and refit.
 ### On its own page: the full tool
 
 ```html
-<iframe src="https://rowanflynnpilot.github.io/wpr-budget/" title="Follow the Money" allow="web-share; clipboard-write" style="display:block;width:100%;height:90vh;min-height:560px;border:0;"></iframe>
+<iframe src="https://rowanflynnpilot.github.io/wpr-budget/" title="Follow the Money" allow="web-share; clipboard-write; geolocation" style="display:block;width:100%;height:90vh;min-height:560px;border:0;"></iframe>
 ```
 
+`geolocation` lets the Tax Bill view's "Use my location" ask for the reader's position
+(matched on their device, never sent); without it the button says location is off.
 The bare URL opens the suite landing page; point it at a hash for one view
 (`…/wpr-budget/#marathon-county`, `#marathon-county~2027-proposed`,
 `#your-tax-bill`). The tool scrolls inside its frame, so give it a page of its
